@@ -158,23 +158,34 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
-      {/* Sticky Top Nav */}
+    <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* 3-Tab Shared Navigation */}
       <nav style={{ 
-        padding: '0.8rem 1rem', 
-        display: 'flex', 
-        alignItems: 'center',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        background: 'rgba(10, 15, 28, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)'
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+        background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', justifyContent: 'center'
       }}>
-        <Link href="/nutri-vision" style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          &larr; <span style={{ marginLeft: '0.4rem' }}>戻る</span>
-        </Link>
-        <span style={{ marginLeft: '1.2rem', color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>設定 & データ管理</span>
+        <div style={{ display: 'flex', width: '100%', maxWidth: '600px' }}>
+          {[
+            { label: 'メイン', href: '/nutri-vision' },
+            { label: '統計・履歴', href: '/nutri-vision/history' },
+            { label: '設定', href: '/profile', active: true },
+          ].map(tab => (
+            <Link 
+              key={tab.href} 
+              href={tab.href} 
+              style={{
+                flex: 1, textAlign: 'center', padding: '1rem', textDecoration: 'none',
+                fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.3s',
+                color: tab.active ? 'var(--primary)' : '#64748b',
+                borderBottom: tab.active ? '2px solid var(--primary)' : '2px solid transparent'
+              }}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
       </nav>
 
       <main className="container" style={{ paddingTop: '2rem' }}>

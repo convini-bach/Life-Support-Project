@@ -22,7 +22,8 @@ export default function NutriHistory() {
 
   // Editing state
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editValues, setEditValues] = useState<Partial<AnalysisResult>>({});
+  const [editingType, setEditingType] = useState<'meal' | 'exercise' | 'weight' | null>(null);
+  const [editValues, setEditValues] = useState<any>({});
 
   // Form Data
   const calItems = Array.from({ length: 601 }, (_, i) => i * 5);
@@ -119,30 +120,44 @@ export default function NutriHistory() {
     return days;
   };
 
-  const startEdit = (item: AnalysisResult) => {
+  const startEdit = (item: any, type: 'meal' | 'exercise' | 'weight') => {
     setEditingId(item.id);
+    setEditingType(type);
     setEditValues({ ...item });
   };
 
   const handleEditChange = (field: string, value: any) => {
-    setEditValues(prev => {
+    setEditValues((prev: any) => {
       const updated = { ...prev };
       if (field.includes('.')) {
         const [p1, p2] = field.split('.');
-        (updated as any)[p1] = { ...(updated as any)[p1], [p2]: value };
+        updated[p1] = { ...updated[p1], [p2]: value };
       } else {
-        (updated as any)[field] = value;
+        updated[field] = value;
       }
       return updated;
     });
   };
 
   const saveEdit = () => {
-    if (!editingId) return;
-    const newHistory = history.map(item => item.id === editingId ? { ...item, ...editValues } as AnalysisResult : item);
-    storage.set(STORAGE_KEYS.ANALYSIS_HISTORY, newHistory);
-    setHistory(newHistory);
+    if (!editingId || !editingType) return;
+    
+    if (editingType === 'meal') {
+      const newHistory = history.map(item => item.id === editingId ? { ...item, ...editValues } as AnalysisResult : item);
+      storage.set(STORAGE_KEYS.ANALYSIS_HISTORY, newHistory);
+      setHistory(newHistory);
+    } else if (editingType === 'exercise') {
+      const newHistory = exerciseHistory.map(item => item.id === editingId ? { ...item, ...editValues } as ExerciseLog : item);
+      storage.set(STORAGE_KEYS.EXERCISE_HISTORY, newHistory);
+      setExerciseHistory(newHistory);
+    } else if (editingType === 'weight') {
+      const newHistory = weightHistory.map(item => item.id === editingId ? { ...item, ...editValues } as WeightLog : item);
+      storage.set(STORAGE_KEYS.WEIGHT_HISTORY, newHistory);
+      setWeightHistory(newHistory);
+    }
+    
     setEditingId(null);
+    setEditingType(null);
   };
 
   const deleteItem = (id: number) => {
@@ -181,25 +196,34 @@ export default function NutriHistory() {
   );
 
   return (
-    <div style={{ position: 'relative' }}>
-      {/* FIXED Header Navigation (Always follows scroll) */}
+    <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg)' }}>
+      {/* 3-Tab Shared Navigation */}
       <nav style={{ 
-        padding: '0.8rem 1rem', 
-        display: 'flex', 
-        alignItems: 'center',
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 500,
-        background: 'rgba(10, 15, 28, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)'
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+        background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', justifyContent: 'center'
       }}>
-        <Link href="/nutri-vision" style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          &larr; <span style={{ marginLeft: '0.4rem' }}>戻る</span>
-        </Link>
-        <span style={{ marginLeft: '1.2rem', color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>統計・推移</span>
+        <div style={{ display: 'flex', width: '100%', maxWidth: '600px' }}>
+          {[
+            { label: 'メイン', href: '/nutri-vision' },
+            { label: '統計・履歴', href: '/nutri-vision/history', active: true },
+            { label: '設定', href: '/profile' },
+          ].map(tab => (
+            <Link 
+              key={tab.href} 
+              href={tab.href} 
+              style={{
+                flex: 1, textAlign: 'center', padding: '1rem', textDecoration: 'none',
+                fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.3s',
+                color: tab.active ? 'var(--primary)' : '#64748b',
+                borderBottom: tab.active ? '2px solid var(--primary)' : '2px solid transparent'
+              }}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
       </nav>
 
       <main className="container" style={{ paddingTop: '5rem' }}>
@@ -335,7 +359,8 @@ export default function NutriHistory() {
                         <div style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem' }}>{(item.calories ?? 0).toFixed(0)} kcal</div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button onClick={() => deleteItem(item.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>🗑️</button>
+                        <button onClick={() => startEdit(item, 'meal')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✏️</button>
+                        <button onClick={() => deleteItem(item.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>🗑️</button>
                       </div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', marginTop: '0.5rem', background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '6px' }}>
@@ -370,7 +395,10 @@ export default function NutriHistory() {
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{EXERCISE_LABELS[item.type]}</h3>
                         <div style={{ color: '#3b82f6', fontWeight: '600', fontSize: '0.9rem' }}>-{item.burnedCalories} kcal ・ {item.minutes}分</div>
                       </div>
-                      <button onClick={() => deleteExercise(item.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer' }}>🗑️</button>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button onClick={() => startEdit(item, 'exercise')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✏️</button>
+                        <button onClick={() => deleteExercise(item.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>🗑️</button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -378,6 +406,97 @@ export default function NutriHistory() {
             ) : <p style={{ color: '#64748b', textAlign: 'center', padding: '2rem' }}>記録がありません</p>}
           </section>
         </div>
+
+        {/* SECTION 5: 体重の履歴 */}
+        <section style={{ marginBottom: '4rem' }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>⚖️</span> 体重の履歴 ({weightHistory.length}件)
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {weightHistory.map(item => (
+              <div key={item.id} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <div style={{ color: '#64748b', fontSize: '0.7rem' }}>{new Date(item.date).toLocaleDateString('ja-JP')}</div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{item.weight} <span style={{ fontSize: '0.8rem', fontWeight: 'normal' }}>kg</span></div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <button onClick={() => startEdit(item, 'weight')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✏️</button>
+                  <button onClick={() => {
+                    if (confirm("この記録を削除しますか？")) {
+                      const newHistory = weightHistory.filter(w => w.id !== item.id);
+                      storage.set(STORAGE_KEYS.WEIGHT_HISTORY, newHistory);
+                      setWeightHistory(newHistory);
+                    }
+                  }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>🗑️</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* EDIT MODAL */}
+        {editingId && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 2000,
+            background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)',
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'center'
+          }}>
+            <div className="glass-card animate-slide-up" style={{ 
+              width: '100%', maxWidth: '500px', borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
+              padding: '2rem', maxHeight: '90vh', overflowY: 'auto'
+            }}>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '2rem', fontWeight: 'bold' }}>記録の編集</h3>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>日付</label>
+                  <input 
+                    type="date" 
+                    value={editValues.date ? editValues.date.split('T')[0] : ''} 
+                    onChange={(e) => handleEditChange('date', e.target.value + (editValues.date.includes('T') ? 'T' + editValues.date.split('T')[1] : ''))}
+                    style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
+                  />
+                </div>
+
+                {editingType === 'meal' && (
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>料理名</label>
+                      <input 
+                        type="text" 
+                        value={editValues.name || ''} 
+                        onChange={(e) => handleEditChange('name', e.target.value)}
+                        style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
+                      />
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                      <ScrollPicker label="エネルギー" items={calItems} value={Math.round(editValues.calories || 0)} onChange={(v) => handleEditChange('calories', v)} unit="kcal" />
+                      <ScrollPicker label="塩分" items={saltItems} value={editValues.nutrients?.salt || 0} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
+                      <ScrollPicker label="タンパク質" items={nutrientItems} value={editValues.nutrients?.protein || 0} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
+                      <ScrollPicker label="脂質" items={nutrientItems} value={editValues.nutrients?.fat || 0} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
+                    </div>
+                  </>
+                )}
+
+                {editingType === 'exercise' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                    <ScrollPicker label="消費カロリー" items={calItems} value={editValues.burnedCalories || 0} onChange={(v) => handleEditChange('burnedCalories', v)} unit="kcal" />
+                    <ScrollPicker label="時間" items={Array.from({length: 181}, (_, i) => i)} value={editValues.minutes || 0} onChange={(v) => handleEditChange('minutes', v)} unit="分" />
+                  </div>
+                )}
+
+                {editingType === 'weight' && (
+                  <ScrollPicker label="体重" items={Array.from({length: 1500}, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)))} value={editValues.weight || 0} onChange={(v) => handleEditChange('weight', v)} unit="kg" />
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="btn-primary" onClick={saveEdit} style={{ flex: 2 }}>保存する</button>
+                <button className="btn-secondary" onClick={() => { setEditingId(null); setEditingType(null); }} style={{ flex: 1 }}>キャンセル</button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <footer style={{ marginTop: '4rem', paddingBottom: '2rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
           &copy; 2026 Life Support AI Ecosystem

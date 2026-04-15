@@ -186,9 +186,9 @@ export default function NutriVision() {
             "protein": 数値(g), "fat": 数値(g), "carbs": 数値(g),
             "salt": 数値(g), "fiber": 数値(g), "vegetablesTotal": 数値(g), "vegetablesGreenYellow": 数値(g)
           },
-          "advice": "保険代理店のプロのような親身で鋭い『問いかけ』を含むアドバイス"
+          "advice": "保険代理店のプロのような親身で鋭い『問いかけ』を含むアドバイス。読みやすくするために適度に改行(\\n)や段落（評価・改善点・まとめ）を入れてください。"
         }
-        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な場合は必ず \\n を使用してください。
+        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。
       `;
 
       let result;
@@ -210,8 +210,7 @@ export default function NutriVision() {
       // 不正な制御文字（実際の改行など）をクリーニング
       const cleanedJsonStr = jsonMatch[0]
         .replace(/[\u0000-\u001F\u007F-\u009F]/g, (match) => {
-          if (match === '\n') return '\\n';
-          if (match === '\r') return '\\r';
+          if (match === '\n' || match === '\r') return ' '; // 実際の改行はスペースに置換（JSONパースエラー防止）
           if (match === '\t') return '\\t';
           return '';
         });
@@ -316,7 +315,7 @@ export default function NutriVision() {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Toast Notification */}
       {toast.visible && (
         <div style={{
@@ -329,37 +328,32 @@ export default function NutriVision() {
         </div>
       )}
 
-      {/* FIXED Header Navigation (Always follows scroll) */}
+      {/* 3-Tab Shared Navigation */}
       <nav style={{ 
-        padding: '0.8rem 1rem', 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        position: 'fixed', // 追従させるために fixed に変更
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 500,
-        background: 'rgba(10, 15, 28, 0.85)',
-        backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)'
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+        background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)',
+        display: 'flex', justifyContent: 'center'
       }}>
-        <Link href="/" style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-          &larr; <span style={{ marginLeft: '0.4rem' }}>ポータル</span>
-        </Link>
-        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-          <Link href="/nutri-vision/history" style={{ 
-            color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 'bold', 
-            background: 'rgba(16, 185, 129, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '8px'
-          }}>
-            📊 統計・履歴
-          </Link>
-          <Link href="/profile" style={{ 
-            color: '#94a3b8', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
-            background: 'rgba(255, 255, 255, 0.05)', padding: '0.4rem 0.8rem', borderRadius: '8px'
-          }}>
-            <span>👤</span> 設定
-          </Link>
+        <div style={{ display: 'flex', width: '100%', maxWidth: '600px' }}>
+          {[
+            { label: 'メイン', href: '/nutri-vision', active: true },
+            { label: '統計・履歴', href: '/nutri-vision/history' },
+            { label: '設定', href: '/profile' },
+          ].map(tab => (
+            <Link 
+              key={tab.href} 
+              href={tab.href} 
+              style={{
+                flex: 1, textAlign: 'center', padding: '1rem', textDecoration: 'none',
+                fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.3s',
+                color: tab.active ? 'var(--primary)' : '#64748b',
+                borderBottom: tab.active ? '2px solid var(--primary)' : '2px solid transparent'
+              }}
+            >
+              {tab.label}
+            </Link>
+          ))}
         </div>
       </nav>
 
@@ -391,7 +385,7 @@ export default function NutriVision() {
                 { label: 'タンパク質', cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
                 { label: '脂質', cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
                 { label: '炭水化物', cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
-                { label: '塩分', cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
+                { label: '塩分', cur: todaysTotals.salt, target: targets.salt.min, unit: 'g' },
                 { label: '食物繊維', cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
                 { label: '野菜量', cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
               ].map(n => {
@@ -591,7 +585,12 @@ export default function NutriVision() {
 
               <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>AIアドバイス</div>
-                <p style={{ fontSize: '0.95rem', lineHeight: '1.7', color: '#cbd5e1' }}>{analysisResult.advice}</p>
+                <div style={{ 
+                  lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem',
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {analysisResult.advice}
+                </div>
               </div>
             </div>
           ) : null}
