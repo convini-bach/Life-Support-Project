@@ -188,6 +188,7 @@ export default function NutriVision() {
           },
           "advice": "保険代理店のプロのような親身で鋭い『問いかけ』を含むアドバイス"
         }
+        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な場合は必ず \\n を使用してください。
       `;
 
       let result;
@@ -202,10 +203,20 @@ export default function NutriVision() {
       }
 
       const response = await result.response;
-      const jsonStr = response.text().match(/\{[\s\S]*\}/)?.[0] || "";
-      if (!jsonStr) throw new Error("AI解析に失敗しました。");
+      const jsonText = response.text();
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("AI解析に失敗しました。JSONが見つかりません。");
       
-      const data = JSON.parse(jsonStr);
+      // 不正な制御文字（実際の改行など）をクリーニング
+      const cleanedJsonStr = jsonMatch[0]
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, (match) => {
+          if (match === '\n') return '\\n';
+          if (match === '\r') return '\\r';
+          if (match === '\t') return '\\t';
+          return '';
+        });
+      
+      const data = JSON.parse(cleanedJsonStr);
       const finalResult: AnalysisResult = {
         id: Date.now(),
         date: selectedDate + "T" + new Date().toTimeString().split(' ')[0],
