@@ -16,7 +16,7 @@ export default function ProfilePage() {
 
   // AI settings
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gemini-3-flash");
+  const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
   const [isTesting, setIsTesting] = useState(false);
   const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([]);
 
@@ -43,8 +43,12 @@ export default function ProfilePage() {
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
-      if (savedModel.includes("gemini-1.5") || savedModel.includes("gemini-1.0") || savedModel.includes("exp")) {
-        setSelectedModel("gemini-3-flash");
+      const isDeprecated = savedModel.includes("gemini-1.5") || 
+                           savedModel.includes("gemini-1.0") || 
+                           savedModel === "gemini-3-flash" || 
+                           savedModel.includes("exp");
+      if (isDeprecated) {
+        setSelectedModel("gemini-2.5-flash");
       } else {
         setSelectedModel(savedModel);
       }
@@ -242,9 +246,9 @@ export default function ProfilePage() {
                 onChange={(e) => setSelectedModel(e.target.value)}
                 style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
               >
-                <option value="gemini-3-flash">Gemini 3 Flash (快速・最新)</option>
-                <option value="gemini-3.1-pro">Gemini 3.1 Pro (超高性能)</option>
-                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite (軽量)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash (安定・高速)</option>
+                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (次世代・高性能)</option>
+                <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite (最速)</option>
               </select>
             </div>
 
