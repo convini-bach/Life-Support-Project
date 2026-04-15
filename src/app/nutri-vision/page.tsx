@@ -119,14 +119,13 @@ export default function NutriVision() {
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
-      // 2026年時点で廃止・または未対応の古いモデル名を最新に自動移行
-      const isDeprecated = savedModel.includes("gemini-1.5") || 
-                           savedModel.includes("gemini-1.0") || 
-                           savedModel === "gemini-3-flash" || 
-                           savedModel.includes("exp");
+      // 2026年時点の有効なモデル名のホワイトリスト
+      const validModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-3.1-flash-lite-preview"];
       
-      if (isDeprecated) {
+      if (!validModels.includes(savedModel)) {
+        // リストにない（廃止済みや誤った）名称の場合は、安定版に強制リセット
         setSelectedModel("gemini-2.5-flash");
+        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-2.5-flash");
       } else {
         setSelectedModel(savedModel);
       }

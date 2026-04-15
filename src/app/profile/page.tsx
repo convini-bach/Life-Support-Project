@@ -43,12 +43,10 @@ export default function ProfilePage() {
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
-      const isDeprecated = savedModel.includes("gemini-1.5") || 
-                           savedModel.includes("gemini-1.0") || 
-                           savedModel === "gemini-3-flash" || 
-                           savedModel.includes("exp");
-      if (isDeprecated) {
+      const validModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-3.1-pro-preview", "gemini-3.1-flash-lite-preview"];
+      if (!validModels.includes(savedModel)) {
         setSelectedModel("gemini-2.5-flash");
+        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-2.5-flash");
       } else {
         setSelectedModel(savedModel);
       }
