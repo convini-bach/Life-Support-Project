@@ -1,0 +1,592 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog } from "@/lib/storage";
+import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
+import { calculateBurnedCalories, EXERCISE_LABELS } from "@/lib/exercise-calculator";
+import ScrollPicker from "@/components/ScrollPicker";
+import Link from "next/link";
+
+type TabType = 'meal' | 'exercise' | 'weight';
+
+export default function NutriVision() {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [countdown, setCountdown] = useState(10);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [targets, setTargets] = useState<NutritionTargets | null>(null);
+  const [apiKey, setApiKey] = useState("");
+  const [selectedModel, setSelectedModel] = useState("gemini-1.5-flash");
+  
+  // Notification State
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
+
+  // UI State
+  const [activeTab, setActiveTab] = useState<TabType>('meal');
+  const [todaysTotals, setTodaysTotals] = useState({ calories: 0, protein: 0, fat: 0, carbs: 0, salt: 0, fiber: 0, vegetables: 0 });
+  const [mode, setMode] = useState<"image" | "text">("image");
+  const [textInput, setTextInput] = useState("");
+  const [mealSource, setMealSource] = useState<'home' | 'restaurant' | 'takeout'>('home');
+  const [mealCategory, setMealCategory] = useState<MealCategory>('昼食');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+
+  // Exercise Log State
+  const [exerciseCalories, setExerciseCalories] = useState(0);
+  const [selectedExerciseType, setSelectedExerciseType] = useState<ExerciseType>('walking');
+  const [exerciseMinutes, setExerciseMinutes] = useState(0);
+
+  // Weight Tracking State
+  const [currentWeight, setCurrentWeight] = useState(65.0);
+  const weightItems = Array.from({ length: 1701 }, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)));
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
+
+  const handleDateShortcut = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - offset);
+    setSelectedDate(d.toISOString().split('T')[0]);
+  };
+
+  // 解析結果が出た際の自動スクロール
+  useEffect(() => {
+    if (analysisResult && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
+    }
+  }, [analysisResult]);
+
+  // カウントダウンタイマー
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isAnalyzing && countdown > 0) {
+      timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [isAnalyzing, countdown]);
+
+  // データロード
+  const loadData = () => {
+    const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
+    if (profile && profile.birthYear && profile.gender && profile.activityLevel) {
+      const nutritionTargets = calculateTargets({
+        birthYear: profile.birthYear,
+        gender: profile.gender,
+        height: parseFloat(profile.height),
+        weight: parseFloat(profile.weight),
+        activityLevel: profile.activityLevel
+      });
+      setTargets(nutritionTargets);
+    }
+
+    const history = storage.get<AnalysisResult[]>(STORAGE_KEYS.ANALYSIS_HISTORY) || [];
+    const todaysHistory = history.filter(item => item.date.startsWith(selectedDate));
+    
+    const totals = todaysHistory.reduce((acc, item) => ({
+      calories: acc.calories + item.calories,
+      protein: acc.protein + item.nutrients.protein,
+      fat: acc.fat + item.nutrients.fat,
+      carbs: acc.carbs + item.nutrients.carbs,
+      salt: acc.salt + item.nutrients.salt,
+      fiber: acc.fiber + item.nutrients.fiber,
+      vegetables: acc.vegetables + (item.nutrients.vegetablesTotal || 0),
+    }), { calories: 0, protein: 0, fat: 0, carbs: 0, salt: 0, fiber: 0, vegetables: 0 });
+    
+    setTodaysTotals(totals);
+
+    const exerciseHistory = storage.get<ExerciseLog[]>(STORAGE_KEYS.EXERCISE_HISTORY) || [];
+    const todaysExercise = exerciseHistory.filter(item => item.date.startsWith(selectedDate));
+    const totalBurned = todaysExercise.reduce((sum, item) => sum + item.burnedCalories, 0);
+    setExerciseCalories(totalBurned);
+
+    const weightHistory = storage.get<WeightLog[]>(STORAGE_KEYS.WEIGHT_HISTORY) || [];
+    const todaysWeightData = weightHistory.find(item => item.date.startsWith(selectedDate));
+    if (todaysWeightData) {
+      setCurrentWeight(todaysWeightData.weight);
+    } else if (profile) {
+      setCurrentWeight(parseFloat(profile.weight));
+    }
+
+    const savedApiKey = storage.get<string>(STORAGE_KEYS.API_KEY);
+    if (savedApiKey) setApiKey(savedApiKey);
+
+    const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
+    if (savedModel) setSelectedModel(savedModel);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [analysisResult, selectedDate]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+        setAnalysisResult(null);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const startAnalysis = async () => {
+    if (mode === "image" && !selectedImage) return;
+    if (mode === "text" && !textInput) return;
+    if (!apiKey) {
+      showToast("APIキーを設定してください");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setCountdown(10);
+    setAnalysisResult(null);
+    setIsEditing(false);
+
+    try {
+      const { GoogleGenerativeAI } = await import("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(apiKey);
+      const model = genAI.getGenerativeModel({ model: selectedModel });
+
+      const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
+      const profileContext = profile 
+        ? `ユーザー特性: ${profile.gender === 'male' ? '男性' : '女性'}, ${profile.birthYear ? new Date().getFullYear() - profile.birthYear : '不明'}歳。目標: ${profile.concern}` 
+        : "";
+
+      const prompt = `
+        以下の食事を解析し、JSON出力してください。
+        ${profileContext}
+        食事タイプ: ${mealSource} (home:自炊, restaurant:外食, takeout:テイクアウト)
+        食事カテゴリ: ${mealCategory}
+        補足情報: ${textInput}
+
+        出力JSONフォーマット厳守:
+        {
+          "name": "料理名",
+          "calories": 数値,
+          "nutrients": {
+            "protein": 数値(g), "fat": 数値(g), "carbs": 数値(g),
+            "salt": 数値(g), "fiber": 数値(g), "vegetablesTotal": 数値(g), "vegetablesGreenYellow": 数値(g)
+          },
+          "advice": "保険代理店のプロのような親身で鋭い『問いかけ』を含むアドバイス"
+        }
+      `;
+
+      let result;
+      if (mode === "image" && selectedImage) {
+        const base64Data = selectedImage.split(",")[1];
+        result = await model.generateContent([
+          prompt,
+          { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
+        ]);
+      } else {
+        result = await model.generateContent(prompt);
+      }
+
+      const response = await result.response;
+      const jsonStr = response.text().match(/\{[\s\S]*\}/)?.[0] || "";
+      if (!jsonStr) throw new Error("AI解析に失敗しました。");
+      
+      const data = JSON.parse(jsonStr);
+      const finalResult: AnalysisResult = {
+        id: Date.now(),
+        date: selectedDate + "T" + new Date().toTimeString().split(' ')[0],
+        mealSource,
+        mealCategory,
+        ...data
+      };
+
+      setAnalysisResult(finalResult);
+      saveToHistory(finalResult);
+      showToast("解析が完了し、保存しました！");
+    } catch (e: any) {
+      console.error(e);
+      showToast("解析に失敗しました");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const saveToHistory = (result: AnalysisResult) => {
+    const history = storage.get<AnalysisResult[]>(STORAGE_KEYS.ANALYSIS_HISTORY) || [];
+    const index = history.findIndex(item => item.id === result.id);
+    if (index > -1) {
+      history[index] = result;
+    } else {
+      history.unshift(result);
+    }
+    storage.set(STORAGE_KEYS.ANALYSIS_HISTORY, history);
+  };
+
+  const handleEditResult = (field: string, value: any) => {
+    if (!analysisResult) return;
+    const updated = { ...analysisResult };
+    if (field.includes(".")) {
+      const [p1, p2] = field.split(".");
+      (updated as any)[p1][p2] = parseFloat(value) || 0;
+    } else if (field === "name") {
+      updated.name = value;
+    } else {
+      (updated as any)[field] = parseFloat(value) || 0;
+    }
+    setAnalysisResult(updated);
+  };
+
+  const handleSaveExercise = () => {
+    if (exerciseMinutes <= 0) return;
+    
+    const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
+    const weightVal = profile ? parseFloat(profile.weight) : 65;
+    const burned = calculateBurnedCalories(selectedExerciseType, exerciseMinutes, weightVal);
+    
+    const log: ExerciseLog = {
+      id: Date.now(),
+      date: selectedDate + "T" + new Date().toTimeString().split(' ')[0],
+      type: selectedExerciseType,
+      minutes: exerciseMinutes,
+      burnedCalories: burned
+    };
+
+    const history = storage.get<ExerciseLog[]>(STORAGE_KEYS.EXERCISE_HISTORY) || [];
+    history.unshift(log);
+    storage.set(STORAGE_KEYS.EXERCISE_HISTORY, history);
+    
+    setExerciseMinutes(0);
+    loadData();
+    showToast(`${EXERCISE_LABELS[selectedExerciseType]}を登録しました！`);
+  };
+
+  const handleSaveWeight = () => {
+    const weightHistory = storage.get<WeightLog[]>(STORAGE_KEYS.WEIGHT_HISTORY) || [];
+    const existingIndex = weightHistory.findIndex(item => item.date.startsWith(selectedDate));
+    
+    const newEntry: WeightLog = {
+      id: Date.now(),
+      date: selectedDate + "T09:00:00",
+      weight: currentWeight
+    };
+
+    if (existingIndex > -1) {
+      weightHistory[existingIndex] = newEntry;
+    } else {
+      weightHistory.push(newEntry);
+    }
+    
+    storage.set(STORAGE_KEYS.WEIGHT_HISTORY, weightHistory);
+    showToast(`体重 ${currentWeight}kg を登録しました！`);
+  };
+
+  const netCalories = todaysTotals.calories - exerciseCalories;
+
+  const getBarColor = (current: number, target: number) => {
+    const ratio = (current / target) * 100;
+    const diff = Math.abs(ratio - 100);
+    if (diff <= 20) return 'var(--primary)';
+    if (diff <= 30) return '#f59e0b';
+    return '#ef4444';
+  };
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '0.8rem 1.5rem',
+          borderRadius: '12px', zIndex: 1000, boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+          fontWeight: 'bold', backdropFilter: 'blur(8px)', animation: 'fadeIn 0.3s ease-out'
+        }}>
+          {toast.message}
+        </div>
+      )}
+
+      {/* FIXED Header Navigation (Always follows scroll) */}
+      <nav style={{ 
+        padding: '0.8rem 1rem', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        position: 'fixed', // 追従させるために fixed に変更
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 500,
+        background: 'rgba(10, 15, 28, 0.85)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid rgba(255,255,255,0.08)'
+      }}>
+        <Link href="/" style={{ color: '#94a3b8', fontSize: '0.85rem', display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          &larr; <span style={{ marginLeft: '0.4rem' }}>ポータル</span>
+        </Link>
+        <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+          <Link href="/nutri-vision/history" style={{ 
+            color: 'var(--primary)', fontSize: '0.8rem', fontWeight: 'bold', 
+            background: 'rgba(16, 185, 129, 0.1)', padding: '0.4rem 0.8rem', borderRadius: '8px'
+          }}>
+            📊 統計・履歴
+          </Link>
+          <Link href="/profile" style={{ 
+            color: '#94a3b8', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.3rem',
+            background: 'rgba(255, 255, 255, 0.05)', padding: '0.4rem 0.8rem', borderRadius: '8px'
+          }}>
+            <span>👤</span> 設定
+          </Link>
+        </div>
+      </nav>
+
+      {/* Adjust padding to account for fixed header */}
+      <main className="container" style={{ paddingTop: '5rem' }}>
+        
+        {/* SECTION 1: 今日の充足状況 (閲覧のみ) */}
+        {targets && (
+          <section className="glass-card animate-fade-in" style={{ marginBottom: '2.5rem', padding: '1.5rem', borderColor: 'rgba(16, 185, 129, 0.1)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+              <div>
+                <h2 style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 'bold' }}>
+                  {new Date(selectedDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })} の充足状況
+                </h2>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: getBarColor(netCalories, targets.energy) }}>
+                  {netCalories.toFixed(0)} <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: '#64748b' }}>/ {targets.energy} kcal</span>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden', marginBottom: '2rem' }}>
+              <div style={{ width: `${Math.min(100, Math.max(0, (netCalories / targets.energy) * 100))}%`, height: '100%', background: getBarColor(netCalories, targets.energy), transition: 'width 0.5s ease-out' }}></div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+              {[
+                { label: 'タンパク質', cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
+                { label: '脂質', cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
+                { label: '炭水化物', cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
+                { label: '塩分', cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
+                { label: '食物繊維', cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
+                { label: '野菜量', cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
+              ].map(n => {
+                const ratio = Math.min(100, (n.cur / n.target) * 100);
+                const color = getBarColor(n.cur, n.target);
+                return (
+                  <div key={n.label}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
+                      <span style={{ color: '#94a3b8' }}>{n.label}</span>
+                      <span style={{ fontWeight: '600' }}>{n.cur.toFixed(n.label === '塩分' ? 1 : 0)}{n.unit}</span>
+                    </div>
+                    <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                      <div style={{ width: `${ratio}%`, height: '100%', background: color, transition: 'width 0.8s' }}></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* SECTION 2: 記録ハブ (日付選択 -> 種類選択 -> 入力) */}
+        <section className="glass-card" style={{ marginBottom: '3rem', padding: '2rem' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>📝</span> 記録を追加する
+          </h2>
+
+          {/* 1. 日付選択 */}
+          <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.8rem', fontWeight: 'bold' }}>記録日の選択</label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+               {[
+                { label: '一昨日', offset: 2 },
+                { label: '昨日', offset: 1 },
+                { label: '今日', offset: 0 }
+              ].map(btn => (
+                <button key={btn.offset} onClick={() => handleDateShortcut(btn.offset)} style={{
+                  padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid',
+                  borderColor: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'var(--primary)' : '#334155',
+                  background: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                  color: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'white' : '#64748b',
+                  fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s'
+                }}>
+                  {btn.label}
+                </button>
+              ))}
+              <input 
+                type="date" 
+                value={selectedDate} 
+                onChange={(e) => setSelectedDate(e.target.value)}
+                style={{ background: '#0f172a', border: '1px solid #334155', color: 'white', borderRadius: '8px', padding: '0.45rem 0.8rem', fontSize: '0.9rem' }}
+              />
+            </div>
+          </div>
+
+          {/* 2. 入力種類選択タブ */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '1rem' }}>
+            {(['meal', 'exercise', 'weight'] as TabType[]).map(tab => (
+              <button 
+                key={tab} 
+                onClick={() => setActiveTab(tab)}
+                style={{ 
+                  flex: 1, padding: '0.8rem', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '0.9rem', fontWeight: 'bold',
+                  background: activeTab === tab ? 'var(--primary)' : 'rgba(255,255,255,0.02)',
+                  color: activeTab === tab ? 'white' : '#64748b',
+                  transition: 'all 0.3s'
+                }}
+              >
+                {tab === 'meal' ? '🍱 食事' : tab === 'exercise' ? '🏃 運動' : '⚖️ 体重'}
+              </button>
+            ))}
+          </div>
+
+          {/* 3. 動的入力フォーム */}
+          <div className="animate-fade-in" key={activeTab}>
+            {activeTab === 'meal' && (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>タイミング</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                      {(['朝食', '昼食', '夕食', '間食'] as MealCategory[]).map(cat => (
+                        <button key={cat} onClick={() => setMealCategory(cat)} style={{ 
+                            padding: '0.5rem', borderRadius: '6px', border: '1px solid', cursor: 'pointer', fontSize: '0.75rem',
+                            borderColor: mealCategory === cat ? 'var(--primary)' : '#334155',
+                            background: mealCategory === cat ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                            color: mealCategory === cat ? 'white' : '#64748b'
+                        }}>{cat}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>種類</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem' }}>
+                      {[ { id: 'home', l: '自炊' }, { id: 'restaurant', l: '外食' }, { id: 'takeout', l: '惣菜' } ].map(s => (
+                        <button key={s.id} onClick={() => setMealSource(s.id as any)} style={{ 
+                            padding: '0.5rem', borderRadius: '6px', border: '1px solid', cursor: 'pointer', fontSize: '0.75rem',
+                            borderColor: mealSource === s.id ? 'var(--primary)' : '#334155',
+                            background: mealSource === s.id ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                            color: mealSource === s.id ? 'white' : '#64748b'
+                        }}>{s.l}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <button onClick={() => setMode("image")} style={{ flex: 1, padding: '0.6rem', color: mode === 'image' ? 'var(--primary)' : '#64748b', background: mode === 'image' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'image' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📷 写真</button>
+                  <button onClick={() => setMode("text")} style={{ flex: 1, padding: '0.6rem', color: mode === 'text' ? 'var(--primary)' : '#64748b', background: mode === 'text' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'text' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>✍️ テキスト</button>
+                </div>
+
+                {mode === 'image' && (
+                  <div onClick={() => fileInputRef.current?.click()} style={{ width: '100%', aspectRatio: '16/9', background: '#0f172a', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', marginBottom: '1rem' }}>
+                    {selectedImage ? <img src={selectedImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ textAlign: 'center', color: '#475569' }}><span style={{ fontSize: '2rem' }}>🖼️</span><br />タップして選択</div>}
+                  </div>
+                )}
+                
+                <textarea 
+                  placeholder={mode === 'image' ? "補足（大盛、味濃いめ等）..." : "材料、メニュー、URLなど..."}
+                  value={textInput} onChange={(e) => setTextInput(e.target.value)}
+                  style={{ width: '100%', height: mode === 'image' ? '80px' : '150px', background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', color: 'white', padding: '1rem', fontSize: '0.95rem', marginBottom: '1.5rem' }}
+                />
+
+                <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageChange} />
+                <button className="btn-primary" onClick={startAnalysis} disabled={isAnalyzing} style={{ width: '100%', padding: '1rem' }}>
+                  {isAnalyzing ? `解析中... (${countdown}s)` : "AI解析を実行する"}
+                </button>
+              </div>
+            )}
+
+            {activeTab === 'exercise' && (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.8rem', marginBottom: '2rem' }}>
+                  {(['walking', 'cycling', 'gym', 'swimming'] as ExerciseType[]).map(type => (
+                    <button key={type} onClick={() => setSelectedExerciseType(type)} style={{ 
+                        padding: '1rem', borderRadius: '12px', border: '1px solid', cursor: 'pointer', fontSize: '0.9rem',
+                        borderColor: selectedExerciseType === type ? '#3b82f6' : '#334155',
+                        background: selectedExerciseType === type ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                        color: selectedExerciseType === type ? 'white' : '#64748b'
+                    }}>{EXERCISE_LABELS[type]}</button>
+                  ))}
+                </div>
+                
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '1rem' }}>実施時間: <span style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>{exerciseMinutes}</span> 分</label>
+                  <div style={{ display: 'flex', gap: '0.8rem' }}>
+                    {[15, 30, 60].map(mins => <button key={mins} onClick={() => setExerciseMinutes(prev => prev + mins)} style={{ flex: 1, padding: '0.8rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>+{mins}</button>)}
+                    <button onClick={() => setExerciseMinutes(0)} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid #475569', borderRadius: '10px', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem' }}>クリア</button>
+                  </div>
+                </div>
+
+                <button className="btn-primary" onClick={handleSaveExercise} disabled={exerciseMinutes <= 0} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}>運動を登録する</button>
+              </div>
+            )}
+
+            {activeTab === 'weight' && (
+              <div>
+                <div style={{ marginBottom: '2rem' }}>
+                  <ScrollPicker items={weightItems} value={currentWeight} onChange={setCurrentWeight} unit="kg" height="150px" />
+                </div>
+                <button className="btn-primary" onClick={handleSaveWeight} style={{ width: '100%', padding: '1rem' }}>体重を登録する</button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* SECTION 3: 解析結果表示エリア */}
+        <div ref={resultRef} style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginBottom: '4rem' }}>
+          {analysisResult ? (
+            <div className="glass-card animate-fade-in" style={{ width: '100%', border: '1px solid var(--primary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
+                <div style={{ flex: 1 }}>
+                  {isEditing ? <input className="input-field" value={analysisResult.name} onChange={(e) => handleEditResult("name", e.target.value)} style={{ fontSize: '1.4rem', fontWeight: 'bold' }} /> : <h3 style={{ fontSize: '1.6rem', fontWeight: 'bold' }}>{analysisResult.name}</h3>}
+                  <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '0.4rem' }}>{analysisResult.calories.toFixed(0)} kcal</div>
+                </div>
+                <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? "確定" : "修正"}</button>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                {[ { label: 'タンパク質', key: 'protein', unit: 'g', target: targets?.protein.min }, { label: '脂質', key: 'fat', unit: 'g', target: targets?.fat.min }, { label: '炭水化物', key: 'carbs', unit: 'g', target: targets?.carbs.min }, { label: '塩分', key: 'salt', unit: 'g', target: 2.5 }, { label: '食物繊維', key: 'fiber', unit: 'g', target: targets?.fiber }, { label: '野菜量', key: 'vegetablesTotal', unit: 'g', target: 120 } ].map(n => {
+                  const val = (analysisResult.nutrients as any)[n.key];
+                  const target = n.target || 1;
+                  const ratio = Math.min(100, Math.round((val / target) * 100));
+                  return (
+                    <div key={n.key}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.8rem' }}>
+                        <span style={{ color: 'white' }}>{n.label}</span>
+                        <span style={{ color: '#94a3b8' }}>{val.toFixed(n.key === 'salt' ? 1 : 0)}{n.unit} ({ratio}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                        <div style={{ width: `${ratio}%`, height: '100%', background: getBarColor(val, target), transition: 'width 0.8s' }}></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+                <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>AIアドバイス</div>
+                <p style={{ fontSize: '0.95rem', lineHeight: '1.7', color: '#cbd5e1' }}>{analysisResult.advice}</p>
+              </div>
+            </div>
+          ) : null}
+
+          <Link href="/nutri-vision/history" className="glass-card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))' }}>
+            <div>
+              <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>📊 統計・履歴を確認</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>カレンダーから過去の記録を振り返る</div>
+            </div>
+            <span style={{ color: 'var(--primary)', fontSize: '1.5rem' }}>&rarr;</span>
+          </Link>
+        </div>
+      </main>
+
+      <footer style={{ padding: '3rem 0', textAlign: 'center', color: '#475569', fontSize: '0.85rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        &copy; 2026 Life Support AI Hub - Empowering Your Health Journey
+      </footer>
+    </div>
+  );
+}
