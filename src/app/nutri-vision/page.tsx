@@ -17,7 +17,7 @@ export default function NutriVision() {
   const [isEditing, setIsEditing] = useState(false);
   const [targets, setTargets] = useState<NutritionTargets | null>(null);
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gemini-1.5-flash");
+  const [selectedModel, setSelectedModel] = useState("gemini-3-flash");
   
   // Notification State
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
@@ -118,7 +118,14 @@ export default function NutriVision() {
     if (savedApiKey) setApiKey(savedApiKey);
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
-    if (savedModel) setSelectedModel(savedModel);
+    if (savedModel) {
+      // 2026年時点で廃止されている古いモデル名を最新に自動移行
+      if (savedModel.includes("gemini-1.5") || savedModel.includes("gemini-1.0") || savedModel.includes("exp")) {
+        setSelectedModel("gemini-3-flash");
+      } else {
+        setSelectedModel(savedModel);
+      }
+    }
   };
 
   useEffect(() => {
