@@ -233,7 +233,7 @@ function ProfileContent() {
           ) : (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <UserButton afterSignOutUrl="/profile" />
+                <UserButton />
                 <div>
                   <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: 'bold' }}>{user.fullName || user.emailAddresses[0].emailAddress}</div>
                   <div style={{ fontSize: '0.8rem', color: isPremium ? 'var(--primary)' : '#64748b' }}>

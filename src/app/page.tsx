@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-const APP_VERSION = "2604162247"; // YYMMDDHHMM
+const APP_VERSION = "2604162248"; // YYMMDDHHMM
 
 export default function Home() {
   const apps = [
