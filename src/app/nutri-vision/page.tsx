@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162244"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162247"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -389,7 +389,7 @@ export default function NutriVision() {
                 { label: 'タンパク質', cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
                 { label: '脂質', cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
                 { label: '炭水化物', cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
-                { label: '塩分', cur: todaysTotals.salt, target: targets.salt.min, unit: 'g' },
+                { label: '塩分', cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
                 { label: '食物繊維', cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
                 { label: '野菜量', cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
               ].map(n => {
@@ -569,7 +569,7 @@ export default function NutriVision() {
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                {[ { label: 'タンパク質', key: 'protein', unit: 'g', target: targets?.protein.min }, { label: '脂質', key: 'fat', unit: 'g', target: targets?.fat.min }, { label: '炭水化物', key: 'carbs', unit: 'g', target: targets?.carbs.min }, { label: '塩分', key: 'salt', unit: 'g', target: 2.5 }, { label: '食物繊維', key: 'fiber', unit: 'g', target: targets?.fiber }, { label: '野菜量', key: 'vegetablesTotal', unit: 'g', target: 120 } ].map(n => {
+                {[ { label: 'タンパク質', key: 'protein', unit: 'g', target: targets?.protein.min }, { label: '脂質', key: 'fat', unit: 'g', target: targets?.fat.min }, { label: '炭水化物', key: 'carbs', unit: 'g', target: targets?.carbs.min }, { label: '塩分', key: 'salt', unit: 'g', target: targets?.salt }, { label: '食物繊維', key: 'fiber', unit: 'g', target: targets?.fiber }, { label: '野菜量', key: 'vegetablesTotal', unit: 'g', target: targets?.vegetables } ].map(n => {
                   const val = (analysisResult.nutrients as any)[n.key];
                   const target = n.target || 1;
                   const ratio = Math.min(100, Math.round((val / target) * 100));
