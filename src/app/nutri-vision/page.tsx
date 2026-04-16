@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162310"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162315"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -58,7 +58,11 @@ export default function NutriVision() {
   const handleDateShortcut = (offset: number) => {
     const d = new Date();
     d.setDate(d.getDate() - offset);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    // ローカル時間で YYYY-MM-DD 形式を作成
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    setSelectedDate(`${year}-${month}-${day}`);
   };
 
   // 解析結果が出た際の自動スクロール
@@ -370,7 +374,10 @@ export default function NutriVision() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
               <div>
                 <h2 style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 'bold' }}>
-                  {new Date(selectedDate).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' })} の充足状況
+                  {(() => {
+                    const [y, m, d] = selectedDate.split('-').map(Number);
+                    return new Date(y, m - 1, d).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
+                  })()} の充足状況
                 </h2>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -425,17 +432,23 @@ export default function NutriVision() {
                 { label: '一昨日', offset: 2 },
                 { label: '昨日', offset: 1 },
                 { label: '今日', offset: 0 }
-              ].map(btn => (
-                <button key={btn.offset} onClick={() => handleDateShortcut(btn.offset)} style={{
-                  padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid',
-                  borderColor: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'var(--primary)' : '#334155',
-                  background: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-                  color: (new Date(selectedDate).toDateString() === new Date(Date.now() - btn.offset * 86400000).toDateString()) ? 'white' : '#64748b',
-                  fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s'
-                }}>
-                  {btn.label}
-                </button>
-              ))}
+              ].map(btn => {
+                const d = new Date();
+                d.setDate(d.getDate() - btn.offset);
+                const compareStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                const isActive = selectedDate === compareStr;
+                return (
+                  <button key={btn.offset} onClick={() => handleDateShortcut(btn.offset)} style={{
+                    padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid',
+                    borderColor: isActive ? 'var(--primary)' : '#334155',
+                    background: isActive ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                    color: isActive ? 'white' : '#64748b',
+                    fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.2s'
+                  }}>
+                    {btn.label}
+                  </button>
+                );
+              })}
               <input 
                 type="date" 
                 value={selectedDate} 
