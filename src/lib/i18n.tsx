@@ -65,6 +65,11 @@ export const dictionary: Dictionary = {
     'exercise.type.cycling': 'サイクリング',
     'exercise.type.gym': 'ジム・筋トレ',
     'exercise.type.swimming': '水泳',
+    'exercise.timing': 'タイミング',
+    'exercise.cate.breakfast': '朝食',
+    'exercise.cate.lunch': '昼食',
+    'exercise.cate.dinner': '夕食',
+    'exercise.cate.snack': '間食',
 
     // Weight
     'weight.button.save': '体重を登録する',
@@ -117,6 +122,24 @@ export const dictionary: Dictionary = {
     'profile.clear_all': 'すべての記録を完全消去',
     'profile.clear_confirm': '【警告】すべての履歴を完全に消去しますか？\nこの操作は取り消せません。',
     'profile.language': '言語 (Language)',
+    'profile.no_account': 'アカウント未登録',
+    'profile.premium_benefit': 'ログイン後にプレミアムへアップグレードすると、無制限の解析や詳細アドバイスが解放されます。',
+    'profile.login': 'ログイン',
+    'profile.signup': '新規登録',
+    'profile.height': '身長',
+    'profile.birth_year': '生まれ年',
+    'profile.api_key_placeholder': 'AI Studioから取得したキー',
+    'profile.connect': '接続',
+    'profile.connecting': 'テスト中',
+    'profile.api_guide_step1': '1. Google AI Studio にアクセス',
+    'profile.api_guide_step2': '2. 「Create API key」をクリックしてキーをコピー',
+    'profile.api_guide_step3': '3. 上の入力欄に貼り付けて「接続」を押してください。',
+    'profile.logout': 'ログアウト',
+
+    // Common
+    'common.loading': '読み込み中...',
+    'common.success': '成功',
+    'common.error': 'エラー',
 
     // Portal
     'portal.welcome': 'Life Support Project',
@@ -182,6 +205,11 @@ export const dictionary: Dictionary = {
     'exercise.type.cycling': 'Cycling',
     'exercise.type.gym': 'Gym/Training',
     'exercise.type.swimming': 'Swimming',
+    'exercise.timing': 'Timing',
+    'exercise.cate.breakfast': 'Breakfast',
+    'exercise.cate.lunch': 'Lunch',
+    'exercise.cate.dinner': 'Dinner',
+    'exercise.cate.snack': 'Snack',
 
     // Weight
     'weight.button.save': 'Log Weight',
@@ -234,6 +262,24 @@ export const dictionary: Dictionary = {
     'profile.clear_all': 'Clear All Records',
     'profile.clear_confirm': 'WARNING: Permanent deletion of all history. This cannot be undone.',
     'profile.language': 'Language',
+    'profile.no_account': 'Account not registered',
+    'profile.premium_benefit': 'Upgrade to premium after logging in for unlimited analysis and advice.',
+    'profile.login': 'Login',
+    'profile.signup': 'Sign Up',
+    'profile.height': 'Height',
+    'profile.birth_year': 'Birth Year',
+    'profile.api_key_placeholder': 'Key from AI Studio',
+    'profile.connect': 'Connect',
+    'profile.connecting': 'Testing',
+    'profile.api_guide_step1': '1. Access Google AI Studio',
+    'profile.api_guide_step2': '2. Click "Create API key" and copy',
+    'profile.api_guide_step3': '3. Paste and click "Connect"',
+    'profile.logout': 'Logout',
+
+    // Common
+    'common.loading': 'Loading...',
+    'common.success': 'Success',
+    'common.error': 'Error',
 
     // Portal
     'portal.welcome': 'Life Support Project',

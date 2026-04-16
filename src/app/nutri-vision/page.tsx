@@ -406,7 +406,7 @@ export default function NutriVision() {
                   {(() => {
                     const [y, m, d] = selectedDate.split('-').map(Number);
                     return new Date(y, m - 1, d).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', { month: 'long', day: 'numeric' });
-                  })()} の状況
+                  })()} {lang === 'ja' ? 'の状況' : 'Status'}
                 </h2>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -511,7 +511,7 @@ export default function NutriVision() {
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>タイミング</label>
+                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>{t('analysis.timing')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                       {(['朝食', '昼食', '夕食', '間食'] as MealCategory[]).map(cat => (
                         <button key={cat} onClick={() => setMealCategory(cat)} style={{ 
@@ -519,7 +519,7 @@ export default function NutriVision() {
                             borderColor: mealCategory === cat ? 'var(--primary)' : '#334155',
                             background: mealCategory === cat ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
                             color: mealCategory === cat ? 'white' : '#64748b'
-                        }}>{lang === 'en' ? (cat === '朝食' ? 'Breakfast' : cat === '昼食' ? 'Lunch' : cat === '夕食' ? 'Dinner' : 'Snack') : cat}</button>
+                        }}>{t(`exercise.cate.${cat === '朝食' ? 'breakfast' : cat === '昼食' ? 'lunch' : cat === '夕食' ? 'dinner' : 'snack'}`)}</button>
                       ))}
                     </div>
                   </div>
@@ -576,14 +576,14 @@ export default function NutriVision() {
                 </div>
                 
                 <div style={{ marginBottom: '2rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '1rem' }}>実施時間: <span style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>{exerciseMinutes}</span> 分</label>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '1rem' }}>{t('exercise.time')}: <span style={{ color: 'white', fontSize: '1.2rem', fontWeight: 'bold' }}>{exerciseMinutes}</span> {t('exercise.minutes')}</label>
                   <div style={{ display: 'flex', gap: '0.8rem' }}>
                     {[15, 30, 60].map(mins => <button key={mins} onClick={() => setExerciseMinutes(prev => prev + mins)} style={{ flex: 1, padding: '0.8rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '10px', color: 'white', cursor: 'pointer', fontSize: '0.9rem' }}>+{mins}</button>)}
-                    <button onClick={() => setExerciseMinutes(0)} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid #475569', borderRadius: '10px', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem' }}>クリア</button>
+                    <button onClick={() => setExerciseMinutes(0)} style={{ padding: '0.8rem 1.5rem', background: 'transparent', border: '1px solid #475569', borderRadius: '10px', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem' }}>{t('exercise.clear')}</button>
                   </div>
                 </div>
 
-                <button className="btn-primary" onClick={handleSaveExercise} disabled={exerciseMinutes <= 0} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}>運動を登録する</button>
+                <button className="btn-primary" onClick={handleSaveExercise} disabled={exerciseMinutes <= 0} style={{ width: '100%', padding: '1rem', background: 'linear-gradient(135deg, #3b82f6, #60a5fa)' }}>{t('exercise.button.save')}</button>
               </div>
             )}
 
@@ -592,7 +592,7 @@ export default function NutriVision() {
                 <div style={{ marginBottom: '2rem' }}>
                   <ScrollPicker items={weightItems} value={currentWeight} onChange={setCurrentWeight} unit="kg" height="150px" />
                 </div>
-                <button className="btn-primary" onClick={handleSaveWeight} style={{ width: '100%', padding: '1rem' }}>体重を登録する</button>
+                <button className="btn-primary" onClick={handleSaveWeight} style={{ width: '100%', padding: '1rem' }}>{t('weight.button.save')}</button>
               </div>
             )}
           </div>
@@ -701,8 +701,8 @@ export default function NutriVision() {
 
           <Link href="/nutri-vision/history" className="glass-card" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', textDecoration: 'none', background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))' }}>
             <div>
-              <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>📊 統計・履歴を確認</div>
-              <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>カレンダーから過去の記録を振り返る</div>
+              <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '0.2rem' }}>📊 {t('nav.history')}</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{lang === 'ja' ? 'カレンダーから過去の記録を振り返る' : 'Look back on past records from the calendar'}</div>
             </div>
             <span style={{ color: 'var(--primary)', fontSize: '1.5rem' }}>&rarr;</span>
           </Link>

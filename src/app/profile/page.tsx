@@ -225,15 +225,15 @@ function ProfileContent() {
           ) : !isSignedIn ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>アカウント未登録</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ログイン後にプレミアムへアップグレードすると、無制限の解析や詳細アドバイスが解放されます。</div>
+                <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>{t('profile.no_account')}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{t('profile.premium_benefit')}</div>
               </div>
               <div style={{ display: 'flex', gap: '0.8rem' }}>
                 <SignInButton mode="modal">
-                  <button style={{ padding: '0.6rem 1.2rem', borderRadius: '20px', background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>ログイン</button>
+                  <button style={{ padding: '0.6rem 1.2rem', borderRadius: '20px', background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('profile.login')}</button>
                 </SignInButton>
                 <SignUpButton mode="modal">
-                  <button style={{ padding: '0.6rem 1.2rem', borderRadius: '20px', background: 'var(--primary)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>新規登録</button>
+                  <button style={{ padding: '0.6rem 1.2rem', borderRadius: '20px', background: 'var(--primary)', border: 'none', color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}>{t('profile.signup')}</button>
                 </SignUpButton>
               </div>
             </div>
@@ -271,9 +271,9 @@ function ProfileContent() {
               <span>📏</span> {t('profile.health_data')}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-              <ScrollPicker label={t('nutrient.height') || 'Height'} items={heightItems} value={height} onChange={setHeight} unit="cm" />
-              <ScrollPicker label={t('nav.weight') || 'Weight'} items={weightItems} value={weight} onChange={setWeight} unit="kg" />
-              <ScrollPicker label={t('profile.birthYear') || 'Birth Year'} items={yearItems} value={birthYear} onChange={setBirthYear} unit={t('history.calendar.year')} />
+              <ScrollPicker label={t('profile.height')} items={heightItems} value={height} onChange={setHeight} unit="cm" />
+              <ScrollPicker label={t('nav.weight')} items={weightItems} value={weight} onChange={setWeight} unit="kg" />
+              <ScrollPicker label={t('profile.birth_year')} items={yearItems} value={birthYear} onChange={setBirthYear} unit={t('history.calendar.year')} />
             </div>
 
             <div style={{ marginTop: '2.5rem' }}>
@@ -303,24 +303,24 @@ function ProfileContent() {
             </h2>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>Gemini API キー</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.api_key')}</label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="AI Studioから取得したキー"
+                  placeholder={t('profile.api_key_placeholder')}
                   style={{ flex: 1, padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
                 />
                 <button className="btn-primary" onClick={testConnection} disabled={isTesting} style={{ padding: '0 1rem', background: '#1e293b', border: '1px solid #334155', width: 'auto' }}>
-                  {isTesting ? "テスト中" : "接続"}
+                  {isTesting ? t('profile.connecting') : t('profile.connect')}
                 </button>
               </div>
               <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
-                <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.3rem' }}>💡 APIキーの取得方法</div>
-                1. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Google AI Studio</a> にアクセス<br />
-                2. 「Create API key」をクリックしてキーをコピー<br />
-                3. 上の入力欄に貼り付けて「接続」を押してください。
+                <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.3rem' }}>💡 {t('profile.api_guide')}</div>
+                1. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Google AI Studio</a> {lang === 'ja' ? 'にアクセス' : 'Access'}<br />
+                2. {t('profile.api_guide_step2')}<br />
+                3. {t('profile.api_guide_step3')}
               </div>
             </div>
 
@@ -412,10 +412,11 @@ function ProfileContent() {
 }
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   return (
     <Suspense fallback={
       <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-        読み込み中...
+        {t('common.loading')}
       </div>
     }>
       <ProfileContent />
