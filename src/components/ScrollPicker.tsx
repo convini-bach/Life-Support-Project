@@ -14,6 +14,7 @@ interface ScrollPickerProps {
 export default function ScrollPicker({ items, value, onChange, unit, label, height = "180px" }: ScrollPickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
+  const [isLocked, setIsLocked] = useState(true); // 誤操作防止用のロック状態
   const isScrollingRef = useRef(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const itemHeight = 40; // 1項目の高さpx
@@ -33,7 +34,7 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
   }, []);
 
   const handleScroll = () => {
-    if (!isReady || !scrollRef.current) return;
+    if (!isReady || !scrollRef.current || isLocked) return;
     
     isScrollingRef.current = true;
 
@@ -60,18 +61,34 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
           position: 'relative', 
           width: '100%', 
           height: height, 
-          overflowY: 'auto', 
+          overflowY: isLocked ? 'hidden' : 'auto', 
           scrollSnapType: 'y mandatory',
-          background: 'rgba(0,0,0,0.2)',
+          background: 'rgba(255, 255, 255, 0.05)', // 背景を少し明るくして視認性アップ
           borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.05)',
+          border: '1px solid rgba(255,255,255,0.1)',
           scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          msOverflowStyle: 'none',
+          cursor: isLocked ? 'pointer' : 'default'
         }}
         ref={scrollRef}
         onScroll={handleScroll}
+        onClick={() => isLocked && setIsLocked(false)}
         className="hide-scrollbar"
       >
+        {/* Lock Overlay */}
+        {isLocked && (
+          <div style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            background: 'rgba(10, 15, 28, 0.6)', backdropFilter: 'blur(2px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 10, borderRadius: '12px'
+          }}>
+            <div style={{ background: 'var(--primary)', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 'bold' }}>
+              タップして開始
+            </div>
+          </div>
+        )}
+
         {/* スナップを確実に中央に配置するためのパディング */}
         <div style={{ height: (parseInt(height) - itemHeight) / 2 }} />
         
@@ -87,9 +104,9 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
               scrollSnapStop: 'always',
               fontSize: value === item ? '1.2rem' : '0.9rem',
               fontWeight: value === item ? 'bold' : 'normal',
-              color: value === item ? 'var(--primary)' : '#475569',
-              transition: 'all 0.1s', // 高速なレスポンスのため時間を短縮
-              opacity: value === item ? 1 : 0.4
+              color: value === item ? 'white' : '#475569', // 選択時の色を白にしてコントラスト強化
+              transition: 'all 0.1s',
+              opacity: value === item ? 1 : 0.3
             }}
           >
             {item}
@@ -105,9 +122,9 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
           left: 0, 
           width: '100%', 
           height: itemHeight, 
-          borderTop: '1px solid rgba(16, 185, 129, 0.3)',
-          borderBottom: '1px solid rgba(16, 185, 129, 0.3)',
-          background: 'rgba(16, 185, 129, 0.08)',
+          borderTop: '2px solid var(--primary)', // 枠を太くして強調
+          borderBottom: '2px solid var(--primary)',
+          background: 'rgba(16, 185, 129, 0.15)',
           pointerEvents: 'none',
           zIndex: 0
         }} />

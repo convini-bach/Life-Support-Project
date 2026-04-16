@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162248"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162310"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -358,8 +358,8 @@ export default function NutriVision() {
       {/* Shared Navigation */}
       <TabNavigation />
 
-      {/* Adjust padding to account for fixed header */}
-      <main className="container" style={{ paddingTop: '5rem' }}>
+      {/* Adjust padding to account for fixed header + Browser UI on mobile */}
+      <main className="container" style={{ paddingTop: '8.5rem' }}>
         <div style={{ fontSize: '0.65rem', color: '#475569', textAlign: 'right', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
           ver.{APP_VERSION}
         </div>
@@ -565,7 +565,14 @@ export default function NutriVision() {
                   {isEditing ? <input className="input-field" value={analysisResult.name} onChange={(e) => handleEditResult("name", e.target.value)} style={{ fontSize: '1.4rem', fontWeight: 'bold' }} /> : <h3 style={{ fontSize: '1.6rem', fontWeight: 'bold' }}>{analysisResult.name}</h3>}
                   <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '0.4rem' }}>{analysisResult.calories.toFixed(0)} kcal</div>
                 </div>
-                <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? "確定" : "修正"}</button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-end' }}>
+                  <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? "確定" : "修正"}</button>
+                  {!isEditing && (
+                    <button onClick={() => { saveToHistory(analysisResult); showToast("保存しました！"); }} style={{ fontSize: '0.75rem', background: 'var(--primary)', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                      ⚡ 確定保存
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>

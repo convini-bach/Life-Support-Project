@@ -9,6 +9,8 @@ import { useSearchParams } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Suspense } from "react";
 
+const APP_VERSION = "2604162310"; // YYMMDDHHMM
+
 // Use a separate component to use useSearchParams to avoid wrapping the whole page in Suspense
 function ProfileContent() {
   const [height, setHeight] = useState(170);
@@ -203,7 +205,11 @@ function ProfileContent() {
       {/* Shared Navigation */}
       <TabNavigation />
 
-      <main className="container" style={{ paddingTop: '2rem' }}>
+      {/* Adjust padding to account for fixed header + Browser UI on mobile */}
+      <main className="container" style={{ paddingTop: '8.5rem' }}>
+        <div style={{ fontSize: '0.65rem', color: '#475569', textAlign: 'right', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+          ver.{APP_VERSION}
+        </div>
         <header style={{ marginBottom: '3rem' }}>
           <h1 className="gradient-text" style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>設定 & データ管理</h1>
           <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>自分に合わせたカスタマイズと、大切なデータのバックアップ。</p>
@@ -219,7 +225,7 @@ function ProfileContent() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontSize: '0.9rem', color: '#cbd5e1' }}>アカウント未登録</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ログインすると無制限の解析や詳細なアドバイスが利用可能になります。</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ログイン後にプレミアムへアップグレードすると、無制限の解析や詳細アドバイスが解放されます。</div>
               </div>
               <div style={{ display: 'flex', gap: '0.8rem' }}>
                 <SignInButton mode="modal">
@@ -308,6 +314,12 @@ function ProfileContent() {
                 <button className="btn-primary" onClick={testConnection} disabled={isTesting} style={{ padding: '0 1rem', background: '#1e293b', border: '1px solid #334155', width: 'auto' }}>
                   {isTesting ? "テスト中" : "接続"}
                 </button>
+              </div>
+              <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
+                <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.3rem' }}>💡 APIキーの取得方法</div>
+                1. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Google AI Studio</a> にアクセス<br />
+                2. 「Create API key」をクリックしてキーをコピー<br />
+                3. 上の入力欄に貼り付けて「接続」を押してください。
               </div>
             </div>
 

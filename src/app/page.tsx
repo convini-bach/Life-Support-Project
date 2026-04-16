@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-const APP_VERSION = "2604162248"; // YYMMDDHHMM
+const APP_VERSION = "2604162310"; // YYMMDDHHMM
 
 export default function Home() {
   const apps = [
@@ -48,8 +48,8 @@ export default function Home() {
   ];
 
   return (
-    <main className="container min-h-screen flex flex-col items-center justify-center">
-      <div style={{ position: 'fixed', top: '1rem', left: '1rem', fontSize: '0.65rem', color: '#475569', zIndex: 10, fontFamily: 'monospace' }}>
+    <main className="container min-h-screen flex flex-col items-center justify-center" style={{ paddingTop: '4rem' }}>
+      <div style={{ position: 'fixed', top: '1.5rem', left: '1.5rem', fontSize: '0.65rem', color: '#475569', zIndex: 10, fontFamily: 'monospace' }}>
         ver.{APP_VERSION}
       </div>
       <header className="text-center mb-16 animate-fade-in" style={{ width: '100%', position: 'relative' }}>
