@@ -11,7 +11,7 @@ import TabNavigation from "@/components/TabNavigation";
 
 type ViewMode = 'day' | 'week' | 'month';
 
-const APP_VERSION = "2604162340";
+const APP_VERSION = "2604162350";
 
 export default function NutriHistory() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);

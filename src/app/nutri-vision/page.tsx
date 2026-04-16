@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162340"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162350"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -254,14 +254,16 @@ export default function NutriVision() {
     } catch (e: any) {
       console.error(e);
       let errorMsg = `解析エラー: ${e.message || "不明なエラー"}`;
-      if (e.message?.includes("503") || e.message?.includes("high demand")) {
+      if (e.message?.includes("429") || e.message?.toLowerCase().includes("quota")) {
+        errorMsg = "AIの利用制限（クォータ制限）に達しました。しばらく待ってから再度お試しいただくか、APIキーの設定を確認してください。";
+      } else if (e.message?.includes("503") || e.message?.includes("high demand")) {
         errorMsg = "AIが非常に混雑しています。数分待ってから再度お試しください。";
       } else if (e.message?.includes("API key")) {
-        errorMsg = "APIキーが無効、または設定されていません。";
+        errorMsg = "APIキーが無効、または設定されていません。Google AI Studioで新しいキーを取得してください。";
       } else if (e.message?.includes("JSON")) {
         errorMsg = "AIの回答形式が不正でした。再度お試しください。";
       }
-      console.log("Error details:", e); // 追加: コンソールにも出力
+      console.log("Error details:", e);
       showToast(errorMsg);
     } finally {
       setIsAnalyzing(false);
