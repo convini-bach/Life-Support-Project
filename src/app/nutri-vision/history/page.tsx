@@ -11,6 +11,8 @@ import TabNavigation from "@/components/TabNavigation";
 
 type ViewMode = 'day' | 'week' | 'month';
 
+const APP_VERSION = "2604162335";
+
 export default function NutriHistory() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
   const [exerciseHistory, setExerciseHistory] = useState<ExerciseLog[]>([]);
@@ -208,7 +210,10 @@ export default function NutriHistory() {
       {/* Shared Navigation */}
       <TabNavigation />
 
-      <main className="container" style={{ paddingTop: '5rem' }}>
+      <main className="container" style={{ paddingTop: '8.5rem' }}>
+        <div style={{ fontSize: '0.65rem', color: '#475569', textAlign: 'right', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+          ver.{APP_VERSION}
+        </div>
         
         {/* SECTION 1: カレンダー */}
         <section className="glass-card animate-fade-in" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
