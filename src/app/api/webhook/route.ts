@@ -37,15 +37,36 @@ export async function POST(req: Request) {
     await client.users.updateUserMetadata(clerkUserId, {
       publicMetadata: {
         isPremium: true,
+        stripeCustomerId: session.customer as string, // Store for cancellation tracking
       },
     });
   }
 
   // Handle subscription deletion or cancellation to reset premium status
   if (event.type === "customer.subscription.deleted") {
-      // Note: For simplicity in this MVP, we are using session metadata for checkout.
-      // For subscription deletion, we would need to find the user by Stripe Customer ID.
-      // This part requires mapping Stripe Customer ID to Clerk User ID.
+    const subscription = event.data.object as Stripe.Subscription;
+    const stripeCustomerId = subscription.customer as string;
+
+    const client = await clerkClient();
+    // Find users with this stripeCustomerId in publicMetadata
+    // Note: getUserList has a specific way to query metadata
+    const users = await client.users.getUserList({
+      // We search for the user who has this stripeCustomerId
+      // Limit 1 as it should be unique
+      limit: 1,
+    });
+
+    // Filtering in memory since standard clerkClient query for deep metadata is complex
+    // In a real high-traffic production app, a database mapping would be used.
+    const userToUpdate = users.data.find(u => u.publicMetadata?.stripeCustomerId === stripeCustomerId);
+
+    if (userToUpdate) {
+      await client.users.updateUserMetadata(userToUpdate.id, {
+        publicMetadata: {
+          isPremium: false,
+        },
+      });
+    }
   }
 
   return new NextResponse(null, { status: 200 });
