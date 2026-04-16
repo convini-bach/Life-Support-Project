@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162315"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162330"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
