@@ -6,6 +6,8 @@ import { storage, STORAGE_KEYS, AnalysisResult, HealthData, ExerciseLog, MealCat
 import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
 import { EXERCISE_LABELS } from "@/lib/exercise-calculator";
 import ScrollPicker from "@/components/ScrollPicker";
+import { useUser } from "@clerk/nextjs";
+import TabNavigation from "@/components/TabNavigation";
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -19,6 +21,10 @@ export default function NutriHistory() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
+  // Clerk Hook
+  const { user } = useUser();
+  const isPremium = !!user?.publicMetadata?.isPremium;
 
   // Editing state
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -102,7 +108,9 @@ export default function NutriHistory() {
       vegetables: Math.round(totals.vegetables / rangeDays)
     };
 
-    return { avg, totals, count: filteredHistory.length, filteredHistory, filteredExercise };
+    const weightChange = targets ? Number(((avg.calories - targets.energy) * 30 / 7200).toFixed(1)) : 0;
+
+    return { avg, totals, count: filteredHistory.length, filteredHistory, filteredExercise, weightChange };
   };
 
   const stats = getStatsForRange();
@@ -197,34 +205,8 @@ export default function NutriHistory() {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* 3-Tab Shared Navigation */}
-      <nav style={{ 
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-        background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', justifyContent: 'center'
-      }}>
-        <div style={{ display: 'flex', width: '100%', maxWidth: '600px' }}>
-          {[
-            { label: 'メイン', href: '/nutri-vision' },
-            { label: '統計・履歴', href: '/nutri-vision/history', active: true },
-            { label: '設定', href: '/profile' },
-          ].map(tab => (
-            <Link 
-              key={tab.href} 
-              href={tab.href} 
-              style={{
-                flex: 1, textAlign: 'center', padding: '1rem', textDecoration: 'none',
-                fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.3s',
-                color: tab.active ? 'var(--primary)' : '#64748b',
-                borderBottom: tab.active ? '2px solid var(--primary)' : '2px solid transparent'
-              }}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      {/* Shared Navigation */}
+      <TabNavigation />
 
       <main className="container" style={{ paddingTop: '5rem' }}>
         
@@ -245,21 +227,32 @@ export default function NutriHistory() {
               const isSelected = selectedDate === dateStr;
               const hasData = history.some(item => item.date.startsWith(dateStr));
               
+              const isSelectable = isPremium || (() => {
+                const today = new Date();
+                today.setHours(0,0,0,0);
+                const d = new Date(dateStr);
+                d.setHours(0,0,0,0);
+                const diff = (today.getTime() - d.getTime()) / (1000 * 3600 * 24);
+                return diff < 3;
+              })();
+              
               return (
                 <button 
                   key={dateStr}
-                  onClick={() => setSelectedDate(dateStr)}
+                  onClick={() => isSelectable ? setSelectedDate(dateStr) : null}
                   style={{
                     aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.85rem',
+                    borderRadius: '8px', border: 'none', cursor: isSelectable ? 'pointer' : 'not-allowed', fontSize: '0.85rem',
                     background: isSelected ? 'var(--primary)' : 'transparent',
-                    color: isSelected ? 'white' : '#cbd5e1',
+                    color: isSelected ? 'white' : isSelectable ? '#cbd5e1' : '#334155',
                     position: 'relative',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s',
+                    opacity: isSelectable ? 1 : 0.4
                   }}
                 >
                   {day.getDate()}
-                  {hasData && !isSelected && <div style={{ position: 'absolute', bottom: '4px', width: '4px', height: '4px', borderRadius: '2px', background: 'var(--primary)' }} />}
+                  {hasData && !isSelected && <div style={{ position: 'absolute', bottom: '4px', width: '4px', height: '4px', borderRadius: '2px', background: isSelectable ? 'var(--primary)' : '#475569' }} />}
+                  {!isSelectable && <div style={{ position: 'absolute', top: '2px', right: '2px', fontSize: '0.6rem' }}>🔒</div>}
                 </button>
               );
             })}
@@ -289,56 +282,99 @@ export default function NutriHistory() {
         </div>
 
         {/* SECTION 3: 統計グラフ */}
-        <section className="glass-card" style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+        <section className="glass-card" style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
           {!targets ? (
             <div style={{ textAlign: 'center', padding: '2rem' }}>プロフィールを設定してください</div>
           ) : !stats ? (
             <div style={{ textAlign: 'center', padding: '2rem' }}>データがありません</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
-              <div>
-                <h3 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
-                  {viewMode === 'day' ? `${selectedDate} の状況` : `${selectedDate} から遡った${viewMode === 'week' ? '7' : '30'}日間の平均`}
-                </h3>
-                <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: getBarColor(stats.avg.calories, targets.energy) }}>
-                    {stats.avg.calories} <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: '#64748b' }}>/ {targets.energy} kcal</span>
+            <>
+              {/* PAID MASK for Statistics */}
+              {viewMode !== 'day' && !isPremium && (
+                <div style={{ 
+                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10,
+                  background: 'rgba(10, 15, 28, 0.7)', backdropFilter: 'blur(8px)',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔒</div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '1rem', color: 'white' }}>平均データはプレミアム限定です</div>
+                  <Link href="/profile" className="btn-primary" style={{ textDecoration: 'none', padding: '0.6rem 1.2rem' }}>
+                    プレミアムを試す
+                  </Link>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
+                    {viewMode === 'day' ? `${selectedDate} の状況` : `${selectedDate} から遡った${viewMode === 'week' ? '7' : '30'}日間の平均`}
+                  </h3>
+                  <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                    <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: getBarColor(stats.avg.calories, targets.energy) }}>
+                      {stats.avg.calories} <span style={{ fontSize: '0.9rem', fontWeight: 'normal', color: '#64748b' }}>/ {targets.energy} kcal</span>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                    {[
+                      { label: 'タンパク質', cur: stats.avg.protein, target: targets.protein.min, unit: 'g' },
+                      { label: '脂質', cur: stats.avg.fat, target: targets.fat.min, unit: 'g' },
+                      { label: '炭水化物', cur: stats.avg.carbs, target: targets.carbs.min, unit: 'g' },
+                      { label: '塩分', cur: stats.avg.salt, target: targets.salt, unit: 'g' },
+                      { label: '食物繊維', cur: stats.avg.fiber, target: targets.fiber, unit: 'g' },
+                      { label: '野菜量', cur: stats.avg.vegetables, target: targets.vegetables, unit: 'g' },
+                    ].map(item => {
+                      const ratio = Math.min(100, (item.cur / item.target) * 100);
+                      const color = getBarColor(item.cur, item.target);
+                      return (
+                        <div key={item.label}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
+                            <span>{item.label}</span>
+                            <span style={{ color: color }}>
+                              {(item.cur ?? 0).toFixed(item.label === '塩分' ? 1 : 0)}{item.unit} ({Math.round((item.cur / item.target) * 100)}%)
+                            </span>
+                          </div>
+                          <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                            <div style={{ width: `${ratio}%`, height: '100%', background: color, transition: 'width 1s ease-out' }}></div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                  {[
-                    { label: 'タンパク質', cur: stats.avg.protein, target: targets.protein.min, unit: 'g' },
-                    { label: '脂質', cur: stats.avg.fat, target: targets.fat.min, unit: 'g' },
-                    { label: '炭水化物', cur: stats.avg.carbs, target: targets.carbs.min, unit: 'g' },
-                    { label: '塩分', cur: stats.avg.salt, target: targets.salt, unit: 'g' },
-                    { label: '食物繊維', cur: stats.avg.fiber, target: targets.fiber, unit: 'g' },
-                    { label: '野菜量', cur: stats.avg.vegetables, target: targets.vegetables, unit: 'g' },
-                  ].map(item => {
-                    const ratio = Math.min(100, (item.cur / item.target) * 100);
-                    const color = getBarColor(item.cur, item.target);
-                    return (
-                      <div key={item.label}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.4rem' }}>
-                          <span>{item.label}</span>
-                          <span style={{ color: color }}>
-                            {(item.cur ?? 0).toFixed(item.label === '塩分' ? 1 : 0)}{item.unit} ({Math.round((item.cur / item.target) * 100)}%)
-                          </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', flex: 1 }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>期間中の分析</div>
+                    <div style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.6' }}>
+                      {stats.avg.calories > targets.energy ? "全体として目標カロリーを上回っています。" : "カロリー管理は非常に良好です。"}
+                    </div>
+                  </div>
+                  
+                  {/* WEIGHT PREDICTION BOX */}
+                  <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>1ヶ月後の体重予測</div>
+                    
+                    {isPremium ? (
+                      <div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: stats.weightChange > 0 ? '#ef4444' : 'var(--primary)' }}>
+                          {stats.weightChange > 0 ? '+' : ''}{stats.weightChange} <span style={{ fontSize: '0.8rem' }}>kg</span>
                         </div>
-                        <div style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', overflow: 'hidden' }}>
-                          <div style={{ width: `${ratio}%`, height: '100%', background: color, transition: 'width 1s ease-out' }}></div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                          現在のペースを継続した場合の予測です
                         </div>
                       </div>
-                    );
-                  })}
+                    ) : (
+                      <div style={{ filter: 'blur(3px)', opacity: 0.5, userSelect: 'none' }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>-1.2 kg</div>
+                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
+                          プレミアムで予測を表示
+                        </div>
+                      </div>
+                    )}
+                    {!isPremium && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🔒</div>}
+                  </div>
                 </div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1.5rem' }}>期間中の総括</div>
-                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', lineHeight: '1.7' }}>
-                   {stats.avg.calories > targets.energy ? "全体として摂取エネルギーが目標を上回っています。活動量を増やすか、主食の量を調整することをお勧めします。" : "エネルギー管理は非常に良好です。この調子で栄養バランスに気を配りながら継続しましょう。"}
-                </div>
-              </div>
-            </div>
+            </>
           )}
         </section>
 
@@ -461,12 +497,32 @@ export default function NutriHistory() {
                 {editingType === 'meal' && (
                   <>
                     <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.8rem' }}>食事のタイミング / 種類</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
+                        <select 
+                          value={editValues.mealCategory || ''} 
+                          onChange={(e) => handleEditChange('mealCategory', e.target.value)}
+                          style={{ padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
+                        >
+                          {['朝食', '昼食', '夕食', '間食'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                        </select>
+                        <select 
+                          value={editValues.mealSource || ''} 
+                          onChange={(e) => handleEditChange('mealSource', e.target.value)}
+                          style={{ padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
+                        >
+                          <option value="home">自炊</option>
+                          <option value="restaurant">外食</option>
+                          <option value="takeout">惣菜</option>
+                        </select>
+                      </div>
+
                       <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>料理名</label>
                       <input 
                         type="text" 
                         value={editValues.name || ''} 
                         onChange={(e) => handleEditChange('name', e.target.value)}
-                        style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
+                        style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', marginBottom: '1rem' }}
                       />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
@@ -474,6 +530,9 @@ export default function NutriHistory() {
                       <ScrollPicker label="塩分" items={saltItems} value={editValues.nutrients?.salt || 0} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
                       <ScrollPicker label="タンパク質" items={nutrientItems} value={editValues.nutrients?.protein || 0} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
                       <ScrollPicker label="脂質" items={nutrientItems} value={editValues.nutrients?.fat || 0} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
+                      <ScrollPicker label="炭水化物" items={nutrientItems} value={editValues.nutrients?.carbs || 0} onChange={(v) => handleEditChange('nutrients.carbs', v)} unit="g" />
+                      <ScrollPicker label="食物繊維" items={nutrientItems} value={editValues.nutrients?.fiber || 0} onChange={(v) => handleEditChange('nutrients.fiber', v)} unit="g" />
+                      <ScrollPicker label="野菜量" items={vegItems} value={editValues.nutrients?.vegetablesTotal || 0} onChange={(v) => handleEditChange('nutrients.vegetablesTotal', v)} unit="g" />
                     </div>
                   </>
                 )}

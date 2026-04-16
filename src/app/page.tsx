@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+const APP_VERSION = "2604162245"; // YYMMDDHHMM
 
 export default function Home() {
   const apps = [
@@ -48,6 +49,9 @@ export default function Home() {
 
   return (
     <main className="container min-h-screen flex flex-col items-center justify-center">
+      <div style={{ position: 'fixed', top: '1rem', left: '1rem', fontSize: '0.65rem', color: '#475569', zIndex: 10, fontFamily: 'monospace' }}>
+        ver.{APP_VERSION}
+      </div>
       <header className="text-center mb-16 animate-fade-in" style={{ width: '100%', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, right: 0 }}>
           <Link href="/profile" className="glass-card" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog } from "@/lib/storage";
+import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog, isPremiumUser, getDailyUsageCount, incrementDailyUsageCount } from "@/lib/storage";
 import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
 import { calculateBurnedCalories, EXERCISE_LABELS } from "@/lib/exercise-calculator";
 import ScrollPicker from "@/components/ScrollPicker";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
+const APP_VERSION = "2604162245"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -19,6 +22,10 @@ export default function NutriVision() {
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
   
+  // Clerk Hook
+  const { user } = useUser();
+  const isPremium = !!user?.publicMetadata?.isPremium;
+
   // Notification State
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
 
@@ -156,6 +163,12 @@ export default function NutriVision() {
       return;
     }
 
+    // Check usage for non-premium users
+    if (!isPremium && getDailyUsageCount() >= 3) {
+      showToast("本日の無料解析枠（3回）を超えました。プレミアムプランで無制限に解析できます。");
+      return;
+    }
+
     setIsAnalyzing(true);
     setCountdown(10);
     setAnalysisResult(null);
@@ -186,7 +199,11 @@ export default function NutriVision() {
             "protein": 数値(g), "fat": 数値(g), "carbs": 数値(g),
             "salt": 数値(g), "fiber": 数値(g), "vegetablesTotal": 数値(g), "vegetablesGreenYellow": 数値(g)
           },
-          "advice": "保険代理店のプロのような親身で鋭い『問いかけ』を含むアドバイス。読みやすくするために適度に改行(\\n)や段落（評価・改善点・まとめ）を入れてください。"
+          "advice": {
+            "evaluation": "今回の食事の栄養バランスや選択についての具体的な評価（150字程度）",
+            "improvements": ["具体的な改善アクション1", "改善アクション2"],
+            "message": "保険代理店のプロのような親身で鋭い『問いかけ』を含む締めくくりのメッセージ"
+          }
         }
         ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。
       `;
@@ -226,10 +243,20 @@ export default function NutriVision() {
 
       setAnalysisResult(finalResult);
       saveToHistory(finalResult);
+      if (!isPremium) incrementDailyUsageCount();
       showToast("解析が完了し、保存しました！");
     } catch (e: any) {
       console.error(e);
-      showToast("解析に失敗しました");
+      let errorMsg = `解析エラー: ${e.message || "不明なエラー"}`;
+      if (e.message?.includes("503") || e.message?.includes("high demand")) {
+        errorMsg = "AIが非常に混雑しています。数分待ってから再度お試しください。";
+      } else if (e.message?.includes("API key")) {
+        errorMsg = "APIキーが無効、または設定されていません。";
+      } else if (e.message?.includes("JSON")) {
+        errorMsg = "AIの回答形式が不正でした。再度お試しください。";
+      }
+      console.log("Error details:", e); // 追加: コンソールにも出力
+      showToast(errorMsg);
     } finally {
       setIsAnalyzing(false);
     }
@@ -328,37 +355,14 @@ export default function NutriVision() {
         </div>
       )}
 
-      {/* 3-Tab Shared Navigation */}
-      <nav style={{ 
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-        background: 'rgba(10, 15, 28, 0.85)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.08)',
-        display: 'flex', justifyContent: 'center'
-      }}>
-        <div style={{ display: 'flex', width: '100%', maxWidth: '600px' }}>
-          {[
-            { label: 'メイン', href: '/nutri-vision', active: true },
-            { label: '統計・履歴', href: '/nutri-vision/history' },
-            { label: '設定', href: '/profile' },
-          ].map(tab => (
-            <Link 
-              key={tab.href} 
-              href={tab.href} 
-              style={{
-                flex: 1, textAlign: 'center', padding: '1rem', textDecoration: 'none',
-                fontSize: '0.9rem', fontWeight: 'bold', transition: 'all 0.3s',
-                color: tab.active ? 'var(--primary)' : '#64748b',
-                borderBottom: tab.active ? '2px solid var(--primary)' : '2px solid transparent'
-              }}
-            >
-              {tab.label}
-            </Link>
-          ))}
-        </div>
-      </nav>
+      {/* Shared Navigation */}
+      <TabNavigation />
 
       {/* Adjust padding to account for fixed header */}
       <main className="container" style={{ paddingTop: '5rem' }}>
+        <div style={{ fontSize: '0.65rem', color: '#475569', textAlign: 'right', marginBottom: '0.5rem', fontFamily: 'monospace' }}>
+          ver.{APP_VERSION}
+        </div>
         
         {/* SECTION 1: 今日の充足状況 (閲覧のみ) */}
         {targets && (
@@ -583,14 +587,65 @@ export default function NutriVision() {
                 })}
               </div>
 
-              <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)' }}>
+              <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>AIアドバイス</div>
-                <div style={{ 
-                  lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem',
-                  whiteSpace: 'pre-wrap'
-                }}>
-                  {analysisResult.advice}
-                </div>
+                
+                {isPremium ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                    {typeof analysisResult.advice === 'string' ? (
+                      <div style={{ lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                        {analysisResult.advice}
+                      </div>
+                    ) : (
+                      <>
+                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>【 栄養評価 】</div>
+                          <div style={{ lineHeight: '1.7', color: '#cbd5e1', fontSize: '0.9rem' }}>{analysisResult.advice.evaluation}</div>
+                        </div>
+                        
+                        {(analysisResult.advice.improvements?.length ?? 0) > 0 && (
+                          <div style={{ padding: '0 0.5rem' }}>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginBottom: '0.8rem', fontWeight: 'bold' }}>【 改善のアクション 】</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                              {analysisResult.advice.improvements.map((imp, idx) => (
+                                <div key={idx} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                                  <span style={{ color: 'var(--accent)' }}>✦</span>
+                                  <span>{imp}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem', fontStyle: 'italic' }}>
+                          <div style={{ lineHeight: '1.7', color: '#94a3b8', fontSize: '0.9rem' }}>{analysisResult.advice.message}</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative' }}>
+                    <div style={{ 
+                      lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem',
+                      whiteSpace: 'pre-wrap', filter: 'blur(4px)', opacity: 0.5, userSelect: 'none'
+                    }}>
+                      あなたの食事は非常にバランスが良いですが、もう少し塩分を控えることで血圧への影響を抑えることができます。また、緑黄色野菜が不足気味なので、明日はほうれん草や人参を取り入れると良いでしょう。AIによる深いアドバイスを継続して受けるために、プレミアムプランをご検討ください。
+                    </div>
+                    <div style={{ 
+                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      background: 'rgba(10, 15, 28, 0.4)', borderRadius: '12px'
+                    }}>
+                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>🔒</div>
+                      <Link href="/profile" style={{ 
+                        color: 'white', background: 'var(--primary)', padding: '0.5rem 1rem', 
+                        borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textDecoration: 'none'
+                      }}>
+                        プレミアムでアドバイスを表示
+                      </Link>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ) : null}
