@@ -144,12 +144,5 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
         </div>
       )}
     </div>
-
-      <style jsx>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </div>
   );
 }
