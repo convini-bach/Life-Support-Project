@@ -7,11 +7,12 @@ import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
 import { EXERCISE_LABELS } from "@/lib/exercise-calculator";
 import ScrollPicker from "@/components/ScrollPicker";
 import { useUser } from "@clerk/nextjs";
+import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
 
 type ViewMode = 'day' | 'week' | 'month';
 
-const APP_VERSION = "2604162350";
+const APP_VERSION = "2604162400";
 
 export default function NutriHistory() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
@@ -28,6 +29,7 @@ export default function NutriHistory() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   // Clerk Hook
+  const { lang, t } = useI18n();
   const { user } = useUser();
   const isPremium = !!user?.publicMetadata?.isPremium;
 
@@ -174,7 +176,7 @@ export default function NutriHistory() {
   };
 
   const deleteItem = (id: number) => {
-    if (!confirm("この記録を削除しますか？")) return;
+    if (!confirm(t('history.delete_confirm'))) return;
     const newHistory = history.filter(item => item.id !== id);
     storage.set(STORAGE_KEYS.ANALYSIS_HISTORY, newHistory);
     setHistory(newHistory);
@@ -200,11 +202,11 @@ export default function NutriHistory() {
       <button onClick={saveEdit} style={{ 
         padding: '0.5rem 1.2rem', background: 'var(--primary)', color: 'white', border: 'none', 
         borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold'
-      }}>確定（保存）</button>
+      }}>{t('analysis.result.confirm')}</button>
       <button onClick={() => setEditingId(null)} style={{ 
         padding: '0.5rem 1.2rem', background: '#334155', color: 'white', border: 'none', 
         borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' 
-      }}>戻る</button>
+      }}>{t('history.modal.cancel')}</button>
     </div>
   );
 
@@ -226,7 +228,7 @@ export default function NutriHistory() {
             <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}>&rsaquo;</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.3rem', textAlign: 'center' }}>
-            {['日', '月', '火', '水', '木', '金', '土'].map(d => (
+            {(lang === 'ja' ? ['日', '月', '火', '水', '木', '金', '土'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S']).map(d => (
               <div key={d} style={{ fontSize: '0.7rem', color: '#64748b', paddingBottom: '0.5rem' }}>{d}</div>
             ))}
             {generateCalendarDays().map((day, i) => {
@@ -273,9 +275,9 @@ export default function NutriHistory() {
         {/* SECTION 2: 分析範囲切り替えタブ */}
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', background: 'rgba(255,255,255,0.02)', padding: '0.3rem', borderRadius: '10px' }}>
           {[
-            { id: 'day', l: '特定日' },
-            { id: 'week', l: '7日間平均' },
-            { id: 'month', l: '30日間平均' }
+            { id: 'day', l: t('history.mode.day') },
+            { id: 'week', l: t('history.mode.week') },
+            { id: 'month', l: t('history.mode.month') }
           ].map(m => (
             <button 
               key={m.id} 
@@ -295,9 +297,9 @@ export default function NutriHistory() {
         {/* SECTION 3: 統計グラフ */}
         <section className="glass-card" style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
           {!targets ? (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>プロフィールを設定してください</div>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>{t('history.stats.no_profile')}</div>
           ) : !stats ? (
-            <div style={{ textAlign: 'center', padding: '2rem' }}>データがありません</div>
+            <div style={{ textAlign: 'center', padding: '2rem' }}>{t('history.stats.no_data')}</div>
           ) : (
             <>
               {/* PAID MASK for Statistics */}
@@ -308,9 +310,9 @@ export default function NutriHistory() {
                   display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
                 }}>
                   <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔒</div>
-                  <div style={{ fontWeight: 'bold', marginBottom: '1rem', color: 'white' }}>平均データはプレミアム限定です</div>
+                  <div style={{ fontWeight: 'bold', marginBottom: '1rem', color: 'white' }}>{lang === 'ja' ? '平均データはプレミアム限定です' : 'Average data is Premium only'}</div>
                   <Link href="/profile" className="btn-primary" style={{ textDecoration: 'none', padding: '0.6rem 1.2rem' }}>
-                    プレミアムを試す
+                    {t('profile.button.upgrade')}
                   </Link>
                 </div>
               )}
@@ -327,12 +329,12 @@ export default function NutriHistory() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
                     {[
-                      { label: 'タンパク質', cur: stats.avg.protein, target: targets.protein.min, unit: 'g' },
-                      { label: '脂質', cur: stats.avg.fat, target: targets.fat.min, unit: 'g' },
-                      { label: '炭水化物', cur: stats.avg.carbs, target: targets.carbs.min, unit: 'g' },
-                      { label: '塩分', cur: stats.avg.salt, target: targets.salt, unit: 'g' },
-                      { label: '食物繊維', cur: stats.avg.fiber, target: targets.fiber, unit: 'g' },
-                      { label: '野菜量', cur: stats.avg.vegetables, target: targets.vegetables, unit: 'g' },
+                      { label: t('nutrient.protein'), cur: stats.avg.protein, target: targets.protein.min, unit: 'g' },
+                      { label: t('nutrient.fat'), cur: stats.avg.fat, target: targets.fat.min, unit: 'g' },
+                      { label: t('nutrient.carbs'), cur: stats.avg.carbs, target: targets.carbs.min, unit: 'g' },
+                      { label: t('nutrient.salt'), cur: stats.avg.salt, target: targets.salt, unit: 'g' },
+                      { label: t('nutrient.fiber'), cur: stats.avg.fiber, target: targets.fiber, unit: 'g' },
+                      { label: t('nutrient.vegetables'), cur: stats.avg.vegetables, target: targets.vegetables, unit: 'g' },
                     ].map(item => {
                       const ratio = Math.min(100, (item.cur / item.target) * 100);
                       const color = getBarColor(item.cur, item.target);
@@ -354,15 +356,15 @@ export default function NutriHistory() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', flex: 1 }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>期間中の分析</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>{t('history.stats.title')}</div>
                     <div style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.6' }}>
-                      {stats.avg.calories > targets.energy ? "全体として目標カロリーを上回っています。" : "カロリー管理は非常に良好です。"}
+                      {stats.avg.calories > targets.energy ? (lang === 'ja' ? "全体として目標カロリーを上回っています。" : "Overall calories exceed target.") : (lang === 'ja' ? "カロリー管理は非常に良好です。" : "Calorie management is excellent.")}
                     </div>
                   </div>
                   
                   {/* WEIGHT PREDICTION BOX */}
                   <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>1ヶ月後の体重予測</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>{t('history.weight_predict')}</div>
                     
                     {isPremium ? (
                       <div>
@@ -370,7 +372,7 @@ export default function NutriHistory() {
                           {stats.weightChange > 0 ? '+' : ''}{stats.weightChange} <span style={{ fontSize: '0.8rem' }}>kg</span>
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                          現在のペースを継続した場合の予測です
+                          {lang === 'ja' ? '現在のペースを継続した場合の予測です' : 'Predicted based on current pace'}
                         </div>
                       </div>
                     ) : (
@@ -393,7 +395,7 @@ export default function NutriHistory() {
         <div className="responsive-grid-800" style={{ alignItems: 'start' }}>
           <section>
             <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🍱</span> 食事の履歴 ({stats?.filteredHistory.length || 0}件)
+              <span>🍱</span> {t('history.title')} ({stats?.filteredHistory.length || 0})
             </h2>
             {stats && stats.filteredHistory.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -430,7 +432,7 @@ export default function NutriHistory() {
 
           <section>
             <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🏃</span> 運動の履歴 ({stats?.filteredExercise.length || 0}件)
+              <span>🏃</span> {t('history.exercise_title')} ({stats?.filteredExercise.length || 0})
             </h2>
             {stats && stats.filteredExercise.length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -457,7 +459,7 @@ export default function NutriHistory() {
         {/* SECTION 5: 体重の履歴 */}
         <section style={{ marginBottom: '4rem' }}>
           <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>⚖️</span> 体重の履歴 ({weightHistory.length}件)
+            <span>⚖️</span> {t('history.weight_title')} ({weightHistory.length})
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {weightHistory.map(item => (
@@ -492,11 +494,11 @@ export default function NutriHistory() {
               width: '100%', maxWidth: '500px', borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
               padding: '2rem', maxHeight: '90vh', overflowY: 'auto'
             }}>
-              <h3 style={{ fontSize: '1.2rem', marginBottom: '2rem', fontWeight: 'bold' }}>記録の編集</h3>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: '2rem', fontWeight: 'bold' }}>{t('history.modal.title')}</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2.5rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>日付</label>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('history.modal.date')}</label>
                   <input 
                     type="date" 
                     value={editValues.date ? editValues.date.split('T')[0] : ''} 
@@ -528,7 +530,7 @@ export default function NutriHistory() {
                         </select>
                       </div>
 
-                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>料理名</label>
+                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('history.modal.name')}</label>
                       <input 
                         type="text" 
                         value={editValues.name || ''} 
@@ -537,13 +539,13 @@ export default function NutriHistory() {
                       />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                      <ScrollPicker label="エネルギー" items={calItems} value={Math.round(editValues.calories || 0)} onChange={(v) => handleEditChange('calories', v)} unit="kcal" />
-                      <ScrollPicker label="塩分" items={saltItems} value={editValues.nutrients?.salt || 0} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
-                      <ScrollPicker label="タンパク質" items={nutrientItems} value={editValues.nutrients?.protein || 0} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
-                      <ScrollPicker label="脂質" items={nutrientItems} value={editValues.nutrients?.fat || 0} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
-                      <ScrollPicker label="炭水化物" items={nutrientItems} value={editValues.nutrients?.carbs || 0} onChange={(v) => handleEditChange('nutrients.carbs', v)} unit="g" />
-                      <ScrollPicker label="食物繊維" items={nutrientItems} value={editValues.nutrients?.fiber || 0} onChange={(v) => handleEditChange('nutrients.fiber', v)} unit="g" />
-                      <ScrollPicker label="野菜量" items={vegItems} value={editValues.nutrients?.vegetablesTotal || 0} onChange={(v) => handleEditChange('nutrients.vegetablesTotal', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.energy')} items={calItems} value={Math.round(editValues.calories || 0)} onChange={(v) => handleEditChange('calories', v)} unit="kcal" />
+                      <ScrollPicker label={t('nutrient.salt')} items={saltItems} value={editValues.nutrients?.salt || 0} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.protein')} items={nutrientItems} value={editValues.nutrients?.protein || 0} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.fat')} items={nutrientItems} value={editValues.nutrients?.fat || 0} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.carbs')} items={nutrientItems} value={editValues.nutrients?.carbs || 0} onChange={(v) => handleEditChange('nutrients.carbs', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.fiber')} items={nutrientItems} value={editValues.nutrients?.fiber || 0} onChange={(v) => handleEditChange('nutrients.fiber', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.vegetables')} items={vegItems} value={editValues.nutrients?.vegetablesTotal || 0} onChange={(v) => handleEditChange('nutrients.vegetablesTotal', v)} unit="g" />
                     </div>
                   </>
                 )}

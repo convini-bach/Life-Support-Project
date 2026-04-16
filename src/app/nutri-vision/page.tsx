@@ -7,10 +7,11 @@ import { calculateBurnedCalories, EXERCISE_LABELS } from "@/lib/exercise-calcula
 import ScrollPicker from "@/components/ScrollPicker";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
+import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162350"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162400"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -21,6 +22,8 @@ export default function NutriVision() {
   const [targets, setTargets] = useState<NutritionTargets | null>(null);
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
+  
+  const { lang, t } = useI18n();
   
   // Clerk Hook
   const { user } = useUser();
@@ -163,13 +166,13 @@ export default function NutriVision() {
     if (mode === "image" && !selectedImage) return;
     if (mode === "text" && !textInput) return;
     if (!apiKey) {
-      showToast("APIキーを設定してください");
+      showToast(t('profile.api_key') + " error");
       return;
     }
 
     // Check usage for non-premium users
     if (!isPremium && getDailyUsageCount() >= 3) {
-      showToast("本日の無料解析枠（3回）を超えました。プレミアムプランで無制限に解析できます。");
+      showToast(lang === 'ja' ? "本日の無料解析枠（3回）を超えました。プレミアムプランで無制限に解析できます。" : "Daily free analysis limit (3) exceeded. Upgrade to Premium for unlimited access.");
       return;
     }
 
@@ -188,7 +191,29 @@ export default function NutriVision() {
         ? `ユーザー特性: ${profile.gender === 'male' ? '男性' : '女性'}, ${profile.birthYear ? new Date().getFullYear() - profile.birthYear : '不明'}歳。目標: ${profile.concern}` 
         : "";
 
-      const prompt = `
+      const prompt = lang === 'en' ? `
+        Analyze the following meal and output in JSON.
+        ${profileContext}
+        Meal Source: ${mealSource} (home, restaurant, takeout)
+        Meal Category: ${mealCategory}
+        Additional Info: ${textInput}
+
+        Strict JSON format:
+        {
+          "name": "Meal Name",
+          "calories": number,
+          "nutrients": {
+            "protein": number(g), "fat": number(g), "carbs": number(g),
+            "salt": number(g), "fiber": number(g), "vegetablesTotal": number(g), "vegetablesGreenYellow": number(g)
+          },
+          "advice": {
+            "evaluation": "Detailed evaluation of nutritional balance (approx 150 chars)",
+            "improvements": ["Action 1", "Action 2"],
+            "message": "A friendly and sharp closing message like a professional coach."
+          }
+        }
+        Note: Output should be in English.
+      ` : `
         以下の食事を解析し、JSON出力してください。
         ${profileContext}
         食事タイプ: ${mealSource} (home:自炊, restaurant:外食, takeout:テイクアウト)
@@ -209,7 +234,7 @@ export default function NutriVision() {
             "message": "保険代理店のプロのような親身で鋭い『問いかけ』を含む締めくくりのメッセージ"
           }
         }
-        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。
+        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。出力は日本語でお願いします。
       `;
 
       let result;
@@ -250,18 +275,18 @@ export default function NutriVision() {
       setAnalysisResult(finalResult);
       saveToHistory(finalResult);
       if (!isPremium) incrementDailyUsageCount();
-      showToast("解析が完了し、保存しました！");
+      showToast(t('analysis.toast.success'));
     } catch (e: any) {
       console.error(e);
       let errorMsg = `解析エラー: ${e.message || "不明なエラー"}`;
       if (e.message?.includes("429") || e.message?.toLowerCase().includes("quota")) {
-        errorMsg = "AIの利用制限（クォータ制限）に達しました。しばらく待ってから再度お試しいただくか、APIキーの設定を確認してください。";
+        errorMsg = t('analysis.error.quota');
       } else if (e.message?.includes("503") || e.message?.includes("high demand")) {
-        errorMsg = "AIが非常に混雑しています。数分待ってから再度お試しください。";
+        errorMsg = lang === 'ja' ? "AIが非常に混雑しています。数分待ってから再度お試しください。" : "AI is very busy. Please wait a few minutes and try again.";
       } else if (e.message?.includes("API key")) {
-        errorMsg = "APIキーが無効、または設定されていません。Google AI Studioで新しいキーを取得してください。";
+        errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。Google AI Studioで新しいキーを取得してください。" : "API key is invalid or not set. Please get a new key from Google AI Studio.";
       } else if (e.message?.includes("JSON")) {
-        errorMsg = "AIの回答形式が不正でした。再度お試しください。";
+        errorMsg = lang === 'ja' ? "AIの回答形式が不正でした。再度お試しください。" : "AI format was invalid. Please try again.";
       }
       console.log("Error details:", e);
       showToast(errorMsg);
@@ -316,7 +341,7 @@ export default function NutriVision() {
     
     setExerciseMinutes(0);
     loadData();
-    showToast(`${EXERCISE_LABELS[selectedExerciseType]}を登録しました！`);
+    showToast(t('exercise.toast.success'));
   };
 
   const handleSaveWeight = () => {
@@ -336,7 +361,7 @@ export default function NutriVision() {
     }
     
     storage.set(STORAGE_KEYS.WEIGHT_HISTORY, weightHistory);
-    showToast(`体重 ${currentWeight}kg を登録しました！`);
+    showToast(t('weight.toast.success'));
   };
 
   const netCalories = todaysTotals.calories - exerciseCalories;
@@ -380,8 +405,8 @@ export default function NutriVision() {
                 <h2 style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 'bold' }}>
                   {(() => {
                     const [y, m, d] = selectedDate.split('-').map(Number);
-                    return new Date(y, m - 1, d).toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
-                  })()} の充足状況
+                    return new Date(y, m - 1, d).toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', { month: 'long', day: 'numeric' });
+                  })()} の状況
                 </h2>
               </div>
               <div style={{ textAlign: 'right' }}>
@@ -397,12 +422,12 @@ export default function NutriVision() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
               {[
-                { label: 'タンパク質', cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
-                { label: '脂質', cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
-                { label: '炭水化物', cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
-                { label: '塩分', cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
-                { label: '食物繊維', cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
-                { label: '野菜量', cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
+                { label: t('nutrient.protein'), cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
+                { label: t('nutrient.fat'), cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
+                { label: t('nutrient.carbs'), cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
+                { label: t('nutrient.salt'), cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
+                { label: t('nutrient.fiber'), cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
+                { label: t('nutrient.vegetables'), cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
               ].map(n => {
                 const ratio = Math.min(100, (n.cur / n.target) * 100);
                 const color = getBarColor(n.cur, n.target);
@@ -425,17 +450,17 @@ export default function NutriVision() {
         {/* SECTION 2: 記録ハブ (日付選択 -> 種類選択 -> 入力) */}
         <section className="glass-card" style={{ marginBottom: '3rem', padding: '2rem' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span> 記録を追加する
+            <span>📝</span> {t('exercise.title')}
           </h2>
 
           {/* 1. 日付選択 */}
           <div style={{ marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-            <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.8rem', fontWeight: 'bold' }}>記録日の選択</label>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.8rem', fontWeight: 'bold' }}>{t('history.modal.date')}</label>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                {[
-                { label: '一昨日', offset: 2 },
-                { label: '昨日', offset: 1 },
-                { label: '今日', offset: 0 }
+                { label: lang === 'ja' ? '一昨日' : '2 days ago', offset: 2 },
+                { label: lang === 'ja' ? '昨日' : 'Yesterday', offset: 1 },
+                { label: lang === 'ja' ? '今日' : 'Today', offset: 0 }
               ].map(btn => {
                 const d = new Date();
                 d.setDate(d.getDate() - btn.offset);
@@ -475,7 +500,7 @@ export default function NutriVision() {
                   transition: 'all 0.3s'
                 }}
               >
-                {tab === 'meal' ? '🍱 食事' : tab === 'exercise' ? '🏃 運動' : '⚖️ 体重'}
+                {tab === 'meal' ? '🍱 ' + t('nav.meal') : tab === 'exercise' ? '🏃 ' + t('nav.exercise') : '⚖️ ' + t('nav.weight')}
               </button>
             ))}
           </div>
@@ -494,14 +519,14 @@ export default function NutriVision() {
                             borderColor: mealCategory === cat ? 'var(--primary)' : '#334155',
                             background: mealCategory === cat ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
                             color: mealCategory === cat ? 'white' : '#64748b'
-                        }}>{cat}</button>
+                        }}>{lang === 'en' ? (cat === '朝食' ? 'Breakfast' : cat === '昼食' ? 'Lunch' : cat === '夕食' ? 'Dinner' : 'Snack') : cat}</button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>種類</label>
+                    <label style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginBottom: '0.6rem' }}>{t('analysis.source')}</label>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem' }}>
-                      {[ { id: 'home', l: '自炊' }, { id: 'restaurant', l: '外食' }, { id: 'takeout', l: '惣菜' } ].map(s => (
+                      {[ { id: 'home', l: t('analysis.source.home') }, { id: 'restaurant', l: t('analysis.source.restaurant') }, { id: 'takeout', l: t('analysis.source.takeout') } ].map(s => (
                         <button key={s.id} onClick={() => setMealSource(s.id as any)} style={{ 
                             padding: '0.5rem', borderRadius: '6px', border: '1px solid', cursor: 'pointer', fontSize: '0.75rem',
                             borderColor: mealSource === s.id ? 'var(--primary)' : '#334155',
@@ -514,25 +539,25 @@ export default function NutriVision() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <button onClick={() => setMode("image")} style={{ flex: 1, padding: '0.6rem', color: mode === 'image' ? 'var(--primary)' : '#64748b', background: mode === 'image' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'image' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>📷 写真</button>
-                  <button onClick={() => setMode("text")} style={{ flex: 1, padding: '0.6rem', color: mode === 'text' ? 'var(--primary)' : '#64748b', background: mode === 'text' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'text' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>✍️ テキスト</button>
+                  <button onClick={() => setMode("image")} style={{ flex: 1, padding: '0.6rem', color: mode === 'image' ? 'var(--primary)' : '#64748b', background: mode === 'image' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'image' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>{t('analysis.mode.image')}</button>
+                  <button onClick={() => setMode("text")} style={{ flex: 1, padding: '0.6rem', color: mode === 'text' ? 'var(--primary)' : '#64748b', background: mode === 'text' ? 'rgba(16, 185, 129, 0.05)' : 'transparent', border: '1px solid', borderColor: mode === 'text' ? 'var(--primary)' : '#334155', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>{t('analysis.mode.text')}</button>
                 </div>
 
                 {mode === 'image' && (
                   <div onClick={() => fileInputRef.current?.click()} style={{ width: '100%', aspectRatio: '16/9', background: '#0f172a', border: '2px dashed #334155', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', marginBottom: '1rem' }}>
-                    {selectedImage ? <img src={selectedImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ textAlign: 'center', color: '#475569' }}><span style={{ fontSize: '2rem' }}>🖼️</span><br />タップして選択</div>}
+                    {selectedImage ? <img src={selectedImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <div style={{ textAlign: 'center', color: '#475569' }}><span style={{ fontSize: '2rem' }}>🖼️</span><br />{t('analysis.tap_to_select')}</div>}
                   </div>
                 )}
                 
                 <textarea 
-                  placeholder={mode === 'image' ? "補足（大盛、味濃いめ等）..." : "材料、メニュー、URLなど..."}
+                  placeholder={mode === 'image' ? t('analysis.placeholder.image') : t('analysis.placeholder.text')}
                   value={textInput} onChange={(e) => setTextInput(e.target.value)}
                   style={{ width: '100%', height: mode === 'image' ? '80px' : '150px', background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', color: 'white', padding: '1rem', fontSize: '0.95rem', marginBottom: '1.5rem' }}
                 />
 
                 <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageChange} />
                 <button className="btn-primary" onClick={startAnalysis} disabled={isAnalyzing} style={{ width: '100%', padding: '1rem' }}>
-                  {isAnalyzing ? `解析中... (${countdown}s)` : "AI解析を実行する"}
+                  {isAnalyzing ? `${t('analysis.button.analyzing')} (${countdown}s)` : t('analysis.button.start')}
                 </button>
               </div>
             )}
@@ -583,17 +608,17 @@ export default function NutriVision() {
                   <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '0.4rem' }}>{analysisResult.calories.toFixed(0)} kcal</div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-end' }}>
-                  <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? "確定" : "修正"}</button>
+                  <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? t('analysis.result.confirm') : t('analysis.result.edit')}</button>
                   {!isEditing && (
-                    <button onClick={() => { saveToHistory(analysisResult); showToast("保存しました！"); }} style={{ fontSize: '0.75rem', background: 'var(--primary)', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
-                      ⚡ 確定保存
+                    <button onClick={() => { saveToHistory(analysisResult); showToast(t('analysis.toast.success')); }} style={{ fontSize: '0.75rem', background: 'var(--primary)', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+                      {t('analysis.result.save')}
                     </button>
                   )}
                 </div>
               </div>
               
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-                {[ { label: 'タンパク質', key: 'protein', unit: 'g', target: targets?.protein.min }, { label: '脂質', key: 'fat', unit: 'g', target: targets?.fat.min }, { label: '炭水化物', key: 'carbs', unit: 'g', target: targets?.carbs.min }, { label: '塩分', key: 'salt', unit: 'g', target: targets?.salt }, { label: '食物繊維', key: 'fiber', unit: 'g', target: targets?.fiber }, { label: '野菜量', key: 'vegetablesTotal', unit: 'g', target: targets?.vegetables } ].map(n => {
+                {[ { label: t('nutrient.protein'), key: 'protein', unit: 'g', target: targets?.protein.min }, { label: t('nutrient.fat'), key: 'fat', unit: 'g', target: targets?.fat.min }, { label: t('nutrient.carbs'), key: 'carbs', unit: 'g', target: targets?.carbs.min }, { label: t('nutrient.salt'), key: 'salt', unit: 'g', target: targets?.salt }, { label: t('nutrient.fiber'), key: 'fiber', unit: 'g', target: targets?.fiber }, { label: t('nutrient.vegetables'), key: 'vegetablesTotal', unit: 'g', target: targets?.vegetables } ].map(n => {
                   const val = (analysisResult.nutrients as any)[n.key];
                   const target = n.target || 1;
                   const ratio = Math.min(100, Math.round((val / target) * 100));
@@ -612,7 +637,7 @@ export default function NutriVision() {
               </div>
 
               <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>AIアドバイス</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>{t('analysis.result.advice')}</div>
                 
                 {isPremium ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -623,13 +648,13 @@ export default function NutriVision() {
                     ) : (
                       <>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>【 栄養評価 】</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>{t('analysis.result.evaluation')}</div>
                           <div style={{ lineHeight: '1.7', color: '#cbd5e1', fontSize: '0.9rem' }}>{analysisResult.advice.evaluation}</div>
                         </div>
                         
                         {(analysisResult.advice.improvements?.length ?? 0) > 0 && (
                           <div style={{ padding: '0 0.5rem' }}>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginBottom: '0.8rem', fontWeight: 'bold' }}>【 改善のアクション 】</div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginBottom: '0.8rem', fontWeight: 'bold' }}>{t('analysis.result.improvement')}</div>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
                               {analysisResult.advice.improvements.map((imp, idx) => (
                                 <div key={idx} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start', fontSize: '0.85rem', color: '#cbd5e1' }}>
@@ -665,7 +690,7 @@ export default function NutriVision() {
                         color: 'white', background: 'var(--primary)', padding: '0.5rem 1rem', 
                         borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textDecoration: 'none'
                       }}>
-                        プレミアムでアドバイスを表示
+                        {t('analysis.result.premium_mask')}
                       </Link>
                     </div>
                   </div>

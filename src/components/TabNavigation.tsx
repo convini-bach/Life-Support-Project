@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useI18n } from "@/lib/i18n";
 
 export default function TabNavigation() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   const tabs = [
-    { label: 'メイン', href: '/nutri-vision' },
-    { label: '統計・履歴', href: '/nutri-vision/history' },
-    { label: '設定', href: '/profile' },
+    { label: t('nav.meal'), href: '/nutri-vision' },
+    { label: t('nav.history'), href: '/nutri-vision/history' },
+    { label: t('nav.profile'), href: '/profile' },
   ];
 
   return (

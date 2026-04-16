@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-const APP_VERSION = "2604162350"; // YYMMDDHHMM
+import { useI18n } from "@/lib/i18n";
+
+const APP_VERSION = "2604162400"; // YYMMDDHHMM
 
 export default function Home() {
+  const { t } = useI18n();
+
   const apps = [
     {
       id: "nutri-vision",
       name: "Nutri-Vision",
-      description: "食事を「視る」、身体を「知る」。AIによるプロフェッショナルな食事解析ツール。",
+      description: t('portal.nutri_vision.desc'),
       href: "/nutri-vision",
       icon: "🥗",
       color: "#10b981",
@@ -16,7 +20,7 @@ export default function Home() {
     {
       id: "recipe-cart",
       name: "Recipe-Cart",
-      description: "解析結果に基づいたレシピ提案と、効率的な買い物管理をサポートします。",
+      description: t('portal.recipe_cart.desc'),
       href: "/recipe-cart",
       icon: "🛒",
       color: "#f59e0b",
@@ -24,7 +28,7 @@ export default function Home() {
     {
       id: "hoken-mirror",
       name: "Hoken-Mirror",
-      description: "その保険は、今のあなたを正しく映していますか？AIによるミラーリング診断。",
+      description: t('portal.hoken_mirror.desc'),
       href: "/hoken-mirror",
       icon: "🛡️",
       color: "#3b82f6",
@@ -32,7 +36,7 @@ export default function Home() {
     {
       id: "sumai-check",
       name: "Sumai-Check",
-      description: "住まいのコストは人生の土台。居住戦略の最適化をサポートします。",
+      description: t('portal.sumai_check.desc'),
       href: "/sumai-check",
       icon: "🏠",
       color: "#ec4899",
@@ -40,7 +44,7 @@ export default function Home() {
     {
       id: "work-counsel",
       name: "Work-Counsel",
-      description: "働くことは生きること。キャリアのリズムとバランスをAIが診断します。",
+      description: t('portal.work_counsel.desc'),
       href: "/work-counsel",
       icon: "💼",
       color: "#8b5cf6",
@@ -55,11 +59,11 @@ export default function Home() {
       <header className="text-center mb-16 animate-fade-in" style={{ width: '100%', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, right: 0 }}>
           <Link href="/profile" className="glass-card" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            👤 プロフィール
+            👤 {t('nav.profile')}
           </Link>
         </div>
-        <h1 className="gradient-text" style={{ fontSize: '3rem', marginBottom: '1rem' }}>Life Support Project</h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>Local-Firstな知恵の集積地。あなたのデータは、あなただけのものです。</p>
+        <h1 className="gradient-text" style={{ fontSize: '3rem', marginBottom: '1rem' }}>{t('portal.welcome')}</h1>
+        <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>{t('portal.subtitle')}</p>
       </header>
 
       <div style={{
@@ -84,7 +88,7 @@ export default function Home() {
               <h2 style={{ fontSize: '1.5rem', marginBottom: '0.8rem', color: app.color }}>{app.name}</h2>
               <p style={{ color: '#94a3b8', lineHeight: '1.6', fontSize: '0.95rem' }}>{app.description}</p>
               <div style={{ marginTop: 'auto', paddingTop: '2rem', color: 'white', fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
-                アプリを開く <span style={{ marginLeft: '0.5rem' }}>&rarr;</span>
+                {t('portal.open_app')} <span style={{ marginLeft: '0.5rem' }}>&rarr;</span>
               </div>
             </div>
           </Link>
@@ -93,7 +97,7 @@ export default function Home() {
 
       {/* Footer Info */}
       <footer style={{ marginTop: '5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
-        <p>プロジェクト憲法に基づき、データのプライバシーを最優先に設計されています。</p>
+        <p>{t('portal.footer')}</p>
       </footer>
 
       {/* Background Decor */}

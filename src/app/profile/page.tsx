@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { storage, STORAGE_KEYS, HealthData, exportDataJSON, exportMealsCSV, importDataJSON } from "@/lib/storage";
 import ScrollPicker from "@/components/ScrollPicker";
 import TabNavigation from "@/components/TabNavigation";
 import { useSearchParams } from "next/navigation";
+import { useI18n, Language } from "@/lib/i18n";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
-import { Suspense } from "react";
 
-const APP_VERSION = "2604162350"; // YYMMDDHHMM
+const APP_VERSION = "2604162400"; // YYMMDDHHMM
 
 // Use a separate component to use useSearchParams to avoid wrapping the whole page in Suspense
 function ProfileContent() {
@@ -24,6 +24,7 @@ function ProfileContent() {
   const [apiKey, setApiKey] = useState("");
   const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
   const [isTesting, setIsTesting] = useState(false);
+  const { lang, setLang, t } = useI18n();
   const { user, isLoaded, isSignedIn } = useUser();
   const isPremium = !!user?.publicMetadata?.isPremium;
   const searchParams = useSearchParams();
@@ -211,16 +212,16 @@ function ProfileContent() {
           ver.{APP_VERSION}
         </div>
         <header style={{ marginBottom: '3rem' }}>
-          <h1 className="gradient-text" style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>設定 & データ管理</h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>自分に合わせたカスタマイズと、大切なデータのバックアップ。</p>
+          <h1 className="gradient-text" style={{ fontSize: '2.2rem', marginBottom: '0.5rem' }}>{t('profile.title')}</h1>
+          <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>{t('profile.subtitle')}</p>
         </header>
 
         <section className="glass-card animate-fade-in" style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid var(--primary)', background: 'rgba(16, 185, 129, 0.05)' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--primary)' }}>
-            <span>💎</span> プレミアムステータス
+            <span>💎</span> {t('profile.status.premium')}
           </h2>
           {!isLoaded ? (
-            <div style={{ color: '#64748b' }}>読み込み中...</div>
+            <div style={{ color: '#64748b' }}>...</div>
           ) : !isSignedIn ? (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
@@ -243,7 +244,7 @@ function ProfileContent() {
                 <div>
                   <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: 'bold' }}>{user.fullName || user.emailAddresses[0].emailAddress}</div>
                   <div style={{ fontSize: '0.8rem', color: isPremium ? 'var(--primary)' : '#64748b' }}>
-                    {isPremium ? '✨ プレミアムプラン加入中' : '無料プラン'}
+                    {isPremium ? t('profile.status.premium') : t('profile.status.free')}
                   </div>
                 </div>
               </div>
@@ -256,7 +257,7 @@ function ProfileContent() {
                     background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
                   }}
                 >
-                  {isPurchasing ? '準備中...' : 'プレミアムにアップグレード'}
+                  {isPurchasing ? '...' : t('profile.button.upgrade')}
                 </button>
               )}
             </div>
@@ -267,20 +268,20 @@ function ProfileContent() {
 
           <section className="glass-card animate-fade-in">
             <h2 style={{ fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>📏</span> 身体データ
+              <span>📏</span> {t('profile.health_data')}
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
-              <ScrollPicker label="身長" items={heightItems} value={height} onChange={setHeight} unit="cm" />
-              <ScrollPicker label="体重" items={weightItems} value={weight} onChange={setWeight} unit="kg" />
-              <ScrollPicker label="誕生年" items={yearItems} value={birthYear} onChange={setBirthYear} unit="年" />
+              <ScrollPicker label={t('nutrient.height') || 'Height'} items={heightItems} value={height} onChange={setHeight} unit="cm" />
+              <ScrollPicker label={t('nav.weight') || 'Weight'} items={weightItems} value={weight} onChange={setWeight} unit="kg" />
+              <ScrollPicker label={t('profile.birthYear') || 'Birth Year'} items={yearItems} value={birthYear} onChange={setBirthYear} unit={t('history.calendar.year')} />
             </div>
 
             <div style={{ marginTop: '2.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '1rem' }}>性別 / 活動レベル</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '1rem' }}>{t('profile.gender')} / {t('profile.activity')}</label>
               <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                 {(['male', 'female'] as const).map(g => (
                   <button key={g} onClick={() => setGender(g)} style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid', borderColor: gender === g ? 'var(--primary)' : '#334155', background: gender === g ? 'rgba(59, 130, 246, 0.1)' : 'transparent', color: gender === g ? 'white' : '#64748b', cursor: 'pointer' }}>
-                    {g === 'male' ? '男性' : '女性'}
+                    {g === 'male' ? t('profile.gender.male') : t('profile.gender.female')}
                   </button>
                 ))}
               </div>
@@ -289,16 +290,16 @@ function ProfileContent() {
                 onChange={(e) => setActivityLevel(e.target.value as any)}
                 style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
               >
-                <option value="low">低い（デスクワーク中心）</option>
-                <option value="normal">普通（立ち仕事や軽い運動）</option>
-                <option value="high">高い（活発な運動・重労働）</option>
+                <option value="low">{t('profile.activity.low')}</option>
+                <option value="normal">{t('profile.activity.normal')}</option>
+                <option value="high">{t('profile.activity.high')}</option>
               </select>
             </div>
           </section>
 
           <section className="glass-card animate-fade-in" style={{ border: '1px solid rgba(16, 185, 129, 0.2)' }}>
             <h2 style={{ fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🧠</span> AIパートナー設定
+              <span>🧠</span> {t('profile.ai_settings')}
             </h2>
 
             <div style={{ marginBottom: '1.5rem' }}>
@@ -324,24 +325,35 @@ function ProfileContent() {
             </div>
 
             <div style={{ marginBottom: '2rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>利用するモデル</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.model')}</label>
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
                 style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
               >
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (安定・高速)</option>
-                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (次世代・高性能)</option>
-                <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite (最速)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
+                <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite</option>
               </select>
             </div>
 
+            <div style={{ marginBottom: '2rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.language')}</label>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                {(['ja', 'en'] as Language[]).map(l => (
+                  <button key={l} onClick={() => setLang(l)} style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid', borderColor: lang === l ? 'var(--primary)' : '#334155', background: lang === l ? 'rgba(16, 185, 129, 0.1)' : 'transparent', color: lang === l ? 'white' : '#64748b', cursor: 'pointer', fontWeight: 'bold' }}>
+                    {l === 'ja' ? '日本語' : 'English'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>分析時の優先事項</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.concern')}</label>
               <textarea
                 value={concern}
                 onChange={(e) => setConcern(e.target.value)}
-                placeholder="例：タンパク質を多めに、塩分を控えたい..."
+                placeholder="..."
                 rows={3}
                 style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', resize: 'none' }}
               />
@@ -351,36 +363,34 @@ function ProfileContent() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', justifyContent: 'center', paddingBottom: '4rem', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '4rem' }}>
           <button className="btn-primary" onClick={handleSave} style={{ minWidth: '240px', padding: '1.2rem' }}>
-            すべての設定を保存
+            {t('profile.button.save_all')}
           </button>
           {isSaved && (
             <span className="animate-fade-in" style={{ color: 'var(--accent)', fontWeight: 'bold' }}>
-              ✓ 保存完了
+              ✓
             </span>
           )}
         </div>
 
         <section className="glass-card animate-fade-in" style={{ marginBottom: '4rem', padding: '2rem', border: '1px solid rgba(239, 68, 68, 0.1)' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', color: '#ef4444' }}>📦 データ管理・バックアップ</h2>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '2rem' }}>アプリ上のすべてのデータ（設定・履歴）を保存したり、以前の状態に戻したりできます。</p>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', color: '#ef4444' }}>📦 {t('profile.data_management')}</h2>
+          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '2rem' }}>{t('profile.subtitle')}</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
             <div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>エクスポート（ダウンロード）</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button onClick={handleExportJSON} style={{ padding: '0.8rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.85rem' }}>
-                  JSON形式で保存 (復元用)
+                  {t('profile.export.json')}
                 </button>
                 <button onClick={handleExportCSV} style={{ padding: '0.8rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '0.85rem' }}>
-                  CSV形式で保存 (閲覧用)
+                  {t('profile.export.csv')}
                 </button>
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>インポート（復元）</div>
               <button onClick={() => fileInputRef.current?.click()} style={{ width: '100%', padding: '0.8rem', background: 'rgba(59, 130, 246, 0.1)', border: '1px solid #3b82f6', borderRadius: '8px', color: '#60a5fa', cursor: 'pointer', fontSize: '0.85rem' }}>
-                JSONから復元する
+                {t('profile.import')}
               </button>
               <input type="file" ref={fileInputRef} hidden accept=".json" onChange={handleImportJSON} />
             </div>
@@ -388,7 +398,7 @@ function ProfileContent() {
 
           <div style={{ borderTop: '1px solid rgba(239, 68, 68, 0.1)', paddingTop: '1.5rem' }}>
             <button onClick={handleClearAll} style={{ background: 'transparent', border: '1px solid #ef4444', color: '#ef4444', padding: '0.8rem 1.5rem', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>
-              すべての記録（歴史）を完全消去
+              {t('profile.clear_all')}
             </button>
           </div>
         </section>

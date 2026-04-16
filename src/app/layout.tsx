@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "AIによるプレミアムな健康解析とライフプランニング・コーチング",
 };
 
+import { Providers } from "@/components/Providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -21,8 +23,12 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider localization={jaJP}>
-      <html lang="ja" className={inter.variable}>
-        <body>{children}</body>
+      <html className={inter.variable}>
+        <body>
+          <Providers>
+            {children}
+          </Providers>
+        </body>
       </html>
     </ClerkProvider>
   );
