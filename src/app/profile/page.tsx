@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
 import { useUser, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { Suspense } from "react";
 
-const APP_VERSION = "2604162335"; // YYMMDDHHMM
+const APP_VERSION = "2604162340"; // YYMMDDHHMM
 
 // Use a separate component to use useSearchParams to avoid wrapping the whole page in Suspense
 function ProfileContent() {

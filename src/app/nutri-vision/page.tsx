@@ -10,7 +10,7 @@ import { useUser } from "@clerk/nextjs";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162335"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604162340"; // YYMMDDHHMM表示用
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -237,9 +237,11 @@ export default function NutriVision() {
         });
       
       const data = JSON.parse(cleanedJsonStr);
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
       const finalResult: AnalysisResult = {
         id: Date.now(),
-        date: selectedDate + "T" + new Date().toTimeString().split(' ')[0],
+        date: selectedDate + "T" + timeStr,
         mealSource,
         mealCategory,
         ...data

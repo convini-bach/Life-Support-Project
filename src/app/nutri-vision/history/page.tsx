@@ -11,7 +11,7 @@ import TabNavigation from "@/components/TabNavigation";
 
 type ViewMode = 'day' | 'week' | 'month';
 
-const APP_VERSION = "2604162335";
+const APP_VERSION = "2604162340";
 
 export default function NutriHistory() {
   const [history, setHistory] = useState<AnalysisResult[]>([]);
@@ -20,7 +20,10 @@ export default function NutriHistory() {
   const [targets, setTargets] = useState<NutritionTargets | null>(null);
   
   // UI State
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
   const [viewMode, setViewMode] = useState<ViewMode>('day');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
@@ -228,7 +231,10 @@ export default function NutriHistory() {
             ))}
             {generateCalendarDays().map((day, i) => {
               if (!day) return <div key={`empty-${i}`} />;
-              const dateStr = day.toISOString().split('T')[0];
+              const y = day.getFullYear();
+              const m = String(day.getMonth() + 1).padStart(2, '0');
+              const d = String(day.getDate()).padStart(2, '0');
+              const dateStr = `${y}-${m}-${d}`;
               const isSelected = selectedDate === dateStr;
               const hasData = history.some(item => item.date.startsWith(dateStr));
               
