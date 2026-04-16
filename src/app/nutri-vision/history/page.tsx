@@ -183,7 +183,7 @@ export default function NutriHistory() {
   };
 
   const deleteExercise = (id: number) => {
-    if (!confirm("この運動記録を削除しますか？")) return;
+    if (!confirm(t('history.exercise_delete_confirm'))) return;
     const newHistory = exerciseHistory.filter(item => item.id !== id);
     storage.set(STORAGE_KEYS.EXERCISE_HISTORY, newHistory);
     setExerciseHistory(newHistory);
@@ -224,7 +224,12 @@ export default function NutriHistory() {
         <section className="glass-card animate-fade-in" style={{ marginBottom: '2rem', padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
             <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}>&lsaquo;</button>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{currentMonth.getFullYear()}年 {currentMonth.getMonth() + 1}月</h2>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>
+              {lang === 'ja' 
+                ? `${currentMonth.getFullYear()}年 ${currentMonth.getMonth() + 1}月` 
+                : currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+              }
+            </h2>
             <button onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.2rem' }}>&rsaquo;</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.3rem', textAlign: 'center' }}>
@@ -320,7 +325,10 @@ export default function NutriHistory() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                 <div>
                   <h3 style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
-                    {viewMode === 'day' ? `${selectedDate} の状況` : `${selectedDate} から遡った${viewMode === 'week' ? '7' : '30'}日間の平均`}
+                    {viewMode === 'day' 
+                      ? `${selectedDate} ${t('history.calendar.status')}` 
+                      : `${selectedDate} ${lang === 'ja' ? 'から' : 'to'} ${viewMode === 'week' ? '7' : '30'}${t('history.stats.period_avg')}`
+                    }
                   </h3>
                   <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                     <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: getBarColor(stats.avg.calories, targets.energy) }}>
@@ -417,11 +425,11 @@ export default function NutriHistory() {
                         { l: 'P', v: item.nutrients.protein, u: 'g' },
                         { l: 'F', v: item.nutrients.fat, u: 'g' },
                         { l: 'C', v: item.nutrients.carbs, u: 'g' },
-                        { l: '塩', v: item.nutrients.salt, u: 'g' },
-                        { l: '繊', v: item.nutrients.fiber, u: 'g' },
-                        { l: '菜', v: item.nutrients.vegetablesTotal, u: 'g' },
+                        { l: t('nutrient.salt_short'), v: item.nutrients.salt, u: 'g' },
+                        { l: t('nutrient.fiber_short'), v: item.nutrients.fiber, u: 'g' },
+                        { l: t('nutrient.veg_short'), v: item.nutrients.vegetablesTotal, u: 'g' },
                       ].map(n => (
-                        <div key={n.l} style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{n.l}: <span style={{ color: 'white' }}>{(n.v ?? 0).toFixed(n.l === '塩' ? 1 : 0)}{n.u}</span></div>
+                        <div key={n.l} style={{ fontSize: '0.65rem', color: '#94a3b8' }}>{n.l}: <span style={{ color: 'white' }}>{(n.v ?? 0).toFixed(n.l === t('nutrient.salt_short') ? 1 : 0)}{n.u}</span></div>
                       ))}
                     </div>
                   </div>
@@ -471,7 +479,7 @@ export default function NutriHistory() {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <button onClick={() => startEdit(item, 'weight')} style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>✏️</button>
                   <button onClick={() => {
-                    if (confirm("この記録を削除しますか？")) {
+                    if (confirm(t('history.weight_delete_confirm'))) {
                       const newHistory = weightHistory.filter(w => w.id !== item.id);
                       storage.set(STORAGE_KEYS.WEIGHT_HISTORY, newHistory);
                       setWeightHistory(newHistory);
@@ -510,23 +518,23 @@ export default function NutriHistory() {
                 {editingType === 'meal' && (
                   <>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.8rem' }}>食事のタイミング / 種類</label>
+                      <label style={{ display: 'block', fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.8rem' }}>{t('history.modal.timing_source')}</label>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem', marginBottom: '1rem' }}>
                         <select 
                           value={editValues.mealCategory || ''} 
                           onChange={(e) => handleEditChange('mealCategory', e.target.value)}
                           style={{ padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
                         >
-                          {['朝食', '昼食', '夕食', '間食'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                          {['朝食', '昼食', '夕食', '間食'].map(cat => <option key={cat} value={cat}>{t(`exercise.cate.${cat === '朝食' ? 'breakfast' : cat === '昼食' ? 'lunch' : cat === '夕食' ? 'dinner' : 'snack'}`)}</option>)}
                         </select>
                         <select 
                           value={editValues.mealSource || ''} 
                           onChange={(e) => handleEditChange('mealSource', e.target.value)}
                           style={{ padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
                         >
-                          <option value="home">自炊</option>
-                          <option value="restaurant">外食</option>
-                          <option value="takeout">惣菜</option>
+                          <option value="home">{t('analysis.source.home')}</option>
+                          <option value="restaurant">{t('analysis.source.restaurant')}</option>
+                          <option value="takeout">{t('analysis.source.takeout')}</option>
                         </select>
                       </div>
 
@@ -552,19 +560,19 @@ export default function NutriHistory() {
 
                 {editingType === 'exercise' && (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                    <ScrollPicker label="消費カロリー" items={calItems} value={editValues.burnedCalories || 0} onChange={(v) => handleEditChange('burnedCalories', v)} unit="kcal" />
-                    <ScrollPicker label="時間" items={Array.from({length: 181}, (_, i) => i)} value={editValues.minutes || 0} onChange={(v) => handleEditChange('minutes', v)} unit="分" />
+                    <ScrollPicker label={t('exercise.button.calories')} items={calItems} value={editValues.burnedCalories || 0} onChange={(v) => handleEditChange('burnedCalories', v)} unit="kcal" />
+                    <ScrollPicker label={t('exercise.time')} items={Array.from({length: 181}, (_, i) => i)} value={editValues.minutes || 0} onChange={(v) => handleEditChange('minutes', v)} unit={t('exercise.minutes')} />
                   </div>
                 )}
 
                 {editingType === 'weight' && (
-                  <ScrollPicker label="体重" items={Array.from({length: 1500}, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)))} value={editValues.weight || 0} onChange={(v) => handleEditChange('weight', v)} unit="kg" />
+                  <ScrollPicker label={t('nav.weight')} items={Array.from({length: 1500}, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)))} value={editValues.weight || 0} onChange={(v) => handleEditChange('weight', v)} unit="kg" />
                 )}
               </div>
 
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <button className="btn-primary" onClick={saveEdit} style={{ flex: 2 }}>保存する</button>
-                <button className="btn-secondary" onClick={() => { setEditingId(null); setEditingType(null); }} style={{ flex: 1 }}>キャンセル</button>
+                <button className="btn-primary" onClick={saveEdit} style={{ flex: 2 }}>{t('history.modal.save')}</button>
+                <button className="btn-secondary" onClick={() => { setEditingId(null); setEditingType(null); }} style={{ flex: 1 }}>{t('history.modal.cancel')}</button>
               </div>
             </div>
           </div>

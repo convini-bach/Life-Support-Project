@@ -51,8 +51,11 @@ export const dictionary: Dictionary = {
     'nutrient.fat': '脂質',
     'nutrient.carbs': '炭水化物',
     'nutrient.salt': '塩分',
+    'nutrient.salt_short': '塩',
     'nutrient.fiber': '食物繊維',
+    'nutrient.fiber_short': '繊',
     'nutrient.vegetables': '野菜量',
+    'nutrient.veg_short': '菜',
 
     // Exercise
     'exercise.title': '運動を追加する',
@@ -66,6 +69,8 @@ export const dictionary: Dictionary = {
     'exercise.type.gym': 'ジム・筋トレ',
     'exercise.type.swimming': '水泳',
     'exercise.timing': 'タイミング',
+    'exercise.button.calories': '消費カロリー',
+    'exercise.button.duration': '実施時間',
     'exercise.cate.breakfast': '朝食',
     'exercise.cate.lunch': '昼食',
     'exercise.cate.dinner': '夕食',
@@ -94,6 +99,11 @@ export const dictionary: Dictionary = {
     'history.modal.save': '保存する',
     'history.modal.cancel': 'キャンセル',
     'history.delete_confirm': 'この記録を削除しますか？',
+    'history.exercise_delete_confirm': 'この運動記録を削除しますか？',
+    'history.weight_delete_confirm': 'この記録を削除しますか？',
+    'history.modal.timing_source': '食事のタイミング ・ 種類',
+    'history.calendar.status': 'の状況',
+    'history.stats.period_avg': '日間平均 (遡り)',
 
     // Profile
     'profile.title': '設定 & データ管理',
@@ -140,6 +150,7 @@ export const dictionary: Dictionary = {
     'common.loading': '読み込み中...',
     'common.success': '成功',
     'common.error': 'エラー',
+    'common.no_data': '記録がありません',
 
     // Portal
     'portal.welcome': 'Life Support Project',
@@ -191,8 +202,11 @@ export const dictionary: Dictionary = {
     'nutrient.fat': 'Fat',
     'nutrient.carbs': 'Carbohydrate',
     'nutrient.salt': 'Salt',
+    'nutrient.salt_short': 'Salt',
     'nutrient.fiber': 'Fiber',
+    'nutrient.fiber_short': 'Fiber',
     'nutrient.vegetables': 'Vegetables',
+    'nutrient.veg_short': 'Veg.',
 
     // Exercise
     'exercise.title': 'Add Exercise',
@@ -206,6 +220,8 @@ export const dictionary: Dictionary = {
     'exercise.type.gym': 'Gym/Training',
     'exercise.type.swimming': 'Swimming',
     'exercise.timing': 'Timing',
+    'exercise.button.calories': 'Burned Cal.',
+    'exercise.button.duration': 'Duration',
     'exercise.cate.breakfast': 'Breakfast',
     'exercise.cate.lunch': 'Lunch',
     'exercise.cate.dinner': 'Dinner',
@@ -234,6 +250,11 @@ export const dictionary: Dictionary = {
     'history.modal.save': 'Save',
     'history.modal.cancel': 'Cancel',
     'history.delete_confirm': 'Delete this record?',
+    'history.exercise_delete_confirm': 'Delete this exercise log?',
+    'history.weight_delete_confirm': 'Delete this record?',
+    'history.modal.timing_source': 'Meal Timing & Source',
+    'history.calendar.status': 'Status',
+    'history.stats.period_avg': 'd Average',
 
     // Profile
     'profile.title': 'Settings & Data',
@@ -280,6 +301,7 @@ export const dictionary: Dictionary = {
     'common.loading': 'Loading...',
     'common.success': 'Success',
     'common.error': 'Error',
+    'common.no_data': 'No records found',
 
     // Portal
     'portal.welcome': 'Life Support Project',

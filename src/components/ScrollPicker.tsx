@@ -56,6 +56,7 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
+      {label && <label style={{ display: 'block', width: '100%', fontSize: '0.7rem', color: isExpanded ? 'var(--primary)' : '#64748b', marginBottom: '0.4rem', fontWeight: 'bold', textAlign: 'left', paddingLeft: '4px' }}>{label}</label>}
       {/* Collapsed View (数値カード) */}
       <button 
         onClick={() => setIsExpanded(!isExpanded)}
@@ -74,11 +75,10 @@ export default function ScrollPicker({ items, value, onChange, unit, label, heig
           marginBottom: isExpanded ? '0.5rem' : '0'
         }}
       >
-        <span style={{ fontSize: '0.75rem', color: isExpanded ? 'var(--primary)' : '#94a3b8', fontWeight: 'bold' }}>{label}</span>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.2rem', width: '100%', justifyContent: 'center' }}>
           <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'white' }}>{value}</span>
           <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{unit}</span>
-          <span style={{ marginLeft: '0.5rem', fontSize: '0.6rem', color: '#475569' }}>{isExpanded ? '▲' : '▼'}</span>
+          <span style={{ marginLeft: 'auto', fontSize: '0.6rem', color: '#475569' }}>{isExpanded ? '▲' : '▼'}</span>
         </div>
       </button>
 
