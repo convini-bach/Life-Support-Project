@@ -636,8 +636,11 @@ export default function NutriVision() {
                   />
                   
                   <div style={{ 
-                    display: 'flex', gap: '0.8rem', marginTop: '0.8rem', justifyContent: 'flex-end'
+                    display: 'flex', gap: '1rem', marginTop: '0.8rem', justifyContent: 'flex-end', alignItems: 'center'
                   }}>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 'bold' }}>
+                      {t('analysis.voice.guide')}
+                    </span>
                     {!isRecording ? (
                       <button
                         onClick={toggleVoiceInput}
@@ -834,7 +837,13 @@ export default function NutriVision() {
       </main>
 
       <footer style={{ padding: '3rem 0', textAlign: 'center', color: '#475569', fontSize: '0.85rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        &copy; 2026 Life Support AI Hub - Empowering Your Health Journey
+        <p style={{ marginBottom: '1rem' }}>&copy; 2026 Life Support AI Hub - Empowering Your Health Journey</p>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.6 }}>
+           <Link href="/guide" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.guide')}</Link>
+           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.terms')}</Link>
+           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
+           <Link href="/legal/scta" style={{ color: 'inherit', textDecoration: 'none' }}>特定商取引法</Link>
+        </div>
       </footer>
     </div>
   );

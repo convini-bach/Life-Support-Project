@@ -16,38 +16,6 @@ export default function Home() {
       href: "/nutri-vision",
       icon: "🥗",
       color: "#10b981",
-    },
-    {
-      id: "recipe-cart",
-      name: "Recipe-Cart",
-      description: t('portal.recipe_cart.desc'),
-      href: "/recipe-cart",
-      icon: "🛒",
-      color: "#f59e0b",
-    },
-    {
-      id: "hoken-mirror",
-      name: "Hoken-Mirror",
-      description: t('portal.hoken_mirror.desc'),
-      href: "/hoken-mirror",
-      icon: "🛡️",
-      color: "#3b82f6",
-    },
-    {
-      id: "sumai-check",
-      name: "Sumai-Check",
-      description: t('portal.sumai_check.desc'),
-      href: "/sumai-check",
-      icon: "🏠",
-      color: "#ec4899",
-    },
-    {
-      id: "work-counsel",
-      name: "Work-Counsel",
-      description: t('portal.work_counsel.desc'),
-      href: "/work-counsel",
-      icon: "💼",
-      color: "#8b5cf6",
     }
   ];
 
@@ -97,7 +65,13 @@ export default function Home() {
 
       {/* Footer Info */}
       <footer style={{ marginTop: '5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
-        <p>{t('portal.footer')}</p>
+        <p style={{ marginBottom: '1rem' }}>{t('portal.footer')}</p>
+        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.6 }}>
+           <Link href="/guide" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.guide')}</Link>
+           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.terms')}</Link>
+           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
+           <Link href="/legal/scta" style={{ color: 'inherit', textDecoration: 'none' }}>特定商取引法</Link>
+        </div>
       </footer>
 
       {/* Background Decor */}

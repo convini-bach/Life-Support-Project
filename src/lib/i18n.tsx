@@ -52,6 +52,7 @@ export const dictionary: Dictionary = {
     'analysis.voice.start': '音声入力',
     'analysis.voice.stop': '停止',
     'analysis.voice.recording': '音声を聞き取り中...',
+    'analysis.voice.guide': '一品ずつお話しください',
     'analysis.voice.not_supported': 'お使いのブラウザは音声入力に対応していません',
 
     // Nutrients
@@ -212,6 +213,7 @@ export const dictionary: Dictionary = {
     'analysis.voice.start': 'Voice Input',
     'analysis.voice.stop': 'Stop',
     'analysis.voice.recording': 'Listening...',
+    'analysis.voice.guide': 'Speak one item at a time',
     'analysis.voice.not_supported': 'Voice input not supported in this browser',
 
     // Nutrients
