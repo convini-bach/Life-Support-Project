@@ -16,7 +16,7 @@ export default function PricingPage() {
         lang === 'ja' ? "1日3回までのAI解析" : "Up to 3 AI analyses per day",
         lang === 'ja' ? "直近3日間の履歴閲覧" : "View history for the last 3 days",
         lang === 'ja' ? "基本栄養素のグラフ表示" : "Basic nutrient graphs",
-        lang === 'ja' ? "Local-Firstなプライバシー保護" : "Local-First privacy protection",
+        lang === 'ja' ? "運営側のAPIキーを使用" : "Uses developer's API key",
       ],
       button: lang === 'ja' ? "無料で始める" : "Start for Free",
       href: "/nutri-vision",
@@ -30,35 +30,47 @@ export default function PricingPage() {
       features: [
         lang === 'ja' ? "AI解析が無制限" : "Unlimited AI analysis",
         lang === 'ja' ? "すべての過去履歴を閲覧可能" : "Full access to all history",
+        lang === 'ja' ? "運営側のAPIキーを使用" : "Uses developer's API key",
         lang === 'ja' ? "プロ級のパーソナライズ解析" : "Professional-grade advice",
-        lang === 'ja' ? "体重予測・傾向分析(将来実装)" : "Weight forecasting (future update)",
         lang === 'ja' ? "広告・制限なしのシームレス体験" : "Zero limits & Ad-free experience",
       ],
       button: lang === 'ja' ? "プレミアムに登録" : "Upgrade to Premium",
       href: "/profile",
       highlight: true
+    },
+    {
+      name: lang === 'ja' ? "Dev Mode (開発者モード)" : "Developer Mode",
+      price: "¥300",
+      period: lang === 'ja' ? " (買い切り)" : " (Once-off)",
+      description: lang === 'ja' ? "自分のAPIキーで自由自在に" : "Use your own API key freely",
+      features: [
+        lang === 'ja' ? "自分のAPIキーでお得に" : "Cost-effective with your key",
+        lang === 'ja' ? "無制限の解析" : "Unlimited analysis",
+        lang === 'ja' ? "すべての過去履歴を閲覧可能" : "Full access to all history",
+        lang === 'ja' ? "開発者向けの高度な設定" : "Advanced developer settings",
+      ],
+      button: lang === 'ja' ? "開発者モードを購入" : "Buy Dev Mode",
+      href: "/profile",
+      highlight: false
     }
   ];
 
   return (
-    <main className="container" style={{ paddingTop: '8.5rem', paddingBottom: '8rem' }}>
+    <main className="container" style={{ paddingTop: 'clamp(4rem, 10vh, 8.5rem)', paddingBottom: 'clamp(4rem, 10vh, 8rem)' }}>
       <TabNavigation />
-      <header style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <h1 className="gradient-text" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{t('nav.pricing')}</h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.1rem' }}>
+      <header style={{ textAlign: 'center', marginBottom: 'clamp(2rem, 5vh, 4rem)' }}>
+        <h1 className="gradient-text" style={{ fontSize: 'clamp(2rem, 8vw, 2.5rem)', marginBottom: '1rem' }}>{t('nav.pricing')}</h1>
+        <p style={{ color: '#94a3b8', fontSize: '1.1rem', padding: '0 1rem' }}>
           {lang === 'ja' ? "あなたの健康を、AIが一生涯サポートします。" : "AI-powered lifelong support for your health."}
         </p>
       </header>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '2.5rem',
-        maxWidth: '900px',
+      <div className="pricing-grid" style={{
+        maxWidth: '1100px',
         margin: '0 auto'
       }}>
         {plans.map((plan, idx) => (
-          <div key={idx} className="glass-card animate-fade-in" style={{
+          <div key={idx} className="glass-card pricing-card animate-fade-in" style={{
             padding: '2.5rem',
             border: plan.highlight ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.05)',
             display: 'flex',

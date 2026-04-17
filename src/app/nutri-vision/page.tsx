@@ -35,6 +35,7 @@ export default function NutriVision() {
   // Clerk Hook
   const { user } = useUser();
   const isPremium = !!user?.publicMetadata?.isPremium;
+  const hasDevMode = !!user?.publicMetadata?.hasDevMode;
 
   // Notification State
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
@@ -234,14 +235,19 @@ export default function NutriVision() {
   const startAnalysis = async () => {
     if (mode === "image" && !selectedImage) return;
     if (mode === "text" && !textInput) return;
-    if (!apiKey) {
-      showToast(t('profile.api_key') + " error");
+
+    // プラン判定
+    const isFreeUser = !isPremium && !hasDevMode;
+
+    // 開発者モード（自前キー）のチェック
+    if (hasDevMode && !apiKey) {
+      showToast(lang === 'ja' ? "開発者モードです。設定画面で自分のAPIキーを入力してください。" : "Developer mode active. Please set your own API key in settings.");
       return;
     }
 
-    // Check usage for non-premium users
-    if (!isPremium && getDailyUsageCount() >= 3) {
-      showToast(lang === 'ja' ? "本日の無料解析枠（3回）を超えました。プレミアムプランで無制限に解析できます。" : "Daily free analysis limit (3) exceeded. Upgrade to Premium for unlimited access.");
+    // 無料ユーザーの回数制限チェック
+    if (isFreeUser && getDailyUsageCount() >= 3) {
+      showToast(lang === 'ja' ? "本日の無料解析枠（3回）を超えました。プレミアムプランへの登録、または開発者モード（買い切り）をご検討ください。" : "Daily free analysis limit (3) exceeded. Consider upgrading or buying Developer Mode.");
       return;
     }
 
@@ -251,10 +257,6 @@ export default function NutriVision() {
     setIsEditing(false);
 
     try {
-      const { GoogleGenerativeAI } = await import("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(apiKey);
-      const model = genAI.getGenerativeModel({ model: selectedModel });
-
       const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
       const profileContext = profile 
         ? `ユーザー特性: ${profile.gender === 'male' ? '男性' : '女性'}, ${profile.birthYear ? new Date().getFullYear() - profile.birthYear : '不明'}歳。目標: ${profile.concern}` 
@@ -306,26 +308,55 @@ export default function NutriVision() {
         ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。出力は日本語でお願いします。
       `;
 
-      let result;
-      if (mode === "image" && selectedImage) {
-        const base64Data = selectedImage.split(",")[1];
-        result = await model.generateContent([
-          prompt,
-          { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
-        ]);
-      } else {
-        result = await model.generateContent(prompt);
+      let jsonText = "";
+
+      // 1. 開発者モード（自前キー）の場合：直接実行
+      if (hasDevMode && apiKey) {
+        const { GoogleGenerativeAI } = await import("@google/generative-ai");
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: selectedModel });
+        
+        let result;
+        if (mode === "image" && selectedImage) {
+          const base64Data = selectedImage.split(",")[1];
+          result = await model.generateContent([
+            prompt,
+            { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
+          ]);
+        } else {
+          result = await model.generateContent(prompt);
+        }
+        const response = await result.response;
+        jsonText = response.text();
+      } 
+      // 2. 無料またはプレミアムユーザーの場合：サーバープロキシ経由
+      else {
+        const res = await fetch("/api/analyze", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode,
+            prompt,
+            image: mode === "image" ? selectedImage : null,
+            model: selectedModel
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText || "サーバー解析中にエラーが発生しました。");
+        }
+
+        const data = await res.json();
+        jsonText = data.text;
       }
 
-      const response = await result.response;
-      const jsonText = response.text();
       const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
       if (!jsonMatch) throw new Error("AI解析に失敗しました。JSONが見つかりません。");
       
-      // 不正な制御文字（実際の改行など）をクリーニング
       const cleanedJsonStr = jsonMatch[0]
         .replace(/[\u0000-\u001F\u007F-\u009F]/g, (match) => {
-          if (match === '\n' || match === '\r') return ' '; // 実際の改行はスペースに置換（JSONパースエラー防止）
+          if (match === '\n' || match === '\r') return ' '; 
           if (match === '\t') return '\\t';
           return '';
         });
@@ -343,21 +374,16 @@ export default function NutriVision() {
 
       setAnalysisResult(finalResult);
       saveToHistory(finalResult);
-      if (!isPremium) incrementDailyUsageCount();
+      if (isFreeUser) incrementDailyUsageCount();
       showToast(t('analysis.toast.success'));
     } catch (e: any) {
       console.error(e);
       let errorMsg = `解析エラー: ${e.message || "不明なエラー"}`;
       if (e.message?.includes("429") || e.message?.toLowerCase().includes("quota")) {
         errorMsg = t('analysis.error.quota');
-      } else if (e.message?.includes("503") || e.message?.includes("high demand")) {
-        errorMsg = lang === 'ja' ? "AIが非常に混雑しています。数分待ってから再度お試しください。" : "AI is very busy. Please wait a few minutes and try again.";
       } else if (e.message?.includes("API key")) {
-        errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。Google AI Studioで新しいキーを取得してください。" : "API key is invalid or not set. Please get a new key from Google AI Studio.";
-      } else if (e.message?.includes("JSON")) {
-        errorMsg = lang === 'ja' ? "AIの回答形式が不正でした。再度お試しください。" : "AI format was invalid. Please try again.";
+        errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。" : "API key is invalid or not set.";
       }
-      console.log("Error details:", e);
       showToast(errorMsg);
     } finally {
       setIsAnalyzing(false);

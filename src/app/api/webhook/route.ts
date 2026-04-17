@@ -34,10 +34,13 @@ export async function POST(req: Request) {
 
     // Update Clerk User Metadata
     const client = await clerkClient();
+    const isSubscription = session.mode === 'subscription';
+    
     await client.users.updateUserMetadata(clerkUserId, {
       publicMetadata: {
-        isPremium: true,
-        stripeCustomerId: session.customer as string, // Store for cancellation tracking
+        isPremium: isSubscription ? true : undefined, // Keep existing if not sub, or set true if sub
+        hasDevMode: !isSubscription ? true : undefined, // Set true if one-time payment
+        stripeCustomerId: session.customer as string,
       },
     });
   }

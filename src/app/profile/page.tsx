@@ -27,19 +27,27 @@ function ProfileContent() {
   const { lang, setLang, t } = useI18n();
   const { user, isLoaded, isSignedIn } = useUser();
   const isPremium = !!user?.publicMetadata?.isPremium;
+  const hasDevMode = !!user?.publicMetadata?.hasDevMode;
+  const [dailyUsage, setDailyUsage] = useState(0);
+
+  useEffect(() => {
+    const today = new Date().toLocaleDateString('en-CA');
+    const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
+    setDailyUsage(usage[today] || 0);
+  }, []);
+
   const searchParams = useSearchParams();
 
   useEffect(() => {
     if (searchParams.get("success")) {
-      alert("プレミアムプランへの登録ありがとうございます！詳細なアドバイスをご利用いただけます。");
-      // Remove query param from URL
+      alert(lang === 'ja' ? "登録ありがとうございます！機能が有効化されました。" : "Thank you! Your features have been activated.");
       window.history.replaceState({}, '', '/profile');
     }
     if (searchParams.get("canceled")) {
-      alert("支払いがキャンセルされました。");
+      alert(lang === 'ja' ? "支払いがキャンセルされました。" : "Payment canceled.");
       window.history.replaceState({}, '', '/profile');
     }
-  }, [searchParams]);
+  }, [searchParams, lang]);
 
   // AI settings
   const [availableModels, setAvailableModels] = useState<{ id: string; name: string }[]>([]);
@@ -201,6 +209,12 @@ function ProfileContent() {
     }
   };
 
+  const getStatusLabel = () => {
+    if (isPremium) return t('profile.status.premium');
+    if (hasDevMode) return lang === 'ja' ? "開発者モード (自前APIキー)" : "Developer Mode (Own API)";
+    return t('profile.status.free');
+  };
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Shared Navigation */}
@@ -243,23 +257,31 @@ function ProfileContent() {
                 <UserButton />
                 <div>
                   <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: 'bold' }}>{user.fullName || user.emailAddresses[0].emailAddress}</div>
-                  <div style={{ fontSize: '0.8rem', color: isPremium ? 'var(--primary)' : '#64748b' }}>
-                    {isPremium ? t('profile.status.premium') : t('profile.status.free')}
+                  <div style={{ fontSize: '0.8rem', color: (isPremium || hasDevMode) ? 'var(--primary)' : '#64748b' }}>
+                    {getStatusLabel()}
                   </div>
                 </div>
               </div>
-              {!isPremium && (
-                <button
-                  onClick={handlePurchase}
-                  disabled={isPurchasing}
-                  style={{
-                    padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
-                    background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
-                  }}
-                >
-                  {isPurchasing ? '...' : t('profile.button.upgrade')}
-                </button>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                {!isPremium && !hasDevMode && (
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{lang === 'ja' ? "今日の利用数" : "Today's usage"}</div>
+                    <div style={{ fontSize: '1rem', fontWeight: 'bold', color: dailyUsage >= 3 ? '#ef4444' : 'var(--primary)' }}>{dailyUsage} / 3</div>
+                  </div>
+                )}
+                {!isPremium && (
+                  <button
+                    onClick={handlePurchase}
+                    disabled={isPurchasing}
+                    style={{
+                      padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                      background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
+                    }}
+                  >
+                    {isPurchasing ? '...' : (hasDevMode ? (lang === 'ja' ? "プレミアムへ" : "To Premium") : t('profile.button.upgrade'))}
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>

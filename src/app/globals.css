@@ -129,6 +129,24 @@ h1, h2, h3, h4 {
   }
 }
 
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .pricing-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .pricing-card {
+    padding: 1.5rem !important;
+  }
+}
+
 /* Responsive */
 @media (max-width: 800px) {
   .container {
