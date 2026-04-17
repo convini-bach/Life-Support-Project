@@ -191,12 +191,18 @@ function ProfileContent() {
         body: JSON.stringify({ plan })
       });
       const data = await response.json();
-      if (data.url) {
+      if (response.ok && data.url) {
         window.location.href = data.url;
+      } else {
+        const errorMsg = data.message || data.error || "Unknown Error";
+        throw new Error(errorMsg);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert(lang === 'ja' ? "決済画面への移動に失敗しました。" : "Failed to redirect to checkout.");
+      alert(lang === 'ja' 
+        ? `決済画面への移動に失敗しました: ${e.message}` 
+        : `Failed to redirect to checkout: ${e.message}`
+      );
     } finally {
       setIsPurchasing(false);
     }
@@ -207,14 +213,18 @@ function ProfileContent() {
     try {
       const response = await fetch("/api/portal", { method: "POST" });
       const data = await response.json();
-      if (data.url) {
+      if (response.ok && data.url) {
         window.location.href = data.url;
       } else {
-        throw new Error(data.message || "Failed to create portal session");
+        const errorMsg = data.message || data.error || "Unknown Error";
+        throw new Error(errorMsg);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert(lang === 'ja' ? "管理画面の作成に失敗しました。" : "Failed to open management portal.");
+      alert(lang === 'ja' 
+        ? `管理画面の作成に失敗しました: ${e.message}` 
+        : `Failed to open management portal: ${e.message}`
+      );
     } finally {
       setIsPurchasing(false);
     }

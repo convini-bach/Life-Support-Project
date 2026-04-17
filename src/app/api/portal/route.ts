@@ -18,7 +18,10 @@ export async function POST() {
 
     if (!stripeCustomerId) {
       // If no customer ID, they can't manage anything
-      return new NextResponse("Customer not found", { status: 400 });
+      return NextResponse.json({ 
+        error: "Customer not found", 
+        message: "まだ支払いが完了していないか、顧客情報が見つかりません。先にプランの購入をお願いします。" 
+      }, { status: 400 });
     }
 
     const session = await stripe.billingPortal.sessions.create({
@@ -27,8 +30,8 @@ export async function POST() {
     });
 
     return NextResponse.json({ url: session.url });
-  } catch (error) {
+  } catch (error: any) {
     console.error("[STRIPE_PORTAL]", error);
-    return new NextResponse("Internal Error", { status: 500 });
+    return NextResponse.json({ error: error.message || "Internal Error" }, { status: 500 });
   }
 }
