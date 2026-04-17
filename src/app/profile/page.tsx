@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { storage, STORAGE_KEYS, HealthData, exportDataJSON, exportMealsCSV, importDataJSON } from "@/lib/storage";
+import { storage, STORAGE_KEYS, HealthData, exportDataJSON, exportMealsCSV, importDataJSON, getDailyUsageCount, getLocalDateString } from "@/lib/storage";
 import ScrollPicker from "@/components/ScrollPicker";
 import TabNavigation from "@/components/TabNavigation";
 import { useSearchParams } from "next/navigation";
@@ -31,9 +31,7 @@ function ProfileContent() {
   const [dailyUsage, setDailyUsage] = useState(0);
 
   useEffect(() => {
-    const today = new Date().toLocaleDateString('en-CA');
-    const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
-    setDailyUsage(usage[today] || 0);
+    setDailyUsage(getDailyUsageCount());
   }, []);
 
   const searchParams = useSearchParams();
@@ -139,7 +137,7 @@ function ProfileContent() {
     document.body.appendChild(a);
     a.style.display = 'none';
     a.href = url;
-    a.download = `nutrivision_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `nutrivision_backup_${getLocalDateString()}.json`;
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -157,7 +155,7 @@ function ProfileContent() {
     document.body.appendChild(a);
     a.style.display = 'none';
     a.href = url;
-    a.download = `nutrivision_meals_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `nutrivision_meals_${getLocalDateString()}.csv`;
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
@@ -236,7 +234,7 @@ function ProfileContent() {
 
         <section className="glass-card animate-fade-in" style={{ marginBottom: '3rem', padding: '1.5rem', border: '1px solid var(--primary)', background: 'rgba(16, 185, 129, 0.05)' }}>
           <h2 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--primary)' }}>
-            <span>💎</span> {t('profile.status.premium')}
+            <span>💎</span> {t('profile.status.title')}
           </h2>
           {!isLoaded ? (
             <div style={{ color: '#64748b' }}>...</div>
@@ -280,10 +278,11 @@ function ProfileContent() {
                       disabled={isPurchasing}
                       style={{
                         padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid var(--primary)', cursor: 'pointer',
-                        background: 'transparent', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem'
+                        background: 'transparent', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem',
+                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
                       }}
                     >
-                      {isPurchasing ? '...' : (lang === 'ja' ? "開発者モード購入" : "Buy Dev Mode")}
+                      {isPurchasing ? (lang === 'ja' ? '準備中...' : 'Processing...') : (lang === 'ja' ? "開発者モード購入" : "Buy Dev Mode")}
                     </button>
                   )}
                   {!isPremium && (
@@ -292,10 +291,11 @@ function ProfileContent() {
                       disabled={isPurchasing}
                       style={{
                         padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
-                        background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
+                        background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem',
+                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
                       }}
                     >
-                      {isPurchasing ? '...' : t('profile.button.upgrade')}
+                      {isPurchasing ? (lang === 'ja' ? '準備中...' : 'Processing...') : t('profile.button.upgrade')}
                     </button>
                   )}
                 </div>

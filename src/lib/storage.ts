@@ -63,6 +63,17 @@ export const STORAGE_KEYS = {
   DAILY_USAGE: 'lifesupport_daily_usage_v1', // Date string -> count
 } as const;
 
+/**
+ * ローカル時刻（JST）ベースの YYYY-MM-DD 文字列を取得する
+ * 開発ガイドラインに基づき、toISOString() を避けて自作。
+ */
+export const getLocalDateString = (date: Date = new Date()): string => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 export interface HealthData {
   height: string;
   weight: string;
@@ -132,21 +143,25 @@ export const exportMealsCSV = () => {
   if (history.length === 0) return "";
 
   const headers = ["日付", "タイミング", "料理名", "カロリー(kcal)", "タンパク質(g)", "脂質(g)", "炭水化物(g)", "塩分(g)", "食物繊維(g)", "野菜(g)", "ソース"];
-  const rows = history.map(item => [
-    new Date(item.date).toLocaleString('ja-JP'),
-    item.mealCategory || "",
-    item.name,
-    item.calories,
-    item.nutrients.protein,
-    item.nutrients.fat,
-    item.nutrients.carbs,
-    item.nutrients.salt,
-    item.nutrients.fiber,
-    item.nutrients.vegetablesTotal,
-    item.mealSource
-  ]);
+  const rows = history.map(item => {
+    const cells = [
+      new Date(item.date).toLocaleString('ja-JP'),
+      item.mealCategory || "",
+      item.name,
+      item.calories,
+      item.nutrients.protein,
+      item.nutrients.fat,
+      item.nutrients.carbs,
+      item.nutrients.salt,
+      item.nutrients.fiber,
+      item.nutrients.vegetablesTotal,
+      item.mealSource
+    ];
+    // 各セルをダブルクォートで囲み、内部のクォートをエスケープする
+    return cells.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(",");
+  });
 
-  return [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+  return [headers.join(","), ...rows].join("\n");
 };
 
 /**
@@ -178,13 +193,13 @@ export const isPremiumUser = (): boolean => {
  * 本日の解析回数を取得・更新する
  */
 export const getDailyUsageCount = (): number => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
   return usage[today] || 0;
 };
 
 export const incrementDailyUsageCount = (): void => {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
   usage[today] = (usage[today] || 0) + 1;
   storage.set(STORAGE_KEYS.DAILY_USAGE, usage);

@@ -118,6 +118,7 @@ export const dictionary: Dictionary = {
     // Profile
     'profile.title': '設定 & データ管理',
     'profile.subtitle': '自分に合わせたカスタマイズと、データのバックアップ。',
+    'profile.status.title': 'プラン状況',
     'profile.status.premium': '✨ プレミアムプラン加入中',
     'profile.status.free': '無料プラン',
     'profile.button.upgrade': 'プレミアムにアップグレード',
