@@ -155,6 +155,8 @@ export const dictionary: Dictionary = {
     'profile.api_guide_step2': '2. 「Create API key」をクリックしてキーをコピー',
     'profile.api_guide_step3': '3. 上の入力欄に貼り付けて「接続」を押してください。',
     'profile.logout': 'ログアウト',
+    'profile.concern_placeholder': '例：体重を減らしたい、塩分を控えたい、筋肉をつけたい...など',
+    'profile.usage_count': '今日の利用数',
 
     // Common
     'common.loading': '読み込み中...',
@@ -316,6 +318,8 @@ export const dictionary: Dictionary = {
     'profile.api_guide_step2': '2. Click "Create API key" and copy',
     'profile.api_guide_step3': '3. Paste and click "Connect"',
     'profile.logout': 'Logout',
+    'profile.concern_placeholder': 'e.g., Want to lose weight, reduce salt, etc.',
+    'profile.usage_count': "Today's usage",
 
     // Common
     'common.loading': 'Loading...',

@@ -63,6 +63,12 @@ export default function NutriVision() {
   const [currentWeight, setCurrentWeight] = useState(65.0);
   const weightItems = Array.from({ length: 1701 }, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)));
 
+  const [dailyUsage, setDailyUsage] = useState(0);
+
+  useEffect(() => {
+    setDailyUsage(getDailyUsageCount());
+  }, []);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -725,6 +731,16 @@ export default function NutriVision() {
                     <Link href="/profile" style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
                       {t('profile.login')} / {t('profile.signup')}
                     </Link>
+                  </div>
+                ) : (isLoaded && isSignedIn && !isPremium && !hasDevMode) ? (
+                  <div style={{ 
+                    padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', marginBottom: '1rem', 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                  }}>
+                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{t('profile.usage_count')}</span>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: dailyUsage >= 3 ? '#ef4444' : 'var(--primary)' }}>
+                      {dailyUsage} / 3
+                    </span>
                   </div>
                 ) : null}
 
