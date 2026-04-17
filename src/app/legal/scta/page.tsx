@@ -15,11 +15,12 @@ export default function SCTAPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
           <tbody>
             {[
-              { label: "販売業者", value: "[ここに会社名、または個人名を記入してください]" },
-              { label: "運営責任者", value: "[ここに責任者名を記入してください]" },
-              { label: "所在地", value: "[ここに所在地（住所）を記入してください]" },
-              { label: "電話番号", value: "[ここに電話番号を記入してください]\n（※お問い合わせはメールにて承っております）" },
-              { label: "メールアドレス", value: "[ここに連絡先メールアドレスを記入してください]" },
+              { label: "販売者", value: "深田　真人" },
+              { label: "運営責任者", value: "深田　真人" },
+              { label: "所在地", value: "〒6740069 兵庫県明石市大久保町わかば９－１ー３０６" },
+              { label: "電話番号", value: "0782197845\n（※お問い合わせはフォームにて承っております）" },
+              { label: "メールアドレス", value: "convinibach@gmail.com\n（※お問い合わせはフォームにて承っております）" },
+              { label: "問い合わせ先", value: "https://docs.google.com/forms/d/e/1FAIpQLScGmzoQL3ZJehCoSVYBoPB0lv9LkrsHAKzi3AjhIb8SE20h3g/viewform?usp=header" },
               { label: "サービス名", value: "Nutri-Vision / Life Support AI Ecosystem" },
               { label: "販売価格", value: "各プランの料金ページ（/pricing）に表示された金額" },
               { label: "商品以外の必要料金", value: "インターネット接続料金および通信料" },
@@ -35,10 +36,6 @@ export default function SCTAPage() {
             ))}
           </tbody>
         </table>
-        
-        <p style={{ marginTop: '2rem', fontSize: '0.8rem', color: '#ef4444', fontWeight: 'bold' }}>
-          ※ 注意: Stripe審査通過のためには、上記のプレースホルダ項目 ([...]) を実際の情報に書き換える必要があります。
-        </p>
       </div>
     </main>
   );
