@@ -107,23 +107,34 @@ function ProfileContent() {
       return;
     }
 
+    interface GeminiModel {
+      name: string;
+      displayName: string;
+      supportedGenerationMethods: string[];
+    }
+    interface GeminiModelsResponse {
+      models: GeminiModel[];
+      error?: { message: string };
+    }
+
     setIsTesting(true);
     try {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${trimmedKey}`);
-      const data = await res.json();
+      const data = (await res.json()) as GeminiModelsResponse;
       if (data.error) throw new Error(data.error.message);
 
       const models = data.models
-        .filter((m: any) => m.supportedGenerationMethods.includes("generateContent"))
-        .map((m: any) => ({
-          id: m.name.split('/').pop(),
+        .filter((m) => m.supportedGenerationMethods.includes("generateContent"))
+        .map((m) => ({
+          id: m.name.split('/').pop() || "",
           name: m.displayName
         }));
 
       setAvailableModels(models);
       alert("接続テストに成功しました。利用可能なモデル一覧を更新しました。");
-    } catch (e: any) {
-      alert("接続に失敗しました: " + e.message);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "不明なエラー";
+      alert("接続に失敗しました: " + message);
     } finally {
       setIsTesting(false);
     }
@@ -197,11 +208,12 @@ function ProfileContent() {
         const errorMsg = data.message || data.error || "Unknown Error";
         throw new Error(errorMsg);
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
+      const message = e instanceof Error ? e.message : "不明なエラー";
       alert(lang === 'ja' 
-        ? `決済画面への移動に失敗しました: ${e.message}` 
-        : `Failed to redirect to checkout: ${e.message}`
+        ? `決済画面への移動に失敗しました: ${message}` 
+        : `Failed to redirect to checkout: ${message}`
       );
     } finally {
       setIsPurchasing(false);
@@ -219,11 +231,12 @@ function ProfileContent() {
         const errorMsg = data.message || data.error || "Unknown Error";
         throw new Error(errorMsg);
       }
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
+      const message = e instanceof Error ? e.message : "不明なエラー";
       alert(lang === 'ja' 
-        ? `管理画面の作成に失敗しました: ${e.message}` 
-        : `Failed to open management portal: ${e.message}`
+        ? `管理画面の作成に失敗しました: ${message}` 
+        : `Failed to open management portal: ${message}`
       );
     } finally {
       setIsPurchasing(false);
@@ -368,7 +381,7 @@ function ProfileContent() {
               </div>
               <select
                 value={activityLevel}
-                onChange={(e) => setActivityLevel(e.target.value as any)}
+                onChange={(e) => setActivityLevel(e.target.value as "low" | "normal" | "high")}
                 style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
               >
                 <option value="low">{t('profile.activity.low')}</option>

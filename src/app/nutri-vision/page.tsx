@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog, isPremiumUser, getDailyUsageCount, incrementDailyUsageCount } from "@/lib/storage";
+import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog, isPremiumUser, getDailyUsageCount, incrementDailyUsageCount, getLocalDateString } from "@/lib/storage";
 import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
 import { calculateBurnedCalories, EXERCISE_LABELS } from "@/lib/exercise-calculator";
 import ScrollPicker from "@/components/ScrollPicker";
@@ -47,7 +47,7 @@ export default function NutriVision() {
   const [textInput, setTextInput] = useState("");
   const [mealSource, setMealSource] = useState<'home' | 'restaurant' | 'takeout'>('home');
   const [mealCategory, setMealCategory] = useState<MealCategory>('昼食');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(getLocalDateString());
 
   // Exercise Log State
   const [exerciseCalories, setExerciseCalories] = useState(0);
@@ -110,7 +110,21 @@ export default function NutriVision() {
           return "";
         });
       };
-      recognition.onerror = (event: any) => {
+      interface SpeechRecognitionErrorEvent {
+        error: string;
+      }
+      interface SpeechRecognitionEvent {
+        results: {
+          [key: number]: {
+            [key: number]: {
+              transcript: string;
+            };
+          };
+          length: number;
+        };
+      }
+
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error", event.error);
         setIsRecording(false);
         if (event.error !== 'no-speech' && event.error !== 'aborted') {
@@ -118,7 +132,7 @@ export default function NutriVision() {
         }
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         let sessionTranscript = '';
         for (let i = 0; i < event.results.length; ++i) {
           sessionTranscript += event.results[i][0].transcript;
@@ -382,12 +396,13 @@ export default function NutriVision() {
       saveToHistory(finalResult);
       if (isFreeUser) incrementDailyUsageCount();
       showToast(t('analysis.toast.success'));
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
-      let errorMsg = `解析エラー: ${e.message || "不明なエラー"}`;
-      if (e.message?.includes("429") || e.message?.toLowerCase().includes("quota")) {
+      const message = e instanceof Error ? e.message : "不明なエラー";
+      let errorMsg = `解析エラー: ${message}`;
+      if (message.includes("429") || message.toLowerCase().includes("quota")) {
         errorMsg = t('analysis.error.quota');
-      } else if (e.message?.includes("API key")) {
+      } else if (message.includes("API key")) {
         errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。" : "API key is invalid or not set.";
       }
       showToast(errorMsg);
@@ -407,16 +422,18 @@ export default function NutriVision() {
     storage.set(STORAGE_KEYS.ANALYSIS_HISTORY, history);
   };
 
-  const handleEditResult = (field: string, value: any) => {
+  const handleEditResult = (field: string, value: string | number) => {
     if (!analysisResult) return;
     const updated = { ...analysisResult };
     if (field.includes(".")) {
       const [p1, p2] = field.split(".");
-      (updated as any)[p1][p2] = parseFloat(value) || 0;
+      if (p1 === "nutrients") {
+        (updated.nutrients as Record<string, number>)[p2] = parseFloat(String(value)) || 0;
+      }
     } else if (field === "name") {
-      updated.name = value;
+      updated.name = String(value);
     } else {
-      (updated as any)[field] = parseFloat(value) || 0;
+      (updated as Record<string, any>)[field] = parseFloat(String(value)) || 0;
     }
     setAnalysisResult(updated);
   };
