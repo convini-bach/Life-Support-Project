@@ -23,6 +23,7 @@ export const dictionary: Dictionary = {
     'nav.privacy': 'プライバシーポリシー',
     'nav.scta': '特定商取引法に基づく表記',
     'nav.pricing': '料金プラン',
+    'nav.guide': '使い方ガイド',
 
     // NutriVision (Analysis)
     'analysis.title': '栄養解析 (AI)',
@@ -182,6 +183,7 @@ export const dictionary: Dictionary = {
     'nav.privacy': 'Privacy',
     'nav.scta': 'Specified Commercial Transactions',
     'nav.pricing': 'Pricing',
+    'nav.guide': 'User Guide',
 
     // NutriVision (Analysis)
     'analysis.title': 'Nutri-Vision AI',
