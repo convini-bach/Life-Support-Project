@@ -14,12 +14,15 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
+    const { plan } = await req.json();
+    const isDevMode = plan === "devmode";
+
     const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "subscription",
+      mode: isDevMode ? "payment" : "subscription",
       customer_email: user.emailAddresses[0].emailAddress,
       line_items: [
         {
-          price: process.env.STRIPE_PRICE_ID,
+          price: isDevMode ? process.env.STRIPE_DEV_MODE_PRICE_ID : process.env.STRIPE_PRICE_ID,
           quantity: 1,
         },
       ],

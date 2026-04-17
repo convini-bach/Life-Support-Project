@@ -180,14 +180,18 @@ function ProfileContent() {
     reader.readAsText(file);
   };
 
-  const handlePurchase = async () => {
+  const handlePurchase = async (plan: 'premium' | 'devmode' = 'premium') => {
     if (!isSignedIn) {
       alert("購入の前にログイン（アカウント登録）が必要です。");
       return;
     }
     setIsPurchasing(true);
     try {
-      const response = await fetch("/api/checkout", { method: "POST" });
+      const response = await fetch("/api/checkout", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan })
+      });
       const data = await response.json();
       if (data.url) {
         window.location.href = data.url;
@@ -269,18 +273,32 @@ function ProfileContent() {
                     <div style={{ fontSize: '1rem', fontWeight: 'bold', color: dailyUsage >= 3 ? '#ef4444' : 'var(--primary)' }}>{dailyUsage} / 3</div>
                   </div>
                 )}
-                {!isPremium && (
-                  <button
-                    onClick={handlePurchase}
-                    disabled={isPurchasing}
-                    style={{
-                      padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
-                      background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
-                    }}
-                  >
-                    {isPurchasing ? '...' : (hasDevMode ? (lang === 'ja' ? "プレミアムへ" : "To Premium") : t('profile.button.upgrade'))}
-                  </button>
-                )}
+                <div style={{ display: 'flex', gap: '0.8rem' }}>
+                  {!hasDevMode && (
+                    <button
+                      onClick={() => handlePurchase('devmode')}
+                      disabled={isPurchasing}
+                      style={{
+                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid var(--primary)', cursor: 'pointer',
+                        background: 'transparent', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem'
+                      }}
+                    >
+                      {isPurchasing ? '...' : (lang === 'ja' ? "開発者モード購入" : "Buy Dev Mode")}
+                    </button>
+                  )}
+                  {!isPremium && (
+                    <button
+                      onClick={() => handlePurchase('premium')}
+                      disabled={isPurchasing}
+                      style={{
+                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
+                        background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem'
+                      }}
+                    >
+                      {isPurchasing ? '...' : t('profile.button.upgrade')}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           )}
