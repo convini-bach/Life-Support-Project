@@ -180,7 +180,7 @@ function ProfileContent() {
 
   const handlePurchase = async (plan: 'premium' | 'devmode' = 'premium') => {
     if (!isSignedIn) {
-      alert("購入の前にログイン（アカウント登録）が必要です。");
+      alert(lang === 'ja' ? "購入の前にログイン（アカウント登録）が必要です。" : "Sign in required before purchase.");
       return;
     }
     setIsPurchasing(true);
@@ -196,7 +196,25 @@ function ProfileContent() {
       }
     } catch (e) {
       console.error(e);
-      alert("決済画面への移動に失敗しました。");
+      alert(lang === 'ja' ? "決済画面への移動に失敗しました。" : "Failed to redirect to checkout.");
+    } finally {
+      setIsPurchasing(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    setIsPurchasing(true);
+    try {
+      const response = await fetch("/api/portal", { method: "POST" });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.message || "Failed to create portal session");
+      }
+    } catch (e) {
+      console.error(e);
+      alert(lang === 'ja' ? "管理画面の作成に失敗しました。" : "Failed to open management portal.");
     } finally {
       setIsPurchasing(false);
     }
@@ -272,6 +290,19 @@ function ProfileContent() {
                   </div>
                 )}
                 <div style={{ display: 'flex', gap: '0.8rem' }}>
+                  {isPremium && (
+                    <button
+                      onClick={handleManageSubscription}
+                      disabled={isPurchasing}
+                      style={{
+                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid #334155', cursor: 'pointer',
+                        background: '#1e293b', color: '#cbd5e1', fontWeight: 'bold', fontSize: '0.8rem',
+                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
+                      }}
+                    >
+                      {isPurchasing ? (lang === 'ja' ? '接続中...' : 'Connecting...') : t('profile.button.manage_subscription')}
+                    </button>
+                  )}
                   {!hasDevMode && (
                     <button
                       onClick={() => handlePurchase('devmode')}
