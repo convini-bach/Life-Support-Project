@@ -11,26 +11,34 @@ export default function GuidePage() {
     {
       title: lang === 'ja' ? "1. ログインして準備する" : "1. Login & Get Ready",
       desc: lang === 'ja' 
-        ? "回数制限の管理とセキリティのため、解析にはログインが必要です。プロフィール画面からアカウントを作成して始めましょう。" 
-        : "Sign in is required for analysis and limit tracking. Create an account in the Profile screen to get started.",
+        ? "回数制限の管理とセキュリティのため、解析にはログインが必要です。アカウントを作成して、あなたのデータを安全に管理しましょう。" 
+        : "Sign in is required for analysis and limit tracking. Create an account to manage your data securely.",
       image: "/images/guide/portal.png",
       alt: "Portal & Login"
     },
     {
       title: lang === 'ja' ? "2. スタイルに合わせたプラン選択" : "2. Choose Your Plan",
       desc: lang === 'ja'
-        ? "無料枠（1日3回）、プレミアム（無制限）、開発者モード（自前APIキーで無制限）の3つから選べます。自分にぴったりのスタイルで見つけてください。"
-        : "Choose from 3 tiers: Free (3/day), Premium (Unlimited), or Dev Mode (Unlimited via own API key). Pick the style that fits you.",
+        ? "無料枠（1日3回）、プレミアム（無制限）、開発者モード（自前APIキーで無制限）の3つから選べます。ライフスタイルに合わせてアップグレード可能です。"
+        : "Choose from 3 tiers: Free (3/day), Premium (Unlimited), or Dev Mode (Unlimited via own API key). Upgrade anytime.",
       image: "/images/guide/pricing.png",
       alt: "Pricing Plans"
     },
     {
-      title: lang === 'ja' ? "3. 多彩な方法で解析・記録" : "3. Capture & Analyze",
+      title: lang === 'ja' ? "3. AIによるプロフェッショナル解析" : "3. AI Professional Analysis",
       desc: lang === 'ja'
-        ? "写真、テキスト、そして『一品ずつお話しください』と書かれた音声入力🎙️ボタン。AIがあなたの食事を瞬時にプロの視点で解析します。"
-        : "Use photos, text, or the Voice Input 🎙️ button. The AI analyzes your meals instantly from a professional coach's perspective.",
+        ? "画像・テキスト・音声🎙️で食事を記録。AIが一瞬で栄養成分を解析し、プロのコーチのような視点でパーソナライズされた助言をお届けします。"
+        : "Log via image, text, or voice 🎙️. AI instantly analyzes nutrients and provides personalized professional coaching advice.",
       image: "/images/guide/nutri-vision.png",
       alt: "Analysis Interface"
+    },
+    {
+      title: lang === 'ja' ? "4. 状況確認と詳細設定" : "4. Status & Settings",
+      desc: lang === 'ja'
+        ? "プロフィール画面では、本日の残り利用回数や加入中のプランを確認できます。開発者モードの方は、ここで自分のAPIキーを登録してください。"
+        : "In the Profile screen, check today's remaining uses and your plan status. Dev Mode users can register their private API keys here.",
+      image: "/images/guide/profile.png",
+      alt: "Profile & Settings"
     }
   ];
 
