@@ -35,7 +35,6 @@ export default function Footer() {
           <Link href="/pricing" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.pricing')}</Link>
           <Link href="/legal/tos" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.tos')}</Link>
           <Link href="/legal/privacy" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
-          <Link href="/legal/scta" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.scta')}</Link>
         </div>
         
         <div style={{
@@ -45,7 +44,10 @@ export default function Footer() {
           maxWidth: '600px'
         }}>
           <p style={{ marginBottom: '1rem' }}>&copy; 2026 Life Support AI Ecosystem. All rights reserved.</p>
-          <p>{t('portal.footer')}</p>
+          <p style={{ marginBottom: '0.5rem' }}>{t('portal.footer')}</p>
+          <div style={{ marginTop: '1.5rem', opacity: 0.4 }}>
+            <Link href="/legal/scta" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.65rem' }}>{t('nav.scta')}</Link>
+          </div>
         </div>
       </div>
     </footer>

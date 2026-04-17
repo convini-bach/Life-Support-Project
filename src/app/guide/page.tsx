@@ -29,16 +29,8 @@ export default function GuidePage() {
       desc: lang === 'ja'
         ? "入力した内容に基づき、AIがカロリーやPFCバランスを瞬時に算出。プロのコーチのような視点でアドバイスを届けます。"
         : "Based on your input, AI instantly calculates calories and PFC balance, delivering advice from a professional coach's perspective.",
-      image: "/images/guide/pricing.png", // Using pricing for plan context or general feel
+      image: "/images/guide/pricing.png",
       alt: "Pricing and Benefits"
-    },
-    {
-      title: lang === 'ja' ? "4. 安心の法的・プライバシー管理" : "4. Legal & Privacy Management",
-      desc: lang === 'ja'
-        ? "特定商取引法に基づく表記や利用規約をいつでも確認できます。Local-First設計により、あなたのデータはあなたのデバイス内のみに保存されます。"
-        : "Check Terms and SCTA anytime. With Local-First design, your health data stays safely on your device.",
-      image: "/images/guide/scta.png",
-      alt: "SCTA Page"
     }
   ];
 
@@ -68,8 +60,10 @@ export default function GuidePage() {
                   src={section.image} 
                   alt={section.alt} 
                   style={{ 
-                    width: '100%', 
-                    height: 'auto', 
+                    maxHeight: '600px',
+                    width: 'auto', 
+                    margin: '0 auto',
+                    display: 'block',
                     borderRadius: '8px', 
                     boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                     border: '1px solid rgba(255,255,255,0.1)'
