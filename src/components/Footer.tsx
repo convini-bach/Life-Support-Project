@@ -31,6 +31,11 @@ export default function Footer() {
           gap: '1.5rem',
           fontSize: '0.85rem'
         }}>
+          <Link href="/guide" style={{ color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'none' }}>{t('nav.guide')}</Link>
+          <Link href="/pricing" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.pricing')}</Link>
+          <Link href="/legal/tos" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.tos')}</Link>
+          <Link href="/legal/privacy" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
+          <Link href="/legal/scta" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.scta')}</Link>
         </div>
         
         <div style={{
