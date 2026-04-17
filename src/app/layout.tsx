@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 };
 
 import { Providers } from "@/components/Providers";
+import Footer from "@/components/Footer";
 
 export default function RootLayout({
   children,
@@ -24,9 +25,12 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={jaJP}>
       <html className={inter.variable}>
-        <body>
+        <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Providers>
-            {children}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {children}
+            </div>
+            <Footer />
           </Providers>
         </body>
       </html>

@@ -19,6 +19,10 @@ export const dictionary: Dictionary = {
     'nav.weight': '体重',
     'nav.history': '統計・履歴',
     'nav.profile': '設定',
+    'nav.tos': '利用規約',
+    'nav.privacy': 'プライバシーポリシー',
+    'nav.scta': '特定商取引法に基づく表記',
+    'nav.pricing': '料金プラン',
 
     // NutriVision (Analysis)
     'analysis.title': '栄養解析 (AI)',
@@ -44,6 +48,10 @@ export const dictionary: Dictionary = {
     'analysis.result.evaluation': '【 栄養評価 】',
     'analysis.result.improvement': '【 改善のアクション 】',
     'analysis.result.premium_mask': 'プレミアムでアドバイスを表示',
+    'analysis.voice.start': '音声入力',
+    'analysis.voice.stop': '停止',
+    'analysis.voice.recording': '音声を聞き取り中...',
+    'analysis.voice.not_supported': 'お使いのブラウザは音声入力に対応していません',
 
     // Nutrients
     'nutrient.energy': 'エネルギー',
@@ -170,6 +178,10 @@ export const dictionary: Dictionary = {
     'nav.weight': 'Weight',
     'nav.history': 'History',
     'nav.profile': 'Settings',
+    'nav.tos': 'Terms',
+    'nav.privacy': 'Privacy',
+    'nav.scta': 'Specified Commercial Transactions',
+    'nav.pricing': 'Pricing',
 
     // NutriVision (Analysis)
     'analysis.title': 'Nutri-Vision AI',
@@ -195,6 +207,10 @@ export const dictionary: Dictionary = {
     'analysis.result.evaluation': '[ Nutritional Evaluation ]',
     'analysis.result.improvement': '[ Improvement Actions ]',
     'analysis.result.premium_mask': 'View advice with Premium',
+    'analysis.voice.start': 'Voice Input',
+    'analysis.voice.stop': 'Stop',
+    'analysis.voice.recording': 'Listening...',
+    'analysis.voice.not_supported': 'Voice input not supported in this browser',
 
     // Nutrients
     'nutrient.energy': 'Energy',

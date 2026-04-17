@@ -11,7 +11,14 @@ import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
-const APP_VERSION = "2604162400"; // YYMMDDHHMM表示用
+const APP_VERSION = "2604172230"; // YYMMDDHHMM表示用
+
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+  }
+}
 
 export default function NutriVision() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -46,6 +53,10 @@ export default function NutriVision() {
   const [selectedExerciseType, setSelectedExerciseType] = useState<ExerciseType>('walking');
   const [exerciseMinutes, setExerciseMinutes] = useState(0);
 
+  // Voice Recognition State
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
   // Weight Tracking State
   const [currentWeight, setCurrentWeight] = useState(65.0);
   const weightItems = Array.from({ length: 1701 }, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)));
@@ -56,6 +67,55 @@ export default function NutriVision() {
   const showToast = (message: string) => {
     setToast({ message, visible: true });
     setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
+
+  const toggleVoiceInput = () => {
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const SpeechRecognition = typeof window !== 'undefined' ? (window.SpeechRecognition || window.webkitSpeechRecognition) : null;
+    if (!SpeechRecognition) {
+      showToast(t('analysis.voice.not_supported'));
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+      recognition.interimResults = true;
+      recognition.continuous = true;
+
+      recognition.onstart = () => setIsRecording(true);
+      recognition.onend = () => setIsRecording(false);
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error", event.error);
+        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          showToast(t('analysis.voice.error'));
+        }
+      };
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          }
+        }
+        if (finalTranscript) {
+          setTextInput(prev => prev + (prev ? ' ' : '') + finalTranscript);
+        }
+      };
+
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      console.error(e);
+      showToast(t('analysis.voice.error'));
+    }
   };
 
   const handleDateShortcut = (offset: number) => {
@@ -549,11 +609,43 @@ export default function NutriVision() {
                   </div>
                 )}
                 
-                <textarea 
-                  placeholder={mode === 'image' ? t('analysis.placeholder.image') : t('analysis.placeholder.text')}
-                  value={textInput} onChange={(e) => setTextInput(e.target.value)}
-                  style={{ width: '100%', height: mode === 'image' ? '80px' : '150px', background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', color: 'white', padding: '1rem', fontSize: '0.95rem', marginBottom: '1.5rem' }}
-                />
+                <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
+                  <textarea 
+                    placeholder={mode === 'image' ? t('analysis.placeholder.image') : t('analysis.placeholder.text')}
+                    value={textInput} onChange={(e) => setTextInput(e.target.value)}
+                    style={{ 
+                      width: '100%', height: mode === 'image' ? '80px' : '150px', 
+                      background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', 
+                      color: 'white', padding: '1rem', paddingRight: '3.5rem', fontSize: '0.95rem'
+                    }}
+                  />
+                  <button
+                    onClick={toggleVoiceInput}
+                    style={{
+                      position: 'absolute', right: '0.8rem', bottom: '0.8rem',
+                      width: '2.5rem', height: '2.5rem', borderRadius: '50%',
+                      border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      background: isRecording ? '#ef4444' : 'rgba(255,255,255,0.05)',
+                      boxShadow: isRecording ? '0 0 15px #ef4444' : 'none',
+                      transition: 'all 0.3s',
+                      zIndex: 10
+                    }}
+                    title={isRecording ? t('analysis.voice.stop') : t('analysis.voice.start')}
+                  >
+                    <span style={{ fontSize: '1.2rem', animation: isRecording ? 'pulse 1.5s infinite' : 'none' }}>
+                      {isRecording ? '⏹️' : '🎙️'}
+                    </span>
+                  </button>
+                  {isRecording && (
+                    <div style={{
+                      position: 'absolute', top: '0.5rem', right: '1rem',
+                      fontSize: '0.7rem', color: '#ef4444', fontWeight: 'bold',
+                      animation: 'pulse 1s infinite'
+                    }}>
+                      {t('analysis.voice.recording')}
+                    </div>
+                  )}
+                </div>
 
                 <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageChange} />
                 <button className="btn-primary" onClick={startAnalysis} disabled={isAnalyzing} style={{ width: '100%', padding: '1rem' }}>
