@@ -9,28 +9,28 @@ export default function GuidePage() {
 
   const sections = [
     {
-      title: lang === 'ja' ? "1. アプリを選ぶ" : "1. Select App",
+      title: lang === 'ja' ? "1. ログインして準備する" : "1. Login & Get Ready",
       desc: lang === 'ja' 
-        ? "ポータル画面から「Nutri-Vision」を選択して起動します。Life Support Projectの核となるツールです。" 
-        : "Select 'Nutri-Vision' from the portal. It's the core tool of the Life Support Project.",
+        ? "回数制限の管理とセキリティのため、解析にはログインが必要です。プロフィール画面からアカウントを作成して始めましょう。" 
+        : "Sign in is required for analysis and limit tracking. Create an account in the Profile screen to get started.",
       image: "/images/guide/portal.png",
-      alt: "Portal Home Page"
+      alt: "Portal & Login"
     },
     {
-      title: lang === 'ja' ? "2. 食事や運動を記録する" : "2. Log Meals & Exercise",
+      title: lang === 'ja' ? "2. スタイルに合わせたプラン選択" : "2. Choose Your Plan",
       desc: lang === 'ja'
-        ? "写真、テキスト、そして便利な「音声入力」を使って記録できます。🎙️ボタンを押して話しかけるだけで、AIが内容を理解します。"
-        : "Log via photos, text, or the convenient 'Voice Input'. Just tap the 🎙️ button and speak; AI handles the rest.",
-      image: "/images/guide/nutri-vision.png",
-      alt: "Nutri-Vision Main Page"
-    },
-    {
-      title: lang === 'ja' ? "3. AIによるプロの解析" : "3. Professional AI Analysis",
-      desc: lang === 'ja'
-        ? "入力した内容に基づき、AIがカロリーやPFCバランスを瞬時に算出。プロのコーチのような視点でアドバイスを届けます。"
-        : "Based on your input, AI instantly calculates calories and PFC balance, delivering advice from a professional coach's perspective.",
+        ? "無料枠（1日3回）、プレミアム（無制限）、開発者モード（自前APIキーで無制限）の3つから選べます。自分にぴったりのスタイルで見つけてください。"
+        : "Choose from 3 tiers: Free (3/day), Premium (Unlimited), or Dev Mode (Unlimited via own API key). Pick the style that fits you.",
       image: "/images/guide/pricing.png",
-      alt: "Pricing and Benefits"
+      alt: "Pricing Plans"
+    },
+    {
+      title: lang === 'ja' ? "3. 多彩な方法で解析・記録" : "3. Capture & Analyze",
+      desc: lang === 'ja'
+        ? "写真、テキスト、そして『一品ずつお話しください』と書かれた音声入力🎙️ボタン。AIがあなたの食事を瞬時にプロの視点で解析します。"
+        : "Use photos, text, or the Voice Input 🎙️ button. The AI analyzes your meals instantly from a professional coach's perspective.",
+      image: "/images/guide/nutri-vision.png",
+      alt: "Analysis Interface"
     }
   ];
 

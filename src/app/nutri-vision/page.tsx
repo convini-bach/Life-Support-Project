@@ -33,7 +33,7 @@ export default function NutriVision() {
   const { lang, t } = useI18n();
   
   // Clerk Hook
-  const { user } = useUser();
+  const { user, isLoaded, isSignedIn } = useUser();
   const isPremium = !!user?.publicMetadata?.isPremium;
   const hasDevMode = !!user?.publicMetadata?.hasDevMode;
 
@@ -545,7 +545,11 @@ export default function NutriVision() {
         {/* SECTION 2: 記録ハブ (日付選択 -> 種類選択 -> 入力) */}
         <section className="glass-card" style={{ marginBottom: '3rem', padding: '2rem' }}>
           <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span>📝</span> {t('exercise.title')}
+            <span>📝</span> {
+              activeTab === 'meal' ? (lang === 'ja' ? '食事を記録する' : 'Log Meal') :
+              activeTab === 'exercise' ? t('exercise.title') :
+              (lang === 'ja' ? '体重を記録する' : 'Log Weight')
+            }
           </h2>
 
           {/* 1. 日付選択 */}
@@ -709,7 +713,27 @@ export default function NutriVision() {
                 </div>
 
                 <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageChange} />
-                <button className="btn-primary" onClick={startAnalysis} disabled={isAnalyzing} style={{ width: '100%', padding: '1rem' }}>
+                
+                {isLoaded && !isSignedIn ? (
+                  <div style={{ 
+                    padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', 
+                    borderRadius: '12px', marginBottom: '1rem', textAlign: 'center' 
+                  }}>
+                    <p style={{ fontSize: '0.85rem', color: '#f87171', marginBottom: '0.5rem' }}>
+                      {lang === 'ja' ? "解析にはログインが必要です（無料枠の回数管理のため）" : "Sign in required for analysis (to track free limits)"}
+                    </p>
+                    <Link href="/profile" style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
+                      {t('profile.login')} / {t('profile.signup')}
+                    </Link>
+                  </div>
+                ) : null}
+
+                <button 
+                  className="btn-primary" 
+                  onClick={startAnalysis} 
+                  disabled={isAnalyzing || (isLoaded && !isSignedIn)} 
+                  style={{ width: '100%', padding: '1rem', opacity: (isLoaded && !isSignedIn) ? 0.5 : 1 }}
+                >
                   {isAnalyzing ? `${t('analysis.button.analyzing')} (${countdown}s)` : t('analysis.button.start')}
                 </button>
               </div>
