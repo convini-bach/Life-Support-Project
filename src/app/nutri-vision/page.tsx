@@ -55,6 +55,7 @@ export default function NutriVision() {
 
   // Voice Recognition State
   const [isRecording, setIsRecording] = useState(false);
+  const [voiceTranscript, setVoiceTranscript] = useState("");
   const recognitionRef = useRef<any>(null);
 
   // Weight Tracking State
@@ -88,26 +89,34 @@ export default function NutriVision() {
       recognition.interimResults = true;
       recognition.continuous = true;
 
-      recognition.onstart = () => setIsRecording(true);
-      recognition.onend = () => setIsRecording(false);
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setVoiceTranscript("");
+      };
+      recognition.onend = () => {
+        setIsRecording(false);
+        // 録音終了時に確定させる（自然に切れた場合も含む）
+        setVoiceTranscript(prev => {
+          if (prev.trim()) {
+            setTextInput(current => current + (current ? ' ' : '') + prev.trim());
+          }
+          return "";
+        });
+      };
       recognition.onerror = (event: any) => {
         console.error("Speech recognition error", event.error);
         setIsRecording(false);
-        if (event.error !== 'no-speech') {
+        if (event.error !== 'no-speech' && event.error !== 'aborted') {
           showToast(t('analysis.voice.error'));
         }
       };
 
       recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
+        let sessionTranscript = '';
+        for (let i = 0; i < event.results.length; ++i) {
+          sessionTranscript += event.results[i][0].transcript;
         }
-        if (finalTranscript) {
-          setTextInput(prev => prev + (prev ? ' ' : '') + finalTranscript);
-        }
+        setVoiceTranscript(sessionTranscript);
       };
 
       recognition.start();
@@ -612,36 +621,59 @@ export default function NutriVision() {
                 <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
                   <textarea 
                     placeholder={mode === 'image' ? t('analysis.placeholder.image') : t('analysis.placeholder.text')}
-                    value={textInput} onChange={(e) => setTextInput(e.target.value)}
+                    value={textInput + (isRecording && voiceTranscript ? (textInput ? '\n' : '') + '... ' + voiceTranscript : '')} 
+                    onChange={(e) => !isRecording && setTextInput(e.target.value)}
+                    readOnly={isRecording}
                     style={{ 
-                      width: '100%', height: mode === 'image' ? '80px' : '150px', 
-                      background: '#0f172a', border: '1px solid #334155', borderRadius: '12px', 
-                      color: 'white', padding: '1rem', paddingRight: '3.5rem', fontSize: '0.95rem'
+                      width: '100%', height: mode === 'image' ? '120px' : '200px', 
+                      background: isRecording ? 'rgba(15, 23, 42, 0.8)' : '#0f172a', 
+                      border: isRecording ? '2px solid #ef4444' : '1px solid #334155', 
+                      borderRadius: '12px', 
+                      color: 'white', padding: '1rem', paddingRight: '1rem', fontSize: '0.95rem',
+                      transition: 'all 0.3s',
+                      boxShadow: isRecording ? '0 0 20px rgba(239, 68, 68, 0.2)' : 'none'
                     }}
                   />
-                  <button
-                    onClick={toggleVoiceInput}
-                    style={{
-                      position: 'absolute', right: '0.8rem', bottom: '0.8rem',
-                      width: '2.5rem', height: '2.5rem', borderRadius: '50%',
-                      border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      background: isRecording ? '#ef4444' : 'rgba(255,255,255,0.05)',
-                      boxShadow: isRecording ? '0 0 15px #ef4444' : 'none',
-                      transition: 'all 0.3s',
-                      zIndex: 10
-                    }}
-                    title={isRecording ? t('analysis.voice.stop') : t('analysis.voice.start')}
-                  >
-                    <span style={{ fontSize: '1.2rem', animation: isRecording ? 'pulse 1.5s infinite' : 'none' }}>
-                      {isRecording ? '⏹️' : '🎙️'}
-                    </span>
-                  </button>
+                  
+                  <div style={{ 
+                    display: 'flex', gap: '0.8rem', marginTop: '0.8rem', justifyContent: 'flex-end'
+                  }}>
+                    {!isRecording ? (
+                      <button
+                        onClick={toggleVoiceInput}
+                        className="btn-secondary"
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid #334155',
+                          fontSize: '0.85rem'
+                        }}
+                      >
+                        🎙️ {t('analysis.voice.start')}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={toggleVoiceInput}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '0.5rem',
+                          padding: '0.6rem 1.2rem', borderRadius: '20px', 
+                          background: '#ef4444', color: 'white', border: 'none',
+                          fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer',
+                          boxShadow: '0 4px 15px rgba(239, 68, 68, 0.4)',
+                          animation: 'pulse 1.5s infinite'
+                        }}
+                      >
+                        ⏹️ {t('analysis.voice.stop')}
+                      </button>
+                    )}
+                  </div>
+
                   {isRecording && (
                     <div style={{
-                      position: 'absolute', top: '0.5rem', right: '1rem',
-                      fontSize: '0.7rem', color: '#ef4444', fontWeight: 'bold',
-                      animation: 'pulse 1s infinite'
+                      position: 'absolute', top: '-1.5rem', left: '0',
+                      fontSize: '0.75rem', color: '#ef4444', fontWeight: 'bold',
+                      display: 'flex', alignItems: 'center', gap: '0.4rem'
                     }}>
+                      <span style={{ width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', animation: 'pulse 1s infinite' }}></span>
                       {t('analysis.voice.recording')}
                     </div>
                   )}
