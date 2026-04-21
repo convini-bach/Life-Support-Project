@@ -31,7 +31,7 @@ export default function NutriHistory() {
   // Clerk Hook
   const { lang, t } = useI18n();
   const { user } = useUser();
-  const isPremium = !!user?.publicMetadata?.isPremium;
+
 
   // Editing state
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -245,14 +245,7 @@ export default function NutriHistory() {
               const isSelected = selectedDate === dateStr;
               const hasData = history.some(item => item.date.startsWith(dateStr));
               
-              const isSelectable = isPremium || (() => {
-                const today = new Date();
-                today.setHours(0,0,0,0);
-                const d = new Date(dateStr);
-                d.setHours(0,0,0,0);
-                const diff = (today.getTime() - d.getTime()) / (1000 * 3600 * 24);
-                return diff < 3;
-              })();
+              const isSelectable = true;
               
               return (
                 <button 
@@ -307,20 +300,7 @@ export default function NutriHistory() {
             <div style={{ textAlign: 'center', padding: '2rem' }}>{t('history.stats.no_data')}</div>
           ) : (
             <>
-              {/* PAID MASK for Statistics */}
-              {viewMode !== 'day' && !isPremium && (
-                <div style={{ 
-                  position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10,
-                  background: 'rgba(10, 15, 28, 0.7)', backdropFilter: 'blur(8px)',
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center'
-                }}>
-                  <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>🔒</div>
-                  <div style={{ fontWeight: 'bold', marginBottom: '1rem', color: 'white' }}>{lang === 'ja' ? '平均データはプレミアム限定です' : 'Average data is Premium only'}</div>
-                  <Link href="/profile" className="btn-primary" style={{ textDecoration: 'none', padding: '0.6rem 1.2rem' }}>
-                    {t('profile.button.upgrade')}
-                  </Link>
-                </div>
-              )}
+
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
                 <div>
@@ -374,7 +354,6 @@ export default function NutriHistory() {
                   <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '1rem' }}>{t('history.weight_predict')}</div>
                     
-                    {isPremium ? (
                       <div>
                         <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: stats.weightChange > 0 ? '#ef4444' : 'var(--primary)' }}>
                           {stats.weightChange > 0 ? '+' : ''}{stats.weightChange} <span style={{ fontSize: '0.8rem' }}>kg</span>
@@ -383,15 +362,6 @@ export default function NutriHistory() {
                           {lang === 'ja' ? '現在のペースを継続した場合の予測です' : 'Predicted based on current pace'}
                         </div>
                       </div>
-                    ) : (
-                      <div style={{ filter: 'blur(3px)', opacity: 0.5, userSelect: 'none' }}>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>-1.2 kg</div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.5rem' }}>
-                          プレミアムで予測を表示
-                        </div>
-                      </div>
-                    )}
-                    {!isPremium && <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🔒</div>}
                   </div>
                 </div>
               </div>

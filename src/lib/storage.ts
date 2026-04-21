@@ -59,8 +59,6 @@ export const STORAGE_KEYS = {
   SELECTED_MODEL: 'lifesupport_selected_model',
   EXERCISE_HISTORY: 'lifesupport_exercise_history',
   WEIGHT_HISTORY: 'lifesupport_weight_history',
-  PREMIUM_STATUS: 'lifesupport_is_premium',
-  DAILY_USAGE: 'lifesupport_daily_usage_v1', // Date string -> count
 } as const;
 
 /**
@@ -180,27 +178,4 @@ export const importDataJSON = (jsonStr: string) => {
     console.error("Import failed", e);
     return false;
   }
-};
-/**
- * プレミアム会員かどうかを判定する (旧LocalStorage方式 - 後方互換性のため維持)
- */
-export const isPremiumUser = (): boolean => {
-  if (typeof window === 'undefined') return false;
-  return storage.get<boolean>(STORAGE_KEYS.PREMIUM_STATUS) === true;
-};
-
-/**
- * 本日の解析回数を取得・更新する
- */
-export const getDailyUsageCount = (): number => {
-  const today = getLocalDateString();
-  const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
-  return usage[today] || 0;
-};
-
-export const incrementDailyUsageCount = (): void => {
-  const today = getLocalDateString();
-  const usage = storage.get<Record<string, number>>(STORAGE_KEYS.DAILY_USAGE) || {};
-  usage[today] = (usage[today] || 0) + 1;
-  storage.set(STORAGE_KEYS.DAILY_USAGE, usage);
 };

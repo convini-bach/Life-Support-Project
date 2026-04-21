@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cloudflare open-next
+/.open-next
+
+# unrelated projects & knowledge base
+/bach brain
+/csl2-ai-advisor
+/pob2-simulator
+/stripe.exe

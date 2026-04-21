@@ -14,7 +14,7 @@ export default function SCTAPage() {
     { label: "メールアドレス", value: "convinibach@gmail.com\n（※お問い合わせはフォームにて承っております）" },
     { label: "問い合わせ先", value: "https://docs.google.com/forms/d/e/1FAIpQLScGmzoQL3ZJehCoSVYBoPB0lv9LkrsHAKzi3AjhIb8SE20h3g/viewform?usp=header", linkText: "お問い合わせフォーム" },
     { label: "サービス名", value: "Nutri-Vision / Life Support AI Ecosystem" },
-    { label: "販売価格", value: "各プランの料金ページ（/pricing）に表示された金額" },
+    { label: "販売価格", value: "無料または月額500円" },
     { label: "商品以外の必要料金", value: "インターネット接続料金および通信料" },
     { label: "支払方法", value: "クレジットカード決済（Stripe）" },
     { label: "代金の支払時期", value: "初回購入時、および次回の更新日に課金されます。" },
@@ -26,15 +26,15 @@ export default function SCTAPage() {
     <main className="container" style={{ paddingTop: '8.5rem', paddingBottom: '8rem', maxWidth: '800px' }}>
       <TabNavigation />
       <h1 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '2rem' }}>{t('nav.scta')}</h1>
-      
+
       <div className="glass-card" style={{ padding: '1.5rem', color: '#cbd5e1', lineHeight: '1.8', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', minWidth: '500px' }}>
           <tbody>
             {data.map((item, i) => (
               <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <th style={{ 
-                  textAlign: 'left', padding: '1.2rem 1rem', width: '30%', color: 'white', 
-                  background: 'rgba(255,255,255,0.02)', verticalAlign: 'top' 
+                <th style={{
+                  textAlign: 'left', padding: '1.2rem 1rem', width: '30%', color: 'white',
+                  background: 'rgba(255,255,255,0.02)', verticalAlign: 'top'
                 }}>
                   {item.label}
                 </th>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
-import { storage, STORAGE_KEYS, HealthData, exportDataJSON, exportMealsCSV, importDataJSON, getDailyUsageCount, getLocalDateString } from "@/lib/storage";
+import { storage, STORAGE_KEYS, HealthData, exportDataJSON, exportMealsCSV, importDataJSON, getLocalDateString } from "@/lib/storage";
 import ScrollPicker from "@/components/ScrollPicker";
 import TabNavigation from "@/components/TabNavigation";
 import { useSearchParams } from "next/navigation";
@@ -26,13 +26,7 @@ function ProfileContent() {
   const [isTesting, setIsTesting] = useState(false);
   const { lang, setLang, t } = useI18n();
   const { user, isLoaded, isSignedIn } = useUser();
-  const isPremium = !!user?.publicMetadata?.isPremium;
-  const hasDevMode = !!user?.publicMetadata?.hasDevMode;
-  const [dailyUsage, setDailyUsage] = useState(0);
 
-  useEffect(() => {
-    setDailyUsage(getDailyUsageCount());
-  }, []);
 
   const searchParams = useSearchParams();
 
@@ -189,59 +183,7 @@ function ProfileContent() {
     reader.readAsText(file);
   };
 
-  const handlePurchase = async (plan: 'premium' | 'devmode' = 'premium') => {
-    if (!isSignedIn) {
-      alert(lang === 'ja' ? "購入の前にログイン（アカウント登録）が必要です。" : "Sign in required before purchase.");
-      return;
-    }
-    setIsPurchasing(true);
-    try {
-      const response = await fetch("/api/checkout", { 
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan })
-      });
-      const data = await response.json();
-      if (response.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        const errorMsg = data.message || data.error || "Unknown Error";
-        throw new Error(errorMsg);
-      }
-    } catch (e) {
-      console.error(e);
-      const message = e instanceof Error ? e.message : "不明なエラー";
-      alert(lang === 'ja' 
-        ? `決済画面への移動に失敗しました: ${message}` 
-        : `Failed to redirect to checkout: ${message}`
-      );
-    } finally {
-      setIsPurchasing(false);
-    }
-  };
 
-  const handleManageSubscription = async () => {
-    setIsPurchasing(true);
-    try {
-      const response = await fetch("/api/portal", { method: "POST" });
-      const data = await response.json();
-      if (response.ok && data.url) {
-        window.location.href = data.url;
-      } else {
-        const errorMsg = data.message || data.error || "Unknown Error";
-        throw new Error(errorMsg);
-      }
-    } catch (e) {
-      console.error(e);
-      const message = e instanceof Error ? e.message : "不明なエラー";
-      alert(lang === 'ja' 
-        ? `管理画面の作成に失敗しました: ${message}` 
-        : `Failed to open management portal: ${message}`
-      );
-    } finally {
-      setIsPurchasing(false);
-    }
-  };
 
   const handleClearAll = () => {
     if (confirm("【警告】すべての履歴（食事・運動・体重）を完全に消去しますか？\nこの操作は取り消せません。")) {
@@ -253,8 +195,6 @@ function ProfileContent() {
   };
 
   const getStatusLabel = () => {
-    if (isPremium) return t('profile.status.premium');
-    if (hasDevMode) return lang === 'ja' ? "開発者モード (自前APIキー)" : "Developer Mode (Own API)";
     return t('profile.status.free');
   };
 
@@ -300,58 +240,9 @@ function ProfileContent() {
                 <UserButton />
                 <div>
                   <div style={{ fontSize: '0.9rem', color: '#cbd5e1', fontWeight: 'bold' }}>{user.fullName || user.emailAddresses[0].emailAddress}</div>
-                  <div style={{ fontSize: '0.8rem', color: (isPremium || hasDevMode) ? 'var(--primary)' : '#64748b' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
                     {getStatusLabel()}
                   </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                {!isPremium && !hasDevMode && (
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{lang === 'ja' ? "今日の利用数" : "Today's usage"}</div>
-                    <div style={{ fontSize: '1rem', fontWeight: 'bold', color: dailyUsage >= 3 ? '#ef4444' : 'var(--primary)' }}>{dailyUsage} / 3</div>
-                  </div>
-                )}
-                <div style={{ display: 'flex', gap: '0.8rem' }}>
-                  {isPremium && (
-                    <button
-                      onClick={handleManageSubscription}
-                      disabled={isPurchasing}
-                      style={{
-                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid #334155', cursor: 'pointer',
-                        background: '#1e293b', color: '#cbd5e1', fontWeight: 'bold', fontSize: '0.8rem',
-                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
-                      }}
-                    >
-                      {isPurchasing ? (lang === 'ja' ? '接続中...' : 'Connecting...') : t('profile.button.manage_subscription')}
-                    </button>
-                  )}
-                  {!hasDevMode && (
-                    <button
-                      onClick={() => handlePurchase('devmode')}
-                      disabled={isPurchasing}
-                      style={{
-                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: '1px solid var(--primary)', cursor: 'pointer',
-                        background: 'transparent', color: 'var(--primary)', fontWeight: 'bold', fontSize: '0.8rem',
-                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
-                      }}
-                    >
-                      {isPurchasing ? (lang === 'ja' ? '準備中...' : 'Processing...') : (lang === 'ja' ? "開発者モード購入" : "Buy Dev Mode")}
-                    </button>
-                  )}
-                  {!isPremium && (
-                    <button
-                      onClick={() => handlePurchase('premium')}
-                      disabled={isPurchasing}
-                      style={{
-                        padding: '0.6rem 1.2rem', borderRadius: '20px', border: 'none', cursor: 'pointer',
-                        background: 'var(--primary)', color: 'white', fontWeight: 'bold', fontSize: '0.8rem',
-                        opacity: isPurchasing ? 0.7 : 1, transition: 'all 0.2s'
-                      }}
-                    >
-                      {isPurchasing ? (lang === 'ja' ? '準備中...' : 'Processing...') : t('profile.button.upgrade')}
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
@@ -391,49 +282,7 @@ function ProfileContent() {
             </div>
           </section>
 
-          {/* AI Settings (Dev Mode Only) */}
-          {hasDevMode && (
-            <section className="glass-card animate-fade-in" style={{ border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-              <h2 style={{ fontSize: '1.1rem', marginBottom: '2rem', color: 'var(--accent)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span>🤖</span> {lang === 'ja' ? 'AIエンジン設定' : 'AI Engine Settings'}
-              </h2>
 
-              <div style={{ marginBottom: '1.5rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.api_key')}</label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder={t('profile.api_key_placeholder')}
-                    style={{ flex: 1, padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
-                  />
-                  <button className="btn-primary" onClick={testConnection} disabled={isTesting} style={{ padding: '0 1rem', background: '#1e293b', border: '1px solid #334155', width: 'auto' }}>
-                    {isTesting ? t('profile.connecting') : t('profile.connect')}
-                  </button>
-                </div>
-                <div style={{ marginTop: '0.8rem', padding: '0.8rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', fontSize: '0.75rem', color: '#94a3b8', lineHeight: '1.6' }}>
-                  <div style={{ color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.3rem' }}>💡 {t('profile.api_guide')}</div>
-                  1. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--primary)', textDecoration: 'underline' }}>Google AI Studio</a> {lang === 'ja' ? 'にアクセス' : 'Access'}<br />
-                  2. {t('profile.api_guide_step2')}<br />
-                  3. {t('profile.api_guide_step3')}
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>{t('profile.model')}</label>
-                <select
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white' }}
-                >
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
-                  <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro</option>
-                  <option value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash-Lite</option>
-                </select>
-              </div>
-            </section>
-          )}
 
           {/* User Preferences (Always visible) */}
           <section className="glass-card animate-fade-in">

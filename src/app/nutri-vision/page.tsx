@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog, isPremiumUser, getDailyUsageCount, incrementDailyUsageCount, getLocalDateString } from "@/lib/storage";
+import { storage, STORAGE_KEYS, HealthData, AnalysisResult, ExerciseLog, MealCategory, ExerciseType, WeightLog, getLocalDateString } from "@/lib/storage";
 import { calculateTargets, NutritionTargets } from "@/lib/nutrition-calculator";
 import { calculateBurnedCalories, EXERCISE_LABELS } from "@/lib/exercise-calculator";
 import ScrollPicker from "@/components/ScrollPicker";
@@ -9,6 +9,8 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
+import AffiliateCard from "@/components/AffiliateCard";
+import { getRecommendations, RecommendationItem } from "@/lib/recommendation";
 
 type TabType = 'meal' | 'exercise' | 'weight';
 const APP_VERSION = "2604172230"; // YYMMDDHHMM表示用
@@ -34,7 +36,7 @@ export default function NutriVision() {
   
   // Clerk Hook
   const { user, isLoaded, isSignedIn } = useUser();
-  const isPremium = !!user?.publicMetadata?.isPremium;
+
   const hasDevMode = !!user?.publicMetadata?.hasDevMode;
 
   // Notification State
@@ -42,6 +44,13 @@ export default function NutriVision() {
 
   // UI State
   const [activeTab, setActiveTab] = useState<TabType>('meal');
+  const [recommendation, setRecommendation] = useState<RecommendationItem | null>(null);
+  
+  useEffect(() => {
+    const ctx = activeTab === 'meal' ? 'nutrition' : activeTab === 'exercise' ? 'fitness' : 'weight';
+    setRecommendation(getRecommendations(ctx)[0]);
+  }, [activeTab]);
+
   const [todaysTotals, setTodaysTotals] = useState({ calories: 0, protein: 0, fat: 0, carbs: 0, salt: 0, fiber: 0, vegetables: 0 });
   const [mode, setMode] = useState<"image" | "text">("image");
   const [textInput, setTextInput] = useState("");
@@ -63,11 +72,7 @@ export default function NutriVision() {
   const [currentWeight, setCurrentWeight] = useState(65.0);
   const weightItems = Array.from({ length: 1701 }, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)));
 
-  const [dailyUsage, setDailyUsage] = useState(0);
 
-  useEffect(() => {
-    setDailyUsage(getDailyUsageCount());
-  }, []);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
@@ -256,18 +261,9 @@ export default function NutriVision() {
     if (mode === "image" && !selectedImage) return;
     if (mode === "text" && !textInput) return;
 
-    // プラン判定
-    const isFreeUser = !isPremium && !hasDevMode;
-
     // 開発者モード（自前キー）のチェック
     if (hasDevMode && !apiKey) {
       showToast(lang === 'ja' ? "開発者モードです。設定画面で自分のAPIキーを入力してください。" : "Developer mode active. Please set your own API key in settings.");
-      return;
-    }
-
-    // 無料ユーザーの回数制限チェック
-    if (isFreeUser && getDailyUsageCount() >= 3) {
-      showToast(lang === 'ja' ? "本日の無料解析枠（3回）を超えました。プレミアムプランへの登録、または開発者モード（買い切り）をご検討ください。" : "Daily free analysis limit (3) exceeded. Consider upgrading or buying Developer Mode.");
       return;
     }
 
@@ -355,6 +351,7 @@ export default function NutriVision() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            appId: 'nutri-vision',
             mode,
             prompt,
             image: mode === "image" ? selectedImage : null,
@@ -394,14 +391,18 @@ export default function NutriVision() {
 
       setAnalysisResult(finalResult);
       saveToHistory(finalResult);
-      if (isFreeUser) incrementDailyUsageCount();
+
       showToast(t('analysis.toast.success'));
     } catch (e) {
       console.error(e);
       const message = e instanceof Error ? e.message : "不明なエラー";
       let errorMsg = `解析エラー: ${message}`;
-      if (message.includes("429") || message.toLowerCase().includes("quota")) {
-        errorMsg = t('analysis.error.quota');
+      if (message.includes("429") || message.toLowerCase().includes("quota") || message.includes("limit reached")) {
+        if (message.includes("50 requests")) {
+          errorMsg = t('analysis.error.safety_limit');
+        } else {
+          errorMsg = t('analysis.error.quota');
+        }
       } else if (message.includes("API key")) {
         errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。" : "API key is invalid or not set.";
       }
@@ -737,29 +738,7 @@ export default function NutriVision() {
 
                 <input type="file" hidden ref={fileInputRef} accept="image/*" onChange={handleImageChange} />
                 
-                {isLoaded && !isSignedIn ? (
-                  <div style={{ 
-                    padding: '1rem', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', 
-                    borderRadius: '12px', marginBottom: '1rem', textAlign: 'center' 
-                  }}>
-                    <p style={{ fontSize: '0.85rem', color: '#f87171', marginBottom: '0.5rem' }}>
-                      {lang === 'ja' ? "解析にはログインが必要です（無料枠の回数管理のため）" : "Sign in required for analysis (to track free limits)"}
-                    </p>
-                    <Link href="/profile" style={{ fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'underline' }}>
-                      {t('profile.login')} / {t('profile.signup')}
-                    </Link>
-                  </div>
-                ) : (isLoaded && isSignedIn && !isPremium && !hasDevMode) ? (
-                  <div style={{ 
-                    padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', marginBottom: '1rem', 
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-                  }}>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{t('profile.usage_count')}</span>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: dailyUsage >= 3 ? '#ef4444' : 'var(--primary)' }}>
-                      {dailyUsage} / 3
-                    </span>
-                  </div>
-                ) : null}
+
 
                 <button 
                   className="btn-primary" 
@@ -808,6 +787,13 @@ export default function NutriVision() {
           </div>
         </section>
 
+        {/* Affiliate Recommendation */}
+        {recommendation && (
+          <div className="animate-fade-in" style={{ marginBottom: '2rem', padding: '0 1rem' }}>
+            <AffiliateCard item={recommendation} />
+          </div>
+        )}
+
         {/* SECTION 3: 解析結果表示エリア */}
         <div ref={resultRef} style={{ display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', marginBottom: '4rem' }}>
           {analysisResult ? (
@@ -849,62 +835,38 @@ export default function NutriVision() {
               <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(16, 185, 129, 0.1)', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem' }}>{t('analysis.result.advice')}</div>
                 
-                {isPremium ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                    {typeof analysisResult.advice === 'string' ? (
-                      <div style={{ lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
-                        {analysisResult.advice}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  {typeof analysisResult.advice === 'string' ? (
+                    <div style={{ lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>
+                      {analysisResult.advice}
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>{t('analysis.result.evaluation')}</div>
+                        <div style={{ lineHeight: '1.7', color: '#cbd5e1', fontSize: '0.9rem' }}>{analysisResult.advice.evaluation}</div>
                       </div>
-                    ) : (
-                      <>
-                        <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px' }}>
-                          <div style={{ fontSize: '0.7rem', color: 'var(--primary)', marginBottom: '0.5rem', fontWeight: 'bold' }}>{t('analysis.result.evaluation')}</div>
-                          <div style={{ lineHeight: '1.7', color: '#cbd5e1', fontSize: '0.9rem' }}>{analysisResult.advice.evaluation}</div>
-                        </div>
-                        
-                        {(analysisResult.advice.improvements?.length ?? 0) > 0 && (
-                          <div style={{ padding: '0 0.5rem' }}>
-                            <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginBottom: '0.8rem', fontWeight: 'bold' }}>{t('analysis.result.improvement')}</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-                              {analysisResult.advice.improvements.map((imp, idx) => (
-                                <div key={idx} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start', fontSize: '0.85rem', color: '#cbd5e1' }}>
-                                  <span style={{ color: 'var(--accent)' }}>✦</span>
-                                  <span>{imp}</span>
-                                </div>
-                              ))}
-                            </div>
+                      
+                      {(analysisResult.advice.improvements?.length ?? 0) > 0 && (
+                        <div style={{ padding: '0 0.5rem' }}>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--accent)', marginBottom: '0.8rem', fontWeight: 'bold' }}>{t('analysis.result.improvement')}</div>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                            {analysisResult.advice.improvements.map((imp, idx) => (
+                              <div key={idx} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                                <span style={{ color: 'var(--accent)' }}>✦</span>
+                                <span>{imp}</span>
+                              </div>
+                            ))}
                           </div>
-                        )}
-
-                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem', fontStyle: 'italic' }}>
-                          <div style={{ lineHeight: '1.7', color: '#94a3b8', fontSize: '0.9rem' }}>{analysisResult.advice.message}</div>
                         </div>
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  <div style={{ position: 'relative' }}>
-                    <div style={{ 
-                      lineHeight: '1.8', color: '#cbd5e1', fontSize: '0.95rem',
-                      whiteSpace: 'pre-wrap', filter: 'blur(4px)', opacity: 0.5, userSelect: 'none'
-                    }}>
-                      あなたの食事は非常にバランスが良いですが、もう少し塩分を控えることで血圧への影響を抑えることができます。また、緑黄色野菜が不足気味なので、明日はほうれん草や人参を取り入れると良いでしょう。AIによる深いアドバイスを継続して受けるために、プレミアムプランをご検討ください。
-                    </div>
-                    <div style={{ 
-                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      background: 'rgba(10, 15, 28, 0.4)', borderRadius: '12px'
-                    }}>
-                      <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>🔒</div>
-                      <Link href="/profile" style={{ 
-                        color: 'white', background: 'var(--primary)', padding: '0.5rem 1rem', 
-                        borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', textDecoration: 'none'
-                      }}>
-                        {t('analysis.result.premium_mask')}
-                      </Link>
-                    </div>
-                  </div>
-                )}
+                      )}
+
+                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem', fontStyle: 'italic' }}>
+                        <div style={{ lineHeight: '1.7', color: '#94a3b8', fontSize: '0.9rem' }}>{analysisResult.advice.message}</div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
