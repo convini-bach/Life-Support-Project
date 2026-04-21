@@ -13,7 +13,7 @@ export default function Home() {
       id: "nutri-vision",
       name: "Nutri-Vision",
       description: t('portal.nutri_vision.desc'),
-      href: "/nutri-vision",
+      href: "/lifesupportportal/nutri-vision",
       icon: "🥗",
       color: "#10b981",
     }
@@ -26,7 +26,7 @@ export default function Home() {
       </div>
       <header className="text-center mb-16 animate-fade-in" style={{ width: '100%', position: 'relative' }}>
         <div style={{ position: 'absolute', top: 0, right: 0 }}>
-          <Link href="/profile" className="glass-card" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Link href="/lifesupportportal/profile" className="glass-card" style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             👤 {t('nav.profile')}
           </Link>
         </div>
@@ -67,10 +67,10 @@ export default function Home() {
       <footer style={{ marginTop: '5rem', textAlign: 'center', color: '#475569', fontSize: '0.8rem' }}>
         <p style={{ marginBottom: '1rem' }}>{t('portal.footer')}</p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', fontSize: '0.7rem', opacity: 0.6 }}>
-           <Link href="/guide" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.guide')}</Link>
-           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.terms')}</Link>
-           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
-           <Link href="/legal/scta" style={{ color: 'inherit', textDecoration: 'none' }}>特定商取引法</Link>
+           <Link href="/lifesupportportal/guide" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.guide')}</Link>
+           <Link href="/lifesupportportal/legal/tos" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.terms')}</Link>
+           <Link href="/lifesupportportal/legal/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
+           <Link href="/lifesupportportal/legal/scta" style={{ color: 'inherit', textDecoration: 'none' }}>特定商取引法</Link>
         </div>
       </footer>
 

@@ -31,10 +31,9 @@ export default function Footer() {
           gap: '1.5rem',
           fontSize: '0.85rem'
         }}>
-          <Link href="/guide" style={{ color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'none' }}>{t('nav.guide')}</Link>
-          <Link href="/pricing" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.pricing')}</Link>
-          <Link href="/legal/tos" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.tos')}</Link>
-          <Link href="/legal/privacy" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
+          <Link href="/lifesupportportal/guide" style={{ color: 'var(--primary)', fontWeight: 'bold', textDecoration: 'none' }}>{t('nav.guide')}</Link>
+          <Link href="/lifesupportportal/legal/tos" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.tos')}</Link>
+          <Link href="/lifesupportportal/legal/privacy" style={{ color: '#94a3b8', textDecoration: 'none' }}>{t('nav.privacy')}</Link>
         </div>
         
         <div style={{
@@ -46,7 +45,7 @@ export default function Footer() {
           <p style={{ marginBottom: '1rem' }}>&copy; 2026 Life Support AI Ecosystem. All rights reserved.</p>
           <p style={{ marginBottom: '0.5rem' }}>{t('portal.footer')}</p>
           <div style={{ marginTop: '1.5rem', opacity: 0.4 }}>
-            <Link href="/legal/scta" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.65rem' }}>{t('nav.scta')}</Link>
+            <Link href="/lifesupportportal/legal/scta" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.65rem' }}>{t('nav.scta')}</Link>
           </div>
         </div>
       </div>

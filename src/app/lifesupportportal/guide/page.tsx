@@ -83,7 +83,7 @@ export default function GuidePage() {
         </div>
 
         <div style={{ marginTop: '5rem', textAlign: 'center' }}>
-          <Link href="/" className="btn-primary" style={{ padding: '1rem 2.5rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block' }}>
+          <Link href="/lifesupportportal" className="btn-primary" style={{ padding: '1rem 2.5rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block' }}>
             {lang === 'ja' ? "アプリを使い始める" : "Start Using the App"}
           </Link>
         </div>

@@ -12,10 +12,10 @@
   },
   "vars": {
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_bWFnaWNhbC1ncnViLTEwLmNsZXJrLmFjY291bnRzLmRldiQ",
-    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/profile",
-    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/profile",
-    "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/profile",
-    "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/profile",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL": "/lifesupportportal/profile",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL": "/lifesupportportal/profile",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL": "/lifesupportportal/profile",
+    "NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL": "/lifesupportportal/profile",
     "NEXT_PUBLIC_APP_URL": "https://nutri-vision-suite.fukatama132.workers.dev"
   },
   "kv_namespaces": [

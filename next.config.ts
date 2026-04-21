@@ -7,6 +7,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/lifesupportportal',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -9,7 +9,7 @@ export default function HokenMirror() {
   return (
     <main className="container min-h-screen">
       <nav style={{ padding: '1rem 0', marginBottom: '2rem' }}>
-        <Link href="/" style={{ color: '#94a3b8', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
+        <Link href="/lifesupportportal" style={{ color: '#94a3b8', fontSize: '0.9rem', display: 'flex', alignItems: 'center' }}>
           &larr; ポータルに戻る
         </Link>
       </nav>
