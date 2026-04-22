@@ -12,34 +12,34 @@ export default function GuidePage() {
     {
       title: lang === 'ja' ? "1. ログインして準備する" : "1. Login & Get Ready",
       desc: lang === 'ja' 
-        ? "回数制限の管理とセキュリティのため、解析にはログインが必要です。アカウントを作成して、あなたのデータを安全に管理しましょう。" 
-        : "Sign in is required for analysis and limit tracking. Create an account to manage your data securely.",
-      image: "/images/guide/portal.png",
+        ? "高精度なAI解析の結果を保存し、いつでも振り返るためにログインが必要です。アカウントを作成すると、あなたのデータはクラウドで安全に同期されます。" 
+        : "Sign in to save your AI analysis results and look back at them anytime. Creating an account keeps your data safely synced in the cloud.",
+      image: "/images/guide/guide_login.png",
       alt: "Portal & Login"
     },
     {
-      title: lang === 'ja' ? "2. 自分のスタイルで使い分ける" : "2. Choose Your Mode",
+      title: lang === 'ja' ? "2. プロフィールを設定する" : "2. Set Up Your Profile",
       desc: lang === 'ja'
-        ? "通常モード（安全のための利用制限あり）と、開発者モード（自前のAPIキー利用・制限なし）を選択可能です。用途に合わせて使い分けることができます。"
-        : "Switch between Standard Mode (with daily safety limits) and Developer Mode (unlimited using your own API key). Select the mode that fits your needs.",
-      image: "/images/guide/pricing.png",
-      alt: "Usage Modes"
+        ? "「設定」タブから身長、体重、活動レベルを登録しましょう。これにより、AIがあなたに最適な目標摂取カロリーやアドバイスを自動計算します。"
+        : "Register your height, weight, and activity level in the Settings tab. This allows the AI to automatically calculate your optimal target calories and advice.",
+      image: "/images/guide/guide_profile.png",
+      alt: "Profile & Settings"
     },
     {
-      title: lang === 'ja' ? "3. AIによるプロフェッショナル解析" : "3. AI Professional Analysis",
+      title: lang === 'ja' ? "3. AIによる食事解析" : "3. AI Meal Analysis",
       desc: lang === 'ja'
-        ? "画像・テキスト・音声🎙️で食事を記録。AIが一瞬で栄養成分を解析し、プロのコーチのような視点でパーソナライズされた助言をお届けします。"
-        : "Log via image, text, or voice 🎙️. AI instantly analyzes nutrients and provides personalized professional coaching advice.",
-      image: "/images/guide/nutri-vision.png",
+        ? "「食事」タブから画像・テキスト・音声🎙️で記録。AIが一瞬で栄養成分を解析し、プロのコーチのような視点でパーソナライズされた助言をお届けします。"
+        : "Log via image, text, or voice 🎙️ in the Meal tab. AI instantly analyzes nutrients and provides personalized professional coaching advice.",
+      image: "/images/guide/guide_analysis.png",
       alt: "Analysis Interface"
     },
     {
-      title: lang === 'ja' ? "4. 状況確認と詳細設定" : "4. Status & Settings",
+      title: lang === 'ja' ? "4. 統計・履歴で振り返る" : "4. Review in Statistics & History",
       desc: lang === 'ja'
-        ? "プロフィール画面では、本日の残り利用回数や、身体データの管理、開発者モードのキー登録が可能です。全ての情報は安全にローカルで管理されます。"
-        : "In the Profile screen, manage your body data, check remaining uses, and register your API key for Developer Mode. All info is kept safe locally.",
-      image: "/images/guide/profile.png",
-      alt: "Profile & Settings"
+        ? "「統計・履歴」タブでは、カレンダーでの食事管理や、体重の推移グラフを確認できます。PFCバランスの達成度を視覚的に把握し、健康管理を継続しましょう。"
+        : "In the Statistics & History tab, view your meal calendar and weight trend chart. Visually track your PFC balance achievement and stay consistent.",
+      image: "/images/guide/guide_history.png",
+      alt: "History & Statistics"
     }
   ];
 
