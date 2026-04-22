@@ -68,8 +68,14 @@ function ProfileContent() {
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
-      const validModels = ["gemini-flash-latest", "gemini-1.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-pro"];
-      if (!validModels.includes(savedModel) || savedModel === "gemini-2.5-flash" || savedModel === "gemini-3.0-flash") {
+      const validModels = ["gemini-flash-latest", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-pro"];
+      
+      const isInvalid = !validModels.includes(savedModel) || 
+                        savedModel === "gemini-1.5-flash" || 
+                        savedModel === "gemini-2.5-flash" || 
+                        savedModel === "gemini-3.0-flash";
+
+      if (isInvalid) {
         setSelectedModel("gemini-flash-latest");
         storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-flash-latest");
       } else {
@@ -332,7 +338,6 @@ function ProfileContent() {
                   style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
                 >
                   <option value="gemini-flash-latest">Gemini Flash (最新・安定)</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                   <option value="gemini-3-flash-preview">Gemini 3.0 Flash Preview</option>
                   <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                   <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>

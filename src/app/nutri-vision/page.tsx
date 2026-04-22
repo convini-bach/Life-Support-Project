@@ -232,10 +232,15 @@ export default function NutriVision() {
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
       // 2026年時点の有効なモデル名のホワイトリスト
-      const validModels = ["gemini-flash-latest", "gemini-1.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-pro"];
+      const validModels = ["gemini-flash-latest", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-pro"];
       
-      // クォータ切れや404の可能性がある旧モデル(2.5, 3.0)が保存されている場合、最新版へ強制リセット
-      if (!validModels.includes(savedModel) || savedModel === "gemini-2.5-flash" || savedModel === "gemini-3.0-flash") {
+      // 404やクォータ切れの可能性がある旧モデルが保存されている場合、最新安定版へ強制リセット
+      const isInvalid = !validModels.includes(savedModel) || 
+                        savedModel === "gemini-1.5-flash" || 
+                        savedModel === "gemini-2.5-flash" || 
+                        savedModel === "gemini-3.0-flash";
+
+      if (isInvalid) {
         setSelectedModel("gemini-flash-latest");
         storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-flash-latest");
       } else {
