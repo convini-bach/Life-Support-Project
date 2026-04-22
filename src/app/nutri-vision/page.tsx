@@ -33,7 +33,7 @@ export default function NutriVision() {
   const [isEditing, setIsEditing] = useState(false);
   const [targets, setTargets] = useState<NutritionTargets | null>(null);
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gemini-3.0-flash");
+  const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
   
   const { lang, t } = useI18n();
   
@@ -232,12 +232,12 @@ export default function NutriVision() {
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
       // 2026年時点の有効なモデル名のホワイトリスト
-      const validModels = ["gemini-3.0-flash", "gemini-3.1-pro-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
+      const validModels = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
       
       if (!validModels.includes(savedModel)) {
         // リストにない（廃止済みや誤った）名称の場合は、安定版に強制リセット
-        setSelectedModel("gemini-3.0-flash");
-        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-3.0-flash");
+        setSelectedModel("gemini-2.5-flash");
+        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-2.5-flash");
       } else {
         setSelectedModel(savedModel);
       }
