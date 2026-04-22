@@ -57,11 +57,26 @@ h1, h2, h3, h4 {
   background-clip: text;
 }
 
+h1 {
+  font-size: clamp(1.8rem, 10vw, 3.5rem);
+  line-height: 1.1;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+h2 {
+  font-size: clamp(1.4rem, 8vw, 2.8rem);
+  line-height: 1.2;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
 /* Layout Utilities */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  width: 100%;
 }
 
 .flex-center {
@@ -147,6 +162,65 @@ h1, h2, h3, h4 {
   }
 }
 
+/* Portal Specific Responsive */
+.portal-apps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .portal-apps-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .portal-apps-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem;
+  }
+}
+
+.vision-section {
+  padding: 5rem 2rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .vision-section {
+    padding: 3rem 1rem !important;
+    border-radius: 24px !important;
+  }
+  
+  .vision-section h2 {
+    font-size: 2rem !important;
+  }
+  
+  .vision-content {
+    padding-left: 1rem !important;
+  }
+}
+
+.header-profile-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+@media (max-width: 640px) {
+  .header-profile-wrap {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+  }
+}
+
 /* Responsive */
 @media (max-width: 800px) {
   .container {
@@ -156,7 +230,13 @@ h1, h2, h3, h4 {
 
 @media (max-width: 480px) {
   .container {
-    padding: 0.5rem;
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 350px) {
+  .container {
+    padding: 0.75rem;
   }
 }
 

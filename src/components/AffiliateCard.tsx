@@ -2,46 +2,80 @@
 
 import { RecommendationItem } from "@/lib/recommendation";
 
-export default function AffiliateCard({ item }: { item: RecommendationItem }) {
+interface AffiliateCardProps {
+  item: RecommendationItem;
+  label?: string;
+}
+
+export default function AffiliateCard({ item, label }: AffiliateCardProps) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.03)',
       border: '1px solid rgba(16, 185, 129, 0.2)',
-      borderRadius: '16px',
+      borderRadius: '20px',
       overflow: 'hidden',
       marginTop: '2rem',
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
-      gap: '1rem',
-      padding: '1rem',
-      position: 'relative'
+      gap: '1.2rem',
+      padding: '1.2rem',
+      position: 'relative',
+      backdropFilter: 'blur(10px)',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.1)'
     }}>
-      <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(16, 185, 129, 0.2)', color: 'var(--primary)', fontSize: '0.65rem', padding: '0.2rem 0.5rem', borderBottomLeftRadius: '8px', fontWeight: 'bold' }}>
-        Sponsored
+      <div style={{ 
+        position: 'absolute', 
+        top: 0, 
+        right: 0, 
+        background: 'linear-gradient(90deg, var(--primary), #059669)', 
+        color: 'white', 
+        fontSize: '0.65rem', 
+        padding: '0.25rem 0.75rem', 
+        borderBottomLeftRadius: '12px', 
+        fontWeight: 'bold',
+        letterSpacing: '0.05em'
+      }}>
+        {label || "Recommended"}
       </div>
-      <div style={{ flexShrink: 0, width: '100px', height: '100px', borderRadius: '12px', overflow: 'hidden', background: '#0f172a' }}>
+      <div style={{ 
+        flexShrink: 0, 
+        width: '110px', 
+        height: '110px', 
+        borderRadius: '14px', 
+        overflow: 'hidden', 
+        background: '#fff',
+        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.imageUrl} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img 
+          src={item.imageUrl} 
+          alt={item.title} 
+          style={{ width: '90%', height: '90%', objectFit: 'contain' }} 
+        />
       </div>
       <div style={{ flex: 1 }}>
-        <h4 style={{ fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '0.3rem', color: 'white' }}>{item.title}</h4>
-        <p style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.5rem', lineHeight: '1.4' }}>{item.description}</p>
+        <h4 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '0.4rem', color: 'white' }}>{item.title}</h4>
+        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.8rem', lineHeight: '1.5' }}>{item.description}</p>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--accent)' }}>{item.price}</span>
+          <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--primary)' }}>{item.price}</span>
           <a
             href={item.affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={{
-              padding: '0.4rem 1rem',
-              background: 'linear-gradient(135deg, var(--primary), #059669)',
-              color: 'white',
-              borderRadius: '20px',
-              fontSize: '0.75rem',
+              padding: '0.5rem 1.2rem',
+              background: 'white',
+              color: '#0f172a',
+              borderRadius: '25px',
+              fontSize: '0.8rem',
               fontWeight: 'bold',
               textDecoration: 'none',
-              boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)'
+              boxShadow: '0 4px 12px rgba(255,255,255,0.2)',
+              transition: 'transform 0.2s'
             }}
           >
             Amazonで見る

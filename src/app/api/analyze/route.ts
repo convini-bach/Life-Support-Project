@@ -23,6 +23,25 @@ function getJstDateString() {
   return `${y}-${m}-${d}`;
 }
 
+/**
+ * リトライ処理を行うヘルパー関数 (指数バックオフ)
+ */
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delay = 1000): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: any) {
+    const status = error.status || (error.message?.includes("503") ? 503 : error.message?.includes("429") ? 429 : 0);
+    const isRetryable = status === 503 || status === 429 || error.message?.includes("Service Unavailable") || error.message?.includes("exhausted");
+
+    if (retries > 0 && isRetryable) {
+      console.log(`[API Retry] detected retryable error (${status}). Retrying in ${delay}ms... (${retries} left)`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return withRetry(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
@@ -49,46 +68,45 @@ export async function POST(req: Request) {
       lastUsageDate?: string;
     };
 
-    let counts = privateMetadata.dailyUsageCounts || {};
+    const counts = privateMetadata.dailyUsageCounts || {};
     const lastDate = privateMetadata.lastUsageDate || "";
+    const currentCount = (lastDate === today) ? (counts[appId] || 0) : 0;
+    const limit = LIMITS[appId] || LIMITS['default'];
 
-    if (lastDate === today) {
-      const currentCount = counts[appId] || 0;
-      const limit = LIMITS[appId] || LIMITS['default'];
-      
-      if (currentCount >= limit) {
-        return new NextResponse(`Daily safety limit reached for ${appId} (${limit} requests/day). Please try again tomorrow.`, { status: 429 });
-      }
-      counts[appId] = currentCount + 1;
-    } else {
-      counts = { [appId]: 1 };
+    if (currentCount >= limit) {
+      return new NextResponse(`Daily safety limit reached for ${appId} (${limit} requests/day). Please try again tomorrow.`, { status: 429 });
     }
-
-    // メタデータの更新
-    await client.users.updateUserMetadata(userId, {
-      privateMetadata: {
-        dailyUsageCounts: counts,
-        lastUsageDate: today
-      }
-    });
     // --- 上限チェック終了 ---
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: selectedModel || "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: selectedModel || "gemini-3.0-flash" });
 
-    let result;
-    if (mode === "image" && image) {
-      const base64Data = image.split(",")[1];
-      result = await model.generateContent([
-        prompt,
-        { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
-      ]);
-    } else {
-      result = await model.generateContent(prompt);
-    }
+    const result = await withRetry(async () => {
+      if (mode === "image" && image) {
+        const base64Data = image.split(",")[1];
+        return await model.generateContent([
+          prompt,
+          { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
+        ]);
+      } else {
+        return await model.generateContent(prompt);
+      }
+    });
 
     const response = await result.response;
     const text = response.text();
+
+    // --- 解析成功後、カウントを更新 ---
+    const updatedCounts = (lastDate === today) 
+      ? { ...counts, [appId]: currentCount + 1 }
+      : { [appId]: 1 };
+
+    await client.users.updateUserMetadata(userId, {
+      privateMetadata: {
+        dailyUsageCounts: updatedCounts,
+        lastUsageDate: today
+      }
+    });
 
     return NextResponse.json({ text });
   } catch (error: any) {

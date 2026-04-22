@@ -9,10 +9,10 @@ export default function TabNavigation() {
   const { t } = useI18n();
 
   const tabs = [
-    { label: t('nav.home'), href: '/lifesupportportal' },
-    { label: t('nav.meal'), href: '/lifesupportportal/nutri-vision' },
-    { label: t('nav.history'), href: '/lifesupportportal/nutri-vision/history' },
-    { label: t('nav.profile'), href: '/lifesupportportal/profile' },
+    { label: t('nav.home'), href: '/' },
+    { label: t('nav.meal'), href: '/nutri-vision' },
+    { label: t('nav.history'), href: '/nutri-vision/history' },
+    { label: t('nav.profile'), href: '/profile' },
   ];
 
   return (

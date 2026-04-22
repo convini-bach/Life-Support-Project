@@ -25,6 +25,13 @@ export default function RootLayout({
   return (
     <ClerkProvider localization={jaJP}>
       <html className={inter.variable}>
+        <head>
+          <script
+            async
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9373474554936490"
+            crossOrigin="anonymous"
+          />
+        </head>
         <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           <Providers>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>

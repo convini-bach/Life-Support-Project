@@ -8,13 +8,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   async redirects() {
-    return [
-      {
-        source: '/',
-        destination: '/lifesupportportal',
-        permanent: true,
-      },
-    ];
+    return [];
   },
 };
 
