@@ -74,6 +74,15 @@ const ITEMS: RecommendationItem[] = [
     imageUrl: createAmazonImageUrl("4866511249"),
     affiliateUrl: createAmazonUrl("4866511249"),
     category: "lifeplan"
+  },
+  {
+    id: "ai-dictionary-book",
+    title: "Gemini & Antigravity 徹底解説辞典",
+    description: "AIの難解な用語を日常の例えで解説。AIを最高の相棒にするための「概念の翻訳書」です。",
+    price: "￥1,250",
+    imageUrl: createAmazonImageUrl("B0GY1TCB6C"),
+    affiliateUrl: createAmazonUrl("B0GY1TCB6C"),
+    category: "general"
   }
 ];
 

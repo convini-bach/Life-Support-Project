@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AffiliateCard from "@/components/AffiliateCard";
+import { getRecommendations } from "@/lib/recommendation";
 
 export default function DictionaryIndex() {
   const { lang } = useI18n();
+  const bookRecommendation = getRecommendations('general').find(i => i.id === 'ai-dictionary-book');
 
   const roadmapItems = [
     { day: 'Day 0', title: '準備編：AIの設定場所', slug: 'day0', desc: 'チャット、システム指示、ルールの外部ファイル化。' },
@@ -70,22 +73,28 @@ export default function DictionaryIndex() {
         ))}
       </div>
 
-      <div style={{ marginTop: '5rem', padding: '3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '30px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
-        <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.5rem', marginBottom: '1rem' }}>
+      <div style={{ marginTop: '5rem', padding: '3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '30px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'left' }}>
+        <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
           {lang === 'ja' ? "初めてAIに触れる方向けの辞書の完全版を手に入れませんか？" : "Get the Complete Edition for AI Beginners"}
         </h2>
-        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
+        <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6', textAlign: 'center' }}>
           {lang === 'ja' 
-            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。Obsidian用に活用できるmdファイルを購入特典として活用いただけます。" 
-            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples. Includes Obsidian-compatible md files as a bonus."}
+            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。" 
+            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples."}
         </p>
-        <Link 
-          href="https://www.amazon.co.jp/dp/B0GY1TCB6C" 
-          className="btn-primary" 
-          style={{ padding: '1rem 3rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}
-        >
-          {lang === 'ja' ? "Amazonで購入する（特典付き）" : "Purchase on Amazon"}
-        </Link>
+        
+        {bookRecommendation && (
+          <AffiliateCard 
+            item={bookRecommendation} 
+            label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
+          />
+        )}
+
+        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: '#64748b', lineHeight: '1.6', textAlign: 'center' }}>
+          {lang === 'ja' 
+            ? "購入者特典として、本辞典の内容をそのままObsidian等で活用できるMarkdownファイル群をダウンロードいただけます。" 
+            : "As a purchase bonus, you can download a set of Markdown files that allow you to use the contents of this dictionary in Obsidian and other tools."}
+        </p>
       </div>
 
       <style jsx>{`
