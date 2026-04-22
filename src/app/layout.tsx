@@ -26,6 +26,17 @@ export default function RootLayout({
     <ClerkProvider localization={jaJP}>
       <html className={inter.variable}>
         <head>
+          {/* Google tag (gtag.js) */}
+          <script async src="https://www.googletagmanager.com/gtag/js?id=G-EXEME65E1P"></script>
+          <script dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+
+              gtag('config', 'G-EXEME65E1P');
+            `
+          }} />
           <script
             async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9373474554936490"
