@@ -75,6 +75,12 @@ export default function NutriVision() {
   const [currentWeight, setCurrentWeight] = useState(65.0);
   const weightItems = Array.from({ length: 1701 }, (_, i) => parseFloat((30 + i * 0.1).toFixed(1)));
 
+  // Form Data for Editing
+  const calItems = Array.from({ length: 601 }, (_, i) => i * 5);
+  const saltItems = Array.from({ length: 201 }, (_, i) => parseFloat((i * 0.1).toFixed(1)));
+  const nutrientItems = Array.from({ length: 201 }, (_, i) => i);
+  const vegItems = Array.from({ length: 1001 }, (_, i) => i);
+
 
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -600,8 +606,8 @@ export default function NutriVision() {
                 { label: t('nutrient.protein'), cur: todaysTotals.protein, target: targets.protein.min, unit: 'g' },
                 { label: t('nutrient.fat'), cur: todaysTotals.fat, target: targets.fat.min, unit: 'g' },
                 { label: t('nutrient.carbs'), cur: todaysTotals.carbs, target: targets.carbs.min, unit: 'g' },
-                { label: t('nutrient.salt'), cur: todaysTotals.salt, target: targets.salt, unit: 'g' },
-                { label: t('nutrient.fiber'), cur: todaysTotals.fiber, target: targets.fiber, unit: 'g' },
+                { label: t('nutrient.salt'), cur: todaysTotals.salt, target: targets.salt.min, unit: 'g' },
+                { label: t('nutrient.fiber'), cur: todaysTotals.fiber, target: targets.fiber.min, unit: 'g' },
                 { label: t('nutrient.vegetables'), cur: todaysTotals.vegetables, target: targets.vegetables, unit: 'g' },
               ].map(n => {
                 const ratio = Math.min(100, (n.cur / n.target) * 100);
@@ -877,7 +883,13 @@ export default function NutriVision() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
                 <div style={{ flex: 1 }}>
                   {isEditing ? <input className="input-field" value={analysisResult.name} onChange={(e) => handleEditResult("name", e.target.value)} style={{ fontSize: '1.4rem', fontWeight: 'bold' }} /> : <h3 style={{ fontSize: '1.6rem', fontWeight: 'bold' }}>{analysisResult.name}</h3>}
-                  <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '0.4rem' }}>{analysisResult.calories.toFixed(0)} kcal</div>
+                  {isEditing ? (
+                    <div style={{ marginTop: '1rem', width: '200px' }}>
+                      <ScrollPicker label={t('nutrient.energy')} items={calItems} value={Math.round(analysisResult.calories || 0)} onChange={(v) => handleEditResult("calories", v)} unit="kcal" />
+                    </div>
+                  ) : (
+                    <div style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', marginTop: '0.4rem' }}>{analysisResult.calories.toFixed(0)} kcal</div>
+                  )}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'flex-end' }}>
                   <button onClick={() => { if (isEditing) saveToHistory(analysisResult); setIsEditing(!isEditing); }} style={{ fontSize: '0.8rem', background: '#334155', color: 'white', border: 'none', padding: '0.4rem 1rem', borderRadius: '6px', cursor: 'pointer' }}>{isEditing ? t('analysis.result.confirm') : t('analysis.result.edit')}</button>
@@ -896,13 +908,27 @@ export default function NutriVision() {
                   const ratio = Math.min(100, Math.round((val / target) * 100));
                   return (
                     <div key={n.key}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.8rem' }}>
-                        <span style={{ color: 'white' }}>{n.label}</span>
-                        <span style={{ color: '#94a3b8' }}>{val.toFixed(n.key === 'salt' ? 1 : 0)}{n.unit} ({ratio}%)</span>
-                      </div>
-                      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
-                        <div style={{ width: `${ratio}%`, height: '100%', background: getBarColor(val, target), transition: 'width 0.8s' }}></div>
-                      </div>
+                      {isEditing ? (
+                        <div style={{ marginBottom: '1rem' }}>
+                          <ScrollPicker 
+                            label={n.label} 
+                            items={n.key === 'salt' ? saltItems : n.key === 'vegetablesTotal' ? vegItems : nutrientItems} 
+                            value={n.key === 'salt' ? parseFloat((val || 0).toFixed(1)) : Math.round(val || 0)} 
+                            onChange={(v) => handleEditResult(`nutrients.${n.key}`, v)} 
+                            unit={n.unit} 
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.8rem' }}>
+                            <span style={{ color: 'white' }}>{n.label}</span>
+                            <span style={{ color: '#94a3b8' }}>{val.toFixed(n.key === 'salt' ? 1 : 0)}{n.unit} ({ratio}%)</span>
+                          </div>
+                          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                            <div style={{ width: `${ratio}%`, height: '100%', background: getBarColor(val, target), transition: 'width 0.8s' }}></div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}

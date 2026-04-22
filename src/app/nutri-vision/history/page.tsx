@@ -9,6 +9,7 @@ import ScrollPicker from "@/components/ScrollPicker";
 import { useUser } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
+import WeightChart from "@/components/WeightChart";
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -439,6 +440,11 @@ export default function NutriHistory() {
           <h2 style={{ fontSize: '1.2rem', marginBottom: '1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span>⚖️</span> {t('history.weight_title')} ({weightHistory.length})
           </h2>
+          
+          <div style={{ marginBottom: '2rem' }}>
+            <WeightChart data={weightHistory} />
+          </div>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {weightHistory.map(item => (
               <div key={item.id} className="glass-card" style={{ padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -518,12 +524,12 @@ export default function NutriHistory() {
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
                       <ScrollPicker label={t('nutrient.energy')} items={calItems} value={Math.round(editValues.calories || 0)} onChange={(v) => handleEditChange('calories', v)} unit="kcal" />
-                      <ScrollPicker label={t('nutrient.salt')} items={saltItems} value={editValues.nutrients?.salt || 0} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
-                      <ScrollPicker label={t('nutrient.protein')} items={nutrientItems} value={editValues.nutrients?.protein || 0} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
-                      <ScrollPicker label={t('nutrient.fat')} items={nutrientItems} value={editValues.nutrients?.fat || 0} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
-                      <ScrollPicker label={t('nutrient.carbs')} items={nutrientItems} value={editValues.nutrients?.carbs || 0} onChange={(v) => handleEditChange('nutrients.carbs', v)} unit="g" />
-                      <ScrollPicker label={t('nutrient.fiber')} items={nutrientItems} value={editValues.nutrients?.fiber || 0} onChange={(v) => handleEditChange('nutrients.fiber', v)} unit="g" />
-                      <ScrollPicker label={t('nutrient.vegetables')} items={vegItems} value={editValues.nutrients?.vegetablesTotal || 0} onChange={(v) => handleEditChange('nutrients.vegetablesTotal', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.salt')} items={saltItems} value={parseFloat((editValues.nutrients?.salt || 0).toFixed(1))} onChange={(v) => handleEditChange('nutrients.salt', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.protein')} items={nutrientItems} value={Math.round(editValues.nutrients?.protein || 0)} onChange={(v) => handleEditChange('nutrients.protein', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.fat')} items={nutrientItems} value={Math.round(editValues.nutrients?.fat || 0)} onChange={(v) => handleEditChange('nutrients.fat', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.carbs')} items={nutrientItems} value={Math.round(editValues.nutrients?.carbs || 0)} onChange={(v) => handleEditChange('nutrients.carbs', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.fiber')} items={nutrientItems} value={Math.round(editValues.nutrients?.fiber || 0)} onChange={(v) => handleEditChange('nutrients.fiber', v)} unit="g" />
+                      <ScrollPicker label={t('nutrient.vegetables')} items={vegItems} value={Math.round(editValues.nutrients?.vegetablesTotal || 0)} onChange={(v) => handleEditChange('nutrients.vegetablesTotal', v)} unit="g" />
                     </div>
                   </>
                 )}
