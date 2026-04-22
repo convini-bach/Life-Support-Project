@@ -22,7 +22,7 @@ function ProfileContent() {
   const [isSaved, setIsSaved] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [apiKey, setApiKey] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gemini-2.5-flash");
+  const [selectedModel, setSelectedModel] = useState("gemini-1.5-flash");
   const [isTesting, setIsTesting] = useState(false);
   const { lang, setLang, t } = useI18n();
   const { user, isLoaded, isSignedIn } = useUser();
@@ -68,10 +68,10 @@ function ProfileContent() {
 
     const savedModel = storage.get<string>(STORAGE_KEYS.SELECTED_MODEL);
     if (savedModel) {
-      const validModels = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-flash", "gemini-1.5-pro"];
+      const validModels = ["gemini-1.5-flash", "gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-pro-preview", "gemini-1.5-pro"];
       if (!validModels.includes(savedModel)) {
-        setSelectedModel("gemini-2.5-flash");
-        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-2.5-flash");
+        setSelectedModel("gemini-1.5-flash");
+        storage.set(STORAGE_KEYS.SELECTED_MODEL, "gemini-1.5-flash");
       } else {
         setSelectedModel(savedModel);
       }
@@ -331,9 +331,9 @@ function ProfileContent() {
                   onChange={(e) => setSelectedModel(e.target.value)}
                   style={{ width: '100%', padding: '0.8rem', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
                 >
-                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (推奨)</option>
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (安定・無料枠)</option>
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                   <option value="gemini-3-flash-preview">Gemini 3.0 Flash Preview</option>
-                  <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
                   <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
                   <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
                   {availableModels.map(m => (
