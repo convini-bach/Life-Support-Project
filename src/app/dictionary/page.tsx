@@ -72,15 +72,19 @@ export default function DictionaryIndex() {
 
       <div style={{ marginTop: '5rem', padding: '3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '30px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
         <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.5rem', marginBottom: '1rem' }}>
-          {lang === 'ja' ? "すべてを網羅した「完全版」を手に入れませんか？" : "Get the Complete Edition"}
+          {lang === 'ja' ? "初めてAIに触れる方向けの辞書の完全版を手に入れませんか？" : "Get the Complete Edition for AI Beginners"}
         </h2>
-        <p style={{ color: '#94a3b8', marginBottom: '2rem' }}>
+        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6' }}>
           {lang === 'ja' 
-            ? "このガイドの実践をさらに加速させる、Obsidain専用テンプレート、プロンプト集、そしてオフラインでも読めるPDFを同梱した「完全版」を販売中です。" 
-            : "Accelerate your learning with the Complete Edition, including Obsidian templates, prompt collections, and PDF guides."}
+            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。Obsidian用に活用できるmdファイルを購入特典として活用いただけます。" 
+            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples. Includes Obsidian-compatible md files as a bonus."}
         </p>
-        <Link href="https://note.com/convinibach/n/n3b92e13f37d8" className="btn-primary" style={{ padding: '1rem 3rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}>
-          {lang === 'ja' ? "完全版（Obsidian 特典付き）を購入する" : "Purchase Complete Edition"}
+        <Link 
+          href="https://www.amazon.co.jp/dp/B0GY1TCB6C" 
+          className="btn-primary" 
+          style={{ padding: '1rem 3rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}
+        >
+          {lang === 'ja' ? "Amazonで購入する（特典付き）" : "Purchase on Amazon"}
         </Link>
       </div>
 
