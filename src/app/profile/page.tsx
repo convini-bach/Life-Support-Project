@@ -386,9 +386,6 @@ function ProfileContent() {
           </div>
         </section>
 
-        <footer style={{ marginTop: '4rem', color: '#475569', fontSize: '0.8rem', textAlign: 'center', paddingBottom: '2rem' }}>
-          &copy; 2026 Life Support Project. All data is managed Local-First.
-        </footer>
       </main>
     </div>
   );

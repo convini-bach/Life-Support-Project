@@ -45,10 +45,7 @@ export default function Epilogue() {
         <p>この辞典が、あなたとAIとの関係を「便利な道具」から「かけがえのないパートナー」へと変えるための、ささやかなキッカケになれば幸いです。</p>
       </section>
 
-      <footer style={{ marginTop: '5rem', padding: '3rem', borderTop: '1px solid rgba(255,255,255,0.05)', textAlign: 'right' }}>
-        <p style={{ fontStyle: 'italic', color: 'white', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Convini-bach & Antigravity</p>
-        <p style={{ color: '#64748b' }}>2026年4月</p>
-      </footer>
+
 
       {/* Navigation and CTA */}
       <div style={{ marginTop: '5rem', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: '2rem' }}>
