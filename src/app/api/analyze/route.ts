@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     // --- 上限チェック終了 ---
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: selectedModel || "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: selectedModel || "gemini-flash-latest" });
 
     const result = await withRetry(async () => {
       if (mode === "image" && image) {
