@@ -16,7 +16,7 @@ export default function RecipeAppHeader() {
   const navItems = [
     { name: '冷蔵庫', href: '/recipe-app/fridge', icon: '🧊' },
     { name: '家族設定', href: '/recipe-app/settings', icon: '👤' },
-    { name: '献立(準備中)', href: '#', icon: '📅' },
+    { name: '献立', href: '/recipe-app/menu', icon: '📅' },
   ];
 
   if (!mounted) return (

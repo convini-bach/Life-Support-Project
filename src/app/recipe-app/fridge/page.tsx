@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { suggestExpiryDate, formatDate, FoodCategory, CATEGORY_MAP, FridgeItem, loadFridgeData, saveFridgeData } from '../lib/fridge-logic';
+import { adjustQuantity } from '../lib/quantity-logic';
 import AffiliateCard from '@/components/recipe-app/AffiliateCard';
 
 export default function FridgePage() {
@@ -99,6 +100,12 @@ export default function FridgePage() {
 
   const removeItem = (id: string) => {
     setItems(items.filter(item => item.id !== id));
+  };
+
+  const handleAdjustQuantity = (id: string, delta: number) => {
+    setItems(items.map(item => 
+      item.id === id ? { ...item, quantity: adjustQuantity(item.quantity, delta) } : item
+    ));
   };
 
   // カテゴリごとにグループ化
@@ -241,8 +248,15 @@ export default function FridgePage() {
                             <div style={{ fontWeight: '600', color: '#fff' }}>
                               {item.name} {item.isAnalyzed && <span style={{ fontSize: '0.7rem' }}>✅</span>}
                             </div>
-                            <div style={{ fontSize: '0.85rem', color: 'var(--recipe-muted)' }}>
-                              {item.quantity} · <span style={{ color: new Date(item.expiryDate) < new Date() ? '#f87171' : CATEGORY_MAP[item.category].color }}>
+                            <div style={{ fontSize: '0.85rem', color: 'var(--recipe-muted)', display: 'flex', alignItems: 'center', gap: '0.8rem', marginTop: '0.3rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '0.1rem' }}>
+                                <button onClick={() => handleAdjustQuantity(item.id, -1)} style={{ background: 'none', border: 'none', color: '#94a3b8', padding: '0 0.4rem', cursor: 'pointer' }}>-</button>
+                                <span style={{ padding: '0 0.5rem', minWidth: '3rem', textAlign: 'center', borderLeft: '1px solid rgba(255,255,255,0.1)', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+                                  {item.quantity}
+                                </span>
+                                <button onClick={() => handleAdjustQuantity(item.id, 1)} style={{ background: 'none', border: 'none', color: '#94a3b8', padding: '0 0.4rem', cursor: 'pointer' }}>+</button>
+                              </div>
+                              <span style={{ color: new Date(item.expiryDate) < new Date() ? '#f87171' : CATEGORY_MAP[item.category].color }}>
                                 期限: {item.expiryDate}
                               </span>
                             </div>
