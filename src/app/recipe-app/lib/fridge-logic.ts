@@ -7,6 +7,16 @@ export const CATEGORY_MAP: Record<FoodCategory, { label: string; icon: string; c
   other: { label: 'その他', icon: '🧂', color: '#94a3b8' },
 };
 
+export interface FridgeItem {
+  id: string;
+  name: string;
+  quantity: string;
+  expiryDate: string;
+  category: FoodCategory;
+  advice?: string;
+  isAnalyzed?: boolean;
+}
+
 interface FoodRule {
   days: number;
   category: FoodCategory;
@@ -53,4 +63,21 @@ export function formatDate(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+/**
+ * 冷蔵庫データを LocalStorage から取得する
+ */
+export function loadFridgeData(): FridgeItem[] {
+  if (typeof window === 'undefined') return [];
+  const data = localStorage.getItem('smart-kitchen-fridge-items');
+  return data ? JSON.parse(data) : [];
+}
+
+/**
+ * 冷蔵庫データを LocalStorage に保存する
+ */
+export function saveFridgeData(items: FridgeItem[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('smart-kitchen-fridge-items', JSON.stringify(items));
 }

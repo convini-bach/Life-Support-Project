@@ -2,18 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { suggestExpiryDate, formatDate, FoodCategory, CATEGORY_MAP } from '../lib/fridge-logic';
+import { suggestExpiryDate, formatDate, FoodCategory, CATEGORY_MAP, FridgeItem, loadFridgeData, saveFridgeData } from '../lib/fridge-logic';
 import AffiliateCard from '@/components/recipe-app/AffiliateCard';
-
-interface FridgeItem {
-  id: string;
-  name: string;
-  quantity: string;
-  expiryDate: string;
-  category: FoodCategory;
-  advice?: string;
-  isAnalyzed?: boolean;
-}
 
 export default function FridgePage() {
   const [items, setItems] = useState<FridgeItem[]>([]);
@@ -22,6 +12,23 @@ export default function FridgePage() {
   const [expiryDate, setExpiryDate] = useState(formatDate(new Date()));
   const [category, setCategory] = useState<FoodCategory>('main');
   const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // 初回読み込み
+  useEffect(() => {
+    const data = loadFridgeData();
+    if (data.length > 0) {
+      setItems(data);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // 変更時に保存
+  useEffect(() => {
+    if (isLoaded) {
+      saveFridgeData(items);
+    }
+  }, [items, isLoaded]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
