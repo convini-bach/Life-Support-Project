@@ -45,12 +45,26 @@ const MOCK_RECIPES: Recipe[] = [
 export default function MenuPage() {
   const [family, setFamily] = useState<FamilyMember[]>([]);
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
+  const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setFamily(loadFamilyData());
     setFridgeItems(loadFridgeData());
+    
+    // AI提案メニューがあれば読み込む
+    const savedMenu = localStorage.getItem('smart-kitchen-suggested-menu');
+    if (savedMenu) {
+      try {
+        const parsed = JSON.parse(savedMenu);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setRecipes(parsed);
+        }
+      } catch (e) {
+        console.error("Failed to parse suggested menu", e);
+      }
+    }
   }, []);
 
   const applyRecipe = (recipe: Recipe) => {
@@ -113,8 +127,13 @@ export default function MenuPage() {
 
       <div className="responsive-grid-800">
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.2rem', marginBottom: '0.5rem' }}>AIおすすめレシピ</h2>
-          {MOCK_RECIPES.map(recipe => (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontSize: '1.2rem' }}>AIおすすめレシピ</h2>
+            <span style={{ fontSize: '0.7rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+              監修スタイル: キッコーマン他
+            </span>
+          </div>
+          {recipes.map(recipe => (
             <div key={recipe.id} className="glass-card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'center' }}>
               <div style={{ fontSize: '3rem', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '16px' }}>
                 {recipe.image}

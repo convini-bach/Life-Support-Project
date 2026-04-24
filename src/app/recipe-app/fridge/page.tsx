@@ -72,6 +72,16 @@ export default function FridgePage() {
           return item;
         });
         setItems(updatedItems);
+        // メニュー提案を裏で取得
+        fetch('/api/recipe-app/suggest-menu', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: updatedItems }),
+        }).then(r => r.json()).then(menu => {
+          if (Array.isArray(menu)) {
+            localStorage.setItem('smart-kitchen-suggested-menu', JSON.stringify(menu));
+          }
+        }).catch(err => console.error("Menu suggestion failed", err));
       }
     } catch (err) {
       console.error(err);
