@@ -39,6 +39,10 @@ export async function POST(req: Request) {
           "ingredients": [
             {"name": "食材名", "amountPerPerson": 数値, "unit": "g|本|個|mlなど"}
           ],
+          "steps": [
+            "調理手順1（100文字以内）",
+            "調理手順2..."
+          ],
           "image": "料理を表す絵文字1つ",
           "source": "キッコーマン ホームクッキング（参考）"
         }

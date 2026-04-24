@@ -15,6 +15,7 @@ interface Recipe {
     amountPerPerson: number;
     unit: string;
   }[];
+  steps: string[];
   image: string;
 }
 
@@ -28,6 +29,11 @@ const MOCK_RECIPES: Recipe[] = [
       { name: 'キャベツ', amountPerPerson: 50, unit: 'g' },
       { name: '玉ねぎ', amountPerPerson: 0.5, unit: '個' },
     ],
+    steps: [
+      '玉ねぎをくし切りに、キャベツはザク切りにする。',
+      '鍋で豚肉を炒め、色が変わったら野菜を加えてさらに炒める。',
+      '水を加えて煮込み、アクを取ったらカレールウを溶かし入れる。'
+    ],
     image: '🍛'
   },
   {
@@ -38,6 +44,11 @@ const MOCK_RECIPES: Recipe[] = [
       { name: '豚肉', amountPerPerson: 80, unit: 'g' },
       { name: 'キャベツ', amountPerPerson: 100, unit: 'g' },
     ],
+    steps: [
+      'キャベツと豚肉を食べやすい大きさに切る。',
+      'フライパンに油を引き、豚肉を強火でカリッとするまで炒める。',
+      'キャベツを加え、強火で一気に炒め合わせ、塩コショウで味を整える。'
+    ],
     image: '🍳'
   }
 ];
@@ -47,6 +58,7 @@ export default function MenuPage() {
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
   const [isApplying, setIsApplying] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -148,6 +160,33 @@ export default function MenuPage() {
                     </span>
                   ))}
                 </div>
+
+                {/* 調理手順（アコーディオン） */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <button 
+                    onClick={() => setExpandedId(expandedId === recipe.id ? null : recipe.id)}
+                    style={{ 
+                      background: 'none', border: 'none', color: '#10b981', 
+                      fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', padding: 0 
+                    }}
+                  >
+                    <span>{expandedId === recipe.id ? '▼' : '▶'}</span> 作り方を確認
+                  </button>
+                  
+                  {expandedId === recipe.id && (
+                    <div className="glass-card" style={{ 
+                      marginTop: '0.8rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', 
+                      fontSize: '0.85rem', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.05)' 
+                    }}>
+                      <ol style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                        {recipe.steps?.map((step, idx) => (
+                          <li key={idx} style={{ lineHeight: '1.6' }}>{step}</li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+                </div>
+
                 <button 
                   onClick={() => applyRecipe(recipe)}
                   disabled={isApplying !== null}
