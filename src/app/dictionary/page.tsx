@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import AffiliateCard from "@/components/AffiliateCard";
-import { getRecommendations } from "@/lib/recommendation";
+import { getRecommendations, ITEMS } from "@/lib/recommendation";
 
 export default function DictionaryIndex() {
   const { lang } = useI18n();
-  const bookRecommendation = getRecommendations('general').find(i => i.id === 'ai-dictionary-book');
+  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
 
   const roadmapItems = [
     { day: 'Day 0', title: '準備編：AIの設定場所', slug: 'day0', desc: 'チャット、システム指示、ルールの外部ファイル化。' },

@@ -17,7 +17,7 @@ const AMAZON_TAG = 'banch-22';
 const createAmazonUrl = (asin: string) => `https://www.amazon.co.jp/dp/${asin}/?tag=${AMAZON_TAG}`;
 const createAmazonImageUrl = (asin: string) => `https://m.media-amazon.com/images/P/${asin}.01.LZZZZZZZ.jpg`;
 
-const ITEMS: RecommendationItem[] = [
+export const ITEMS: RecommendationItem[] = [
   // --- 健康・ダイエット ---
   {
     id: "tanita-scale",
@@ -76,12 +76,30 @@ const ITEMS: RecommendationItem[] = [
     category: "lifeplan"
   },
   {
-    id: "ai-dictionary-book",
-    title: "Gemini & Antigravity 徹底解説辞典",
-    description: "AIの難解な用語を日常の例えで解説。AIを最高の相棒にするための「概念の翻訳書」です。",
+    id: "ai-dictionary-v1",
+    title: "Gemini & Antigravity 初めての辞書 2026年4月版",
+    description: "初めてGeminiやAntigravityに触れる方向けの「概念の翻訳書」です。難しい技術用語を、日常の例えで直感的に理解できるよう解説しています。",
     price: "￥1,250",
     imageUrl: createAmazonImageUrl("B0GY1TCB6C"),
     affiliateUrl: createAmazonUrl("B0GY1TCB6C"),
+    category: "general"
+  },
+  {
+    id: "ai-dictionary-v2",
+    title: "Gemini & Antigravity 実践活用辞典 ～壁を越える7日間のメソッド～",
+    description: "AIを「相棒（パートナー）」として引き上げるための実践型トレーニングガイド。AIとの共鳴を目指す7日間のメソッドを提案します。",
+    price: "￥1,250",
+    imageUrl: createAmazonImageUrl("B0GY5XM3FS"),
+    affiliateUrl: createAmazonUrl("B0GY5XM3FS"),
+    category: "general"
+  },
+  {
+    id: "second-brain-guide",
+    title: "家族の「第二の脳」構築ガイド 〜Obsidianで繋ぐ健康・資産・想いのネットワーク〜",
+    description: "Obsidianを活用して、家族の健康、資産、思い出を一つの「知のネットワーク」として構築するガイド。100年先まで残せるデータ形式。",
+    price: "￥1,250",
+    imageUrl: createAmazonImageUrl("B0GX98ZC2F"),
+    affiliateUrl: createAmazonUrl("B0GX98ZC2F"),
     category: "general"
   }
 ];

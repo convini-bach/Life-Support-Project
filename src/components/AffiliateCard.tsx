@@ -78,7 +78,7 @@ export default function AffiliateCard({ item, label }: AffiliateCardProps) {
               transition: 'transform 0.2s'
             }}
           >
-            Amazonで見る
+            購入はこちら
           </a>
         </div>
       </div>

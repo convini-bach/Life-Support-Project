@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AffiliateCard from "@/components/AffiliateCard";
+import { ITEMS } from "@/lib/recommendation";
 
 export default function Epilogue() {
   const { lang } = useI18n();
+  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
 
   return (
     <div className="dictionary-content animate-fade-in">
@@ -55,15 +58,21 @@ export default function Epilogue() {
       </div>
 
       <div style={{ marginTop: '4rem', padding: '2.5rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '24px', border: '1px solid rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
-        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>🎁 {lang === 'ja' ? '特典付き・完全版のご案内' : 'Complete Edition'}</h4>
+        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>
+          {lang === 'ja' ? '初めてAIに触れる方向けの辞書の完全版を手に入れませんか？' : 'Get the Complete Edition for AI Beginners'}
+        </h4>
         <p style={{ fontSize: '0.95rem', color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6' }}>
           {lang === 'ja' 
-            ? "このガイドの実践を加速させる「Obsidian専用テンプレート」や「プロンプト集」をパッケージした完全版を note で公開中です。" 
-            : "Get the Complete Edition on note.com, including Obsidian templates and prompt collections to prevent failures."}
+            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。Obsidian用に活用できるmdファイルを購入特典として活用いただけます。" 
+            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples."}
         </p>
-        <Link href="https://note.com/convinibach/n/n3b92e13f37d8" className="btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}>
-          {lang === 'ja' ? 'note で完全版を購入する' : 'Buy Complete Edition on note'}
-        </Link>
+        
+        {bookRecommendation && (
+          <AffiliateCard 
+            item={bookRecommendation} 
+            label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
+          />
+        )}
       </div>
     </div>
   );

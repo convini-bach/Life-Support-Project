@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AffiliateCard from "@/components/AffiliateCard";
+import { ITEMS } from "@/lib/recommendation";
 
 export default function Day0() {
   const { lang } = useI18n();
+  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
 
   return (
     <div className="dictionary-content animate-fade-in">
@@ -18,51 +21,39 @@ export default function Day0() {
       </header>
 
       <section>
-        <p>本編（第1日目）に入る前に、最も基本的な「AIへの指示を、そもそもどこに・どうやって設定するのか？」という点について解説します。</p>
-        <p>AIにルールを守らせるための方法は、大きく分けて以下の3つのレベルが存在します。用途に合わせて使い分けましょう。</p>
-      </section>
+        <h2>プロンプトとルールの「設定場所」</h2>
+        
+        <h3>一言でいうと？</h3>
+        <p>AIという「新入社員」に、あなたの会社の「社外秘マニュアル」や「仕事の進め方のルール」をどこに置いて読ませるか、というインプット場所の決め方のことです。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>指示を出す場所（レイヤー）を間違えると、AIは会話の途中でルールを忘れたり、他の指示と混同したりしてしまいます。「絶対に守らせたいこと」と「その場限りのお願い」を区別して設定することで、AIの動作が劇的に安定します。</p>
 
-      <hr />
+        <blockquote>
+          <strong>事務作業に例えると？</strong><br />
+          デスクの上の付箋（チャット欄）に書くか、社員研修のテキスト（システム設定）に組み込むか、それとも社内サーバーの共有マニュアル（外部ファイル）として保存しておくか、という「情報の重要度と保存期間」に応じた使い分けと同じです。
+        </blockquote>
 
-      <section>
-        <h2>レベル1：チャットボックスに直接書く</h2>
-        <p>一番簡単で、誰もがやっている方法です。</p>
-        <p>画面下の文字入力欄（チャットボックス）に、「以下のルールを守って文章を書いてください：語尾は『です・ます』調で…」と直接打ち込みます。</p>
-        <ul>
-          <li><strong>メリット</strong>: 今すぐ簡単にできる。</li>
-          <li><strong>デメリット</strong>: 会話が長くなると、AIがすぐにルールを忘れてしまう（コンテキスト・オーバーロード）。「ルール」というよりは「その場のお願い」にすぎません。</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>レベル2：システムプロンプト（カスタム指示）に設定する</h2>
-        <p>GeminiやChatGPTなどの最新AIエージェントツールには、通常のチャット画面とは別に、「<strong>システムプロンプト</strong>」や「<strong>カスタムインストラクション</strong>」、「<strong>ルール設定</strong>」と呼ばれる特別な設定画面が存在します。</p>
-        <p>ここに書かれた文章は、あなたがチャットをする前に「事前にAIの脳内にインストールされる絶対の憲法」となります。</p>
-        <ul>
-          <li><strong>メリット</strong>: AIが絶対に忘れない。本辞典の「Core Value」や「Negative Prompt（絶対にやらないでほしいこと）」など、プロジェクトを通じて絶対に外せないルールは、ここに書いておくのが最も確実です。</li>
-          <li><strong>デメリット</strong>: 複数のプロジェクトを並行している場合、いちいち設定画面を開いて書き換えるのが少し面倒です。</li>
-        </ul>
+        <h3>実践プロンプト例（レベル3：外部ファイル化）</h3>
+        <p><code>「私のワークスペースにある rules.md を読み込んでください。そこに定義されている『命名規則』と『エラー報告のフォーマット』を、これからの作業の絶対的なルールとして適用してください。」</code></p>
       </section>
 
       <section>
-        <h2>レベル3：ルールブック（ファイル）を作って読み込ませる</h2>
-        <p>Antigravityのような開発プラットフォームや、ファイル読み込みに対応したAIで一番推奨されるのがこの方法です。</p>
-        <p>ご自身のパソコンに <code>project_prompt.md</code> や <code>rules.txt</code> という名前のテキストファイルを作成し、そこにビジョンやルールを書き込んでおきます。</p>
-        <p>そして、AIと会話を始める前に、そのファイルをチャット欄に「添付（アップロード）」するか、ワークスペースに置いておき、<strong>「まずはこのファイルを読み込んで、そこに書いてあるルールを適用して」とチャットで指示</strong>します。</p>
-        <ul>
-          <li><strong>メリット</strong>:
-            <ul>
-              <li>プロジェクトごとに異なるルールファイルを用意するだけで済む。</li>
-              <li>ルールを変更したいときは、テキストファイルを修正して「ファイルを読み直して」と言うだけで一瞬でAIが最新のルールに切り替わる。</li>
-            </ul>
-          </li>
-          <li><strong>デメリット</strong>: 最初にテキストファイルを作るのが少し手間。</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2>本書を読むにあたって</h2>
-        <p>まずは「レベル1」のチャットボックスから始めて構いません。そして「これは毎回言わなきゃダメだな」と思ったルールなどを、徐々に「レベル2」の設定画面や、「レベル3」の別ファイルに書き出していくのが、AIをパートナーに育てるコツです。</p>
+        <h2>3つの設定レベル</h2>
+        <div style={{ display: 'grid', gap: '1.5rem', marginTop: '1.5rem' }}>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>レベル1：チャットボックス（付箋）</h4>
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>その場の会話に直接書く方法。手軽ですが、会話が長くなるとAIが忘れてしまいます。</p>
+          </div>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>レベル2：システムプロンプト（憲法）</h4>
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>設定画面に書き込む方法。AIの「性格」や「絶対のルール」として脳に深く刻まれます。</p>
+          </div>
+          <div className="glass-card" style={{ padding: '1.5rem' }}>
+            <h4 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>レベル3：外部ファイル（マニュアル）</h4>
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}><code>rules.md</code> などを読み込ませる方法。複数のプロジェクトでルールを使い回すのに最適です。</p>
+          </div>
+        </div>
       </section>
 
       {/* Navigation and CTA */}
@@ -76,15 +67,21 @@ export default function Day0() {
       </div>
 
       <div style={{ marginTop: '4rem', padding: '2.5rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '24px', border: '1px solid rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
-        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>🎁 {lang === 'ja' ? '特典付き・完全版のご案内' : 'Complete Edition'}</h4>
+        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>
+          {lang === 'ja' ? '初めてAIに触れる方向けの辞書の完全版を手に入れませんか？' : 'Get the Complete Edition for AI Beginners'}
+        </h4>
         <p style={{ fontSize: '0.95rem', color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6' }}>
-          {lang === 'ja'
-            ? "このガイドの実践を加速させる「Obsidian専用テンプレート」や「プロンプト集」をパッケージした完全版を note で公開中です。"
-            : "Get the Complete Edition on note.com, including Obsidian templates and prompt collections to accelerate your practice."}
+          {lang === 'ja' 
+            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。Obsidian用に活用できるmdファイルを購入特典として活用いただけます。" 
+            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples."}
         </p>
-        <Link href="https://note.com/convinibach/n/ne263d5ef3e45" className="btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}>
-          {lang === 'ja' ? 'note で完全版を購入する' : 'Buy Complete Edition on note'}
-        </Link>
+        
+        {bookRecommendation && (
+          <AffiliateCard 
+            item={bookRecommendation} 
+            label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
+          />
+        )}
       </div>
     </div>
   );

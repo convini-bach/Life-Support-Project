@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
+import AffiliateCard from "@/components/AffiliateCard";
+import { ITEMS } from "@/lib/recommendation";
 
 
 const APP_VERSION = "2604162400"; // YYMMDDHHMM
@@ -28,7 +30,15 @@ export default function Home() {
         : "Transform AI from a tool to a partner. A practical guide to synchronizing vision and building synergy.",
       href: "/dictionary",
       icon: "🎨",
-      color: "#10b981", // Same theme color as requested to be prominent
+      color: "#10b981", 
+    },
+    {
+      id: "recipe-app",
+      name: "Smart Kitchen",
+      description: "冷蔵庫管理 ＋ 賞味期限通知。家族の好みに合わせた献立をAIがプランニングします。",
+      href: "/recipe-app/fridge",
+      icon: "🍳",
+      color: "#4ade80",
     }
   ];
 
@@ -192,6 +202,28 @@ export default function Home() {
         zIndex: -1,
         borderRadius: '50%'
       }}></div>
+
+      {/* SECTION: Featured Books */}
+      <section className="books-section animate-fade-in" style={{ 
+        marginTop: 'clamp(4rem, 10vw, 8rem)', 
+        width: '100%',
+        maxWidth: '900px',
+        paddingBottom: '8rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
+          <div style={{ width: '40px', height: '1px', background: 'var(--primary)' }}></div>
+          <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'var(--primary)', fontWeight: 'bold' }}>Featured Books</span>
+        </div>
+        <h2 className="gradient-text" style={{ fontSize: '1.8rem', fontWeight: 'bold', marginBottom: '2.5rem' }}>
+          AIと共に歩むための、<br />著者の知見を凝縮。
+        </h2>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {ITEMS.filter(item => ["ai-dictionary-v1", "ai-dictionary-v2", "second-brain-guide"].includes(item.id)).map(book => (
+            <AffiliateCard key={book.id} item={book} label="著書" />
+          ))}
+        </div>
+      </section>
     </main>
   );
 }

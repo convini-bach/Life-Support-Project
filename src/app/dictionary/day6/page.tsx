@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import AffiliateCard from "@/components/AffiliateCard";
+import { ITEMS } from "@/lib/recommendation";
 
 export default function Day6() {
   const { lang } = useI18n();
+  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
 
   return (
     <div className="dictionary-content animate-fade-in">
@@ -26,37 +29,121 @@ export default function Day6() {
 
       <section>
         <h2>27. Rubber Ducking（ラバーダック・デバッグ）</h2>
-        <p>解決策を「聞く」のではなく、自分が何に悩んでいるのかを「ただひたすら説明する」ことで、自分やAIに矛盾に気づかせる技術です。「あ、もしかしてここが原因か！」と、話しているうちに自ら答えに辿り着くことが目的です。</p>
+        <h3>一言でいうと？</h3>
+        <p>解決策をAIに「聞く」のではなく、自分が何に悩んでいるのかを会話形式でAIに「ただひたすら説明する」技術です。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>人間が書くプロンプト自体が思い込みに囚われていると、AIも同じ穴に落ちます。人間が状況を整理して話すプロセス自体が、AIに究極のヒントを与え、自ら解決の糸口を見つけることに繋がります。</p>
+
+        <blockquote>
+          <strong>事務作業に例えると？</strong><br />
+          仕事で行き詰まった時、事情を知らない同僚に「ここがこうなってて…あっ！もしかしてここが原因か！」と、話しているうちに自分で答えに気づくあの現象のことです。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「今から私が今起きているエラーについて説明します。あなたはすぐに答えを出そうとせず、私の説明の中で矛盾している部分があればそこだけを指摘してください。」</code></p>
       </section>
 
       <section>
         <h2>28. Error Trace（エラーの追跡）</h2>
-        <p>「画面に出た表面上のエラー」を直接直そうとせず、そのエラーが「どこから、どういう過程を経て発生したのか」という足跡を辿る作業です。表面的な絆創膏ではなく、抜本的な解決を目指します。</p>
+        <h3>一言でいうと？</h3>
+        <p>「画面に出た表面上のエラー」を直接直そうとせず、そのエラーが「どこから、どういう過程を経て発生したのか」という足跡を辿る技術です。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>エラーメッセージの多くは「最終的に壊れた場所」を示しているだけで、原因を示していません。表面だけを渡すと、AIはその場しのぎの絆創膏を貼り、システムがいびつになります。</p>
+
+        <blockquote>
+          <strong>生活に例えると？</strong><br />
+          天井から水漏れを見つけた時、床を雑巾で拭き続けるのではなく、「水はどこから来ている？上の階か？配管か？」と元を辿っていく作業です。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「『User not found』が出ましたが、これを直接直さないでください。エラーの発生源を特定するため、①入力データ、②通信時、③保存時、どの段階でデータが消えているか検証する手順を提案してください。」</code></p>
       </section>
 
       <section>
         <h2>29. Perspective Shift（視点の切り替え）</h2>
-        <p>開発者側の目線から「一切パソコンを使えない高齢者」や「意地悪なハッカー」など、AIの立ち位置を強制的に移動させることです。多角的な視点を持つことで、プロダクトの隠れた欠陥を見つけ出します。</p>
+        <h3>一言でいうと？</h3>
+        <p>問題を作っている「開発者側」からではなく、アプリを「使う側」や「壊す悪意のある側」にAIの立ち位置を強制的に移動させることです。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>開発が進むと会話が実装面のみに偏ります。意図的に視点を多角化させることで、技術的な正解ではなく、ユーザー体験としての正解を導き出します。</p>
+
+        <blockquote>
+          <strong>事務作業に例えると？</strong><br />
+          自分で書いた企画書を、今度はあえて「一切の事情を知らない意地悪な社長の目線」で読み返して、突っ込まれそうな隙を探すことです。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「あなたが『一切パソコンを使えない80歳の高齢者』だとしたら、今のこの設定画面のUIのどこでつまずくと思いますか？高齢者の視点で3点指摘してください。」</code></p>
       </section>
 
       <section>
         <h2>30. Alternative Approach（代替案の模索）</h2>
-        <p>今の方針（アプローチA）が泥沼化しているとき、その道自体を思い切って捨てる許可をAIに出すことです。「この方法にこだわるのはやめよう。別の道を3つ提案して」と切り替えましょう。</p>
+        <h3>一言でいうと？</h3>
+        <p>今のアプローチ（方法A）で泥沼に陥った時、「その道自体を思い切って捨てる」ようにAIに促すことです。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>AIは指示に忠実なので、人間が「この方法で直して」と言い続ける限り、それが悪手であっても従い続け、自滅します。人間側が「別の道を提示して良い」と許可を出す必要があります。</p>
+
+        <blockquote>
+          <strong>生活に例えると？</strong><br />
+          渋滞している道で「どうにか早く抜けよう」と粘るより、カーナビに「高速を降りて、遠回りでもいいから別のルート（代替案）を探して」と頼む方が、結果的に早く着くのと同じです。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「今使っている方法（アプローチA）にこだわるのはやめましょう。目的は『安全にログインできること』のみです。今のアプローチを捨てて、別の代替案を3つ提案してください。」</code></p>
       </section>
 
       <section>
         <h2>31. Root Cause Analysis（根本原因の分析）</h2>
-        <p>バグの表面だけを直すのではなく、「なぜ？」を5回深く掘り下げさせ、設計上の根本的な欠陥を突き止める分析法です。バグは氷山の一角であることを忘れないでください。</p>
+        <h3>一言でいうと？</h3>
+        <p>「なぜその問題が起きたのか」を、5段階くらい深く「なぜ？」とAIに掘り下げさせる分析法です。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>あるバグを直しても、数日後にまた同じようなバグが発生することがあります。これは根本的な設計の欠陥が直っていないからです。放置すると、最終的にアプリを作り直す羽目になります。</p>
+
+        <blockquote>
+          <strong>事務作業に例えると？</strong><br />
+          「プリンターが動かない（なぜ？）→紙が詰まった（なぜ？）→安い紙を間違えて発注した（なぜ？）」というように、真の原因を突き止めるトヨタ式問題解決法と同じです。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「このエラーですが、コードを直す前に『Root Cause Analysis（根本原因の分析）』を行ってください。なぜこの値が空になってしまったのか、大元にある設計上の問題は何ですか？」</code></p>
       </section>
 
       <section>
         <h2>32. Hypothetical Question（仮説の提示）</h2>
-        <p>「もしかして、昨日アップデートしたソフトが原因だったりしますか？」という人間の直感（仮説）をAIにぶつけ、論理性と掛け合わせて最速の解決を目指します。</p>
+        <h3>一言でいうと？</h3>
+        <p>原因がわからない時に、「もし〇〇だとしたら？」という人間側の「直感や勘」をAIにぶつけて検証させる技術です。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>AIはコードの論理性から原因を探りますが、人間は「さっきOSをアップデートした」といった環境の変化や直感を持っています。論理と直感を掛け合わせることで、最速の解決が見つかります。</p>
+
+        <blockquote>
+          <strong>生活に例えると？</strong><br />
+          医者に症状を伝えるとき、「もしかして、昨日食べた生牡蠣が原因だったりしますか？」と自分の心当たりを伝えて、検査の方向性を絞ってもらうようなものです。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「原因が分かりません。仮説ですが、『昨日アップデートしたソフトの仕様変更が原因』だったりしますか？この仮説が正しいかどうか、ウェブ検索などを用いて検証してください。」</code></p>
       </section>
 
       <section>
         <h2>33. Devil's Advocate（悪魔の代弁者）</h2>
-        <p>AIに「あえて反対意見を言う役割」を演じさせ、プランの弱点やリスクを辛口で指摘させます。身内だけの賞賛に終わらず、客観的な攻撃に耐えうるプロダクトを作ります。</p>
+        <h3>一言でいうと？</h3>
+        <p>AIに「あえて反対意見を言う役割」を演じさせ、アイデアの「弱い部分」を強制的にあぶり出すことです。</p>
+        
+        <h3>なぜ重要なのか？</h3>
+        <p>自分とAIだけで開発していると、すべてが完璧だという錯覚に陥ります。外部からの冷や水のような批判をAIにシミュレーションさせることで、致命的な欠陥をリリース前に発見できます。</p>
+
+        <blockquote>
+          <strong>事務作業に例えると？</strong><br />
+          会議の前に、「今から君はライバル企業の社員だ。この企画のダメなところを3つボロクソに言ってくれ」と身内に頼んで、プレゼンの完成度を高める作業です。
+        </blockquote>
+
+        <h3>実践プロンプト例</h3>
+        <p><code>「今から新機能のプランを説明します。あなたは『Devil's Advocate（悪魔の代弁者）』として、このプランを手放しで褒めず、ビジネス面でのリスクを3つ辛口で提示してください。」</code></p>
       </section>
 
       {/* Navigation and CTA */}
@@ -70,15 +157,21 @@ export default function Day6() {
       </div>
 
       <div style={{ marginTop: '4rem', padding: '2.5rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '24px', border: '1px solid rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
-        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>🎁 {lang === 'ja' ? '特典付き・完全版のご案内' : 'Complete Edition'}</h4>
+        <h4 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>
+          {lang === 'ja' ? '初めてAIに触れる方向けの辞書の完全版を手に入れませんか？' : 'Get the Complete Edition for AI Beginners'}
+        </h4>
         <p style={{ fontSize: '0.95rem', color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6' }}>
           {lang === 'ja' 
-            ? "このガイドの実践を加速させる「Obsidian専用テンプレート」や「プロンプト集」をパッケージした完全版を note で公開中です。" 
-            : "Get the Complete Edition on note.com, including Obsidian templates and prompt collections to prevent failures."}
+            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。Obsidian用に活用できるmdファイルを購入特典として活用いただけます。" 
+            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples."}
         </p>
-        <Link href="https://note.com/convinibach/n/n3b92e13f37d8" className="btn-primary" style={{ padding: '0.8rem 2rem', borderRadius: '30px', textDecoration: 'none', display: 'inline-block', fontWeight: 'bold' }}>
-          {lang === 'ja' ? 'note で完全版を購入する' : 'Buy Complete Edition on note'}
-        </Link>
+        
+        {bookRecommendation && (
+          <AffiliateCard 
+            item={bookRecommendation} 
+            label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
+          />
+        )}
       </div>
     </div>
   );
