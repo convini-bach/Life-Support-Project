@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { ITEMS } from "@/lib/recommendation";
 
 export default function Footer() {
   const { t, lang } = useI18n();
@@ -55,6 +56,42 @@ export default function Footer() {
           <Link href="/legal/tos" style={{ color: '#64748b', fontSize: '0.85rem', textDecoration: 'none' }}>{t('nav.terms')}</Link>
           <Link href="/legal/scta" style={{ color: '#64748b', fontSize: '0.85rem', textDecoration: 'none' }}>{t('nav.scta')}</Link>
           <a href="https://docs.google.com/forms/d/e/1FAIpQLScGmzoQL3ZJehCoSVYBoPB0lv9LkrsHAKzi3AjhIb8SE20h3g/viewform?usp=header" target="_blank" rel="noopener noreferrer" style={{ color: '#64748b', fontSize: '0.85rem', textDecoration: 'none' }}>Contact</a>
+        </div>
+
+        {/* Books Section */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', gridColumn: '1 / -1', marginTop: '2rem', padding: '2rem', background: 'rgba(255,255,255,0.02)', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
+          <h4 style={{ color: '#10b981', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Published Books</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem' }}>
+            {ITEMS.filter(item => ["ai-dictionary-v1", "ai-dictionary-v2", "second-brain-guide"].includes(item.id)).map(book => (
+              <a 
+                key={book.id} 
+                href={book.affiliateUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.8rem', 
+                  textDecoration: 'none',
+                  background: 'rgba(255,255,255,0.03)',
+                  padding: '0.5rem 1rem 0.5rem 0.5rem',
+                  borderRadius: '12px',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                  transition: 'all 0.2s ease'
+                }}
+                className="hover-lift"
+              >
+                <div style={{ width: '40px', height: '55px', flexShrink: 0, borderRadius: '4px', overflow: 'hidden', background: 'white' }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={book.imageUrl} alt={book.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 'bold', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.title}</span>
+                  <span style={{ color: '#10b981', fontSize: '0.7rem' }}>Amazonで見る</span>
+                </div>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 
