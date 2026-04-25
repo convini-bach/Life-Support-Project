@@ -8,6 +8,7 @@ import { subtractQuantity, parseQuantity } from '../lib/quantity-logic';
 import { loadWeeklyPlan, saveWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP, loadPlannerSettings, savePlannerSettings } from '../lib/planner-logic';
 
 type RecipeCategory = 'meat' | 'fish' | 'vegetable' | 'noodle' | 'other';
+const DAY_ORDER: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 interface Recipe {
   id: string;
@@ -174,7 +175,6 @@ export default function MenuPage() {
   const calculateShoppingList = () => {
     const needed: Record<string, { amount: number, unit: string }> = {};
     const personCount = family.length || 1;
-    const DAY_ORDER: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
     // 1. 次回の買い物日を特定
     const todayIdx = new Date().getDay(); // 0 (Sun) - 6 (Sat)
@@ -479,7 +479,7 @@ export default function MenuPage() {
               ) : (
                 <>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.8rem' }}>
-                    次回の買い物（{DAYS_JP[targetDays[0]]}）から、その次の買い物（{DAYS_JP[DAY_ORDER[(DAY_ORDER.indexOf(targetDays[targetDays.length - 1]) + 1) % 7]]}）までの不足分です：
+                    次回の買い物（{targetDays[0] ? DAYS_JP[targetDays[0]] : '-'}）から、その次の買い物（{targetDays.length > 0 ? DAYS_JP[DAY_ORDER[(DAY_ORDER.indexOf(targetDays[targetDays.length - 1]) + 1) % 7]] : '-'}）までの不足分です：
                   </div>
                   {shoppingList.map(item => (
                     <div key={item.name} style={{ 
