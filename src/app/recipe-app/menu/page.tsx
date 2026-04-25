@@ -278,50 +278,58 @@ export default function MenuPage() {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
           <h2 style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
-          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)', fontWeight: 'bold' }}>選択中: {SLOT_JP[selectedSlot as string]}</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)', fontWeight: 'bold' }}>
+            <span style={{ color: '#fff', marginRight: '0.4rem' }}>表示中:</span>
+            {SLOT_JP[selectedSlot as string]}
+          </div>
         </div>
         <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-          {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
-            <div key={day} style={{ 
-              minWidth: '95px', flex: '0 0 auto',
-              background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.5rem', 
-              border: shoppingDays.includes(day) ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.05)', 
-              textAlign: 'center'
-            }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#94a3b8', marginBottom: '0.5rem' }}>{DAYS_JP[day]}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.2rem' }}>
-                {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
-                  <div key={slot} style={{ position: 'relative' }}>
-                    <div style={{ 
-                      height: '14px', 
-                      borderRadius: '3px',
-                      background: weeklyPlan[day]?.[slot] ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-                      border: selectedSlot === slot ? '1px solid #fff' : '1px solid transparent',
-                      boxShadow: weeklyPlan[day]?.[slot] ? '0 0 5px rgba(16, 185, 129, 0.3)' : 'none',
-                      transition: 'all 0.2s'
+          {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => {
+            const currentRecipeId = weeklyPlan[day]?.[selectedSlot];
+            const currentRecipe = recipes.find(r => r.id === currentRecipeId);
+            
+            return (
+              <div key={day} style={{ 
+                minWidth: '120px', flex: '0 0 auto',
+                background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.6rem 0.5rem', 
+                border: shoppingDays.includes(day) ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.05)', 
+                textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.4rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#94a3b8' }}>{DAYS_JP[day]}</span>
+                  {currentRecipeId && (
+                    <button 
+                      onClick={() => clearSlot(day, selectedSlot)} 
+                      style={{ background: 'rgba(248, 113, 113, 0.1)', border: 'none', color: '#f87171', borderRadius: '4px', padding: '0.1rem 0.3rem', fontSize: '0.6rem', cursor: 'pointer' }}
+                    >
+                      消去
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ 
+                  fontSize: '0.75rem', color: currentRecipe ? '#fff' : '#334155', 
+                  fontWeight: currentRecipe ? 'bold' : 'normal',
+                  height: '1.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  background: currentRecipe ? 'rgba(255,255,255,0.03)' : 'transparent',
+                  borderRadius: '4px', padding: '0 0.2rem'
+                }}>
+                  {currentRecipe ? currentRecipe.name : '---'}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.2rem', marginTop: '0.2rem' }}>
+                  {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
+                    <div key={slot} style={{ 
+                      width: '6px', height: '6px', borderRadius: '50%',
+                      background: weeklyPlan[day]?.[slot] ? (selectedSlot === slot ? 'var(--recipe-primary)' : '#4ade80') : 'rgba(255,255,255,0.1)',
+                      border: selectedSlot === slot ? '1px solid #fff' : 'none',
+                      boxShadow: selectedSlot === slot && weeklyPlan[day]?.[slot] ? '0 0 5px var(--recipe-primary)' : 'none'
                     }} />
-                    {weeklyPlan[day]?.[slot] && (
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clearSlot(day, slot);
-                        }} 
-                        style={{ 
-                          position: 'absolute', top: '-8px', right: '-8px', 
-                          background: '#f87171', color: '#fff', border: 'none', 
-                          borderRadius: '50%', width: '12px', height: '12px', 
-                          fontSize: '8px', cursor: 'pointer', display: 'flex', 
-                          alignItems: 'center', justifyContent: 'center', zIndex: 2
-                        }}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
