@@ -174,9 +174,47 @@ export default function MenuPage() {
   const calculateShoppingList = () => {
     const needed: Record<string, { amount: number, unit: string }> = {};
     const personCount = family.length || 1;
+    const DAY_ORDER: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
-    // 計画された全レシピの材料を集計
-    Object.values(weeklyPlan).forEach(recipeId => {
+    // 1. 次回の買い物日を特定
+    const todayIdx = new Date().getDay(); // 0 (Sun) - 6 (Sat)
+    
+    // 今日以降で最も近い買い物日を探す
+    let nextShoppingIdx = -1;
+    for (let i = 0; i < 7; i++) {
+      const checkIdx = (todayIdx + i) % 7;
+      if (shoppingDays.includes(DAY_ORDER[checkIdx])) {
+        nextShoppingIdx = checkIdx;
+        break;
+      }
+    }
+
+    if (nextShoppingIdx === -1) return []; // 買い物日が設定されていない
+
+    // 2. その次の買い物日を特定（買い出しの対象期間を決定）
+    let nextNextShoppingIdx = -1;
+    for (let i = 1; i <= 7; i++) {
+      const checkIdx = (nextShoppingIdx + i) % 7;
+      if (shoppingDays.includes(DAY_ORDER[checkIdx])) {
+        nextNextShoppingIdx = checkIdx;
+        break;
+      }
+    }
+
+    // 3. 対象期間内のレシピを抽出
+    const targetDays: DayOfWeek[] = [];
+    let currentIdx = nextShoppingIdx;
+    while (currentIdx !== nextNextShoppingIdx) {
+      targetDays.push(DAY_ORDER[currentIdx]);
+      currentIdx = (currentIdx + 1) % 7;
+    }
+
+    // デバッグ用: 対象期間をログ出し（後で削除可能）
+    console.log("Target Days for Shopping:", targetDays);
+
+    // 対象期間の材料を集計
+    targetDays.forEach(day => {
+      const recipeId = weeklyPlan[day];
       if (!recipeId) return;
       const recipe = recipes.find(r => r.id === recipeId);
       if (!recipe) return;
@@ -189,7 +227,7 @@ export default function MenuPage() {
       });
     });
 
-    // 在庫を差し引く
+    // 4. 在庫を差し引く
     const toBuy: { name: string, amount: number, unit: string }[] = [];
     Object.entries(needed).forEach(([name, req]) => {
       const stockItem = fridgeItems.find(item => item.name.includes(name));
@@ -208,10 +246,10 @@ export default function MenuPage() {
       }
     });
 
-    return toBuy;
+    return { toBuy, targetDays };
   };
 
-  const shoppingList = calculateShoppingList();
+  const { toBuy: shoppingList, targetDays } = calculateShoppingList();
 
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
@@ -433,15 +471,15 @@ export default function MenuPage() {
                 <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b' }}>
                   <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✨</div>
                   <p style={{ fontSize: '0.85rem' }}>
-                    {Object.values(weeklyPlan).some(v => v !== null) 
-                      ? '全ての材料が在庫で揃っています！' 
+                    {targetDays.length > 0
+                      ? `${targetDays.map(d => DAYS_JP[d]).join('・')}分の材料は在庫で揃っています！` 
                       : '献立を登録すると、不足分がここに表示されます。'}
                   </p>
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>
-                    現在の在庫を差し引いた、購入が必要な食材です：
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.8rem' }}>
+                    次回の買い物（{DAYS_JP[targetDays[0]]}）から、その次の買い物（{DAYS_JP[DAY_ORDER[(DAY_ORDER.indexOf(targetDays[targetDays.length - 1]) + 1) % 7]]}）までの不足分です：
                   </div>
                   {shoppingList.map(item => (
                     <div key={item.name} style={{ 
