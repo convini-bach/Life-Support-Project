@@ -251,6 +251,42 @@ export default function MenuPage() {
 
   const { toBuy: shoppingList, targetDays } = calculateShoppingList();
 
+  // 鮮度チェックロジック
+  const getFreshnessStatus = (day: DayOfWeek, recipeId: string | null) => {
+    if (!recipeId || shoppingDays.length === 0) return null;
+    const recipe = recipes.find(r => r.id === recipeId);
+    if (!recipe) return null;
+
+    const todayIdx = DAY_ORDER.indexOf(day);
+    
+    // 直前の買い物日を探す
+    let lastShoppingIdx = -1;
+    for (let i = 0; i < 7; i++) {
+      const checkIdx = (todayIdx - i + 7) % 7;
+      if (shoppingDays.includes(DAY_ORDER[checkIdx])) {
+        lastShoppingIdx = checkIdx;
+        break;
+      }
+    }
+
+    if (lastShoppingIdx === -1) return null;
+
+    // 買い物日からの経過日数
+    const diff = (todayIdx - lastShoppingIdx + 7) % 7;
+
+    if (recipe.category === 'fish') {
+      if (diff <= 1) return { status: 'optimal', message: '✨ 鮮度バッチリ（お魚）' };
+      return { status: 'warning', message: '⚠️ 魚の鮮度が落ちています（買い物日の翌日まで推奨）' };
+    }
+    
+    if (recipe.category === 'meat') {
+      if (diff <= 3) return { status: 'optimal', message: '✨ 鮮度良好（お肉）' };
+      return { status: 'warning', message: '⚠️ お肉の鮮度が心配です（買い物から3日以内推奨）' };
+    }
+
+    return { status: 'safe', message: '🥗 野菜・麺類' };
+  };
+
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
       <header style={{ marginBottom: '2.5rem' }}>
@@ -305,6 +341,20 @@ export default function MenuPage() {
               <div style={{ fontSize: '0.85rem', color: '#fff', margin: '0.5rem 0', fontWeight: '600' }}>
                 {weeklyPlan[day] ? (recipes.find(r => r.id === weeklyPlan[day])?.name || '不明なレシピ') : <span style={{ color: '#334155', fontWeight: '400' }}>未設定</span>}
               </div>
+
+              {/* 鮮度バッジ */}
+              {weeklyPlan[day] && (
+                <div style={{ 
+                  fontSize: '0.65rem', 
+                  color: getFreshnessStatus(day, weeklyPlan[day])?.status === 'warning' ? '#f87171' : '#10b981',
+                  background: getFreshnessStatus(day, weeklyPlan[day])?.status === 'warning' ? 'rgba(248, 113, 113, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                  padding: '0.2rem 0.4rem',
+                  borderRadius: '4px',
+                  marginTop: '0.2rem'
+                }}>
+                  {getFreshnessStatus(day, weeklyPlan[day])?.message}
+                </div>
+              )}
               {weeklyPlan[day] && (
                 <button 
                   onClick={() => {
