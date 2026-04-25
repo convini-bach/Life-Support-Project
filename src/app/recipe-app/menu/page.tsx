@@ -172,11 +172,25 @@ export default function MenuPage() {
                   <button 
                     onClick={() => setExpandedId(expandedId === recipe.id ? null : recipe.id)}
                     style={{ 
-                      background: 'none', border: 'none', color: '#10b981', 
-                      fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', padding: 0 
+                      background: 'rgba(16, 185, 129, 0.05)', 
+                      border: '1px solid rgba(16, 185, 129, 0.2)', 
+                      color: '#10b981', 
+                      fontSize: '0.85rem', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '0.5rem', 
+                      padding: '0.5rem 1rem',
+                      borderRadius: '8px',
+                      width: '100%',
+                      justifyContent: 'center',
+                      fontWeight: '600',
+                      transition: 'all 0.2s'
                     }}
+                    className="hover-lift"
                   >
-                    <span>{expandedId === recipe.id ? '▼' : '▶'}</span> 作り方を確認
+                    <span>{expandedId === recipe.id ? '▼' : '📖'}</span> 
+                    {expandedId === recipe.id ? '手順を閉じる' : '作り方の詳細（手順）はこちら'}
                   </button>
                   
                   {expandedId === recipe.id && (
