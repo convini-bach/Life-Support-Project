@@ -77,7 +77,7 @@ export default function ShoppingListPage() {
 
     targetDays.forEach(day => {
       const dayPlan = weeklyPlan[day] || {};
-      ['main', 'side', 'soup'].forEach(slot => {
+      ['main', 'side1', 'side2', 'side3', 'soup'].forEach(slot => {
         const recipeId = (dayPlan as any)[slot];
         if (!recipeId) return;
         const recipe = masterRecipes.find(r => r.id === recipeId);

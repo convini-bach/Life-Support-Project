@@ -10,7 +10,9 @@ export const DAYS_JP: Record<DayOfWeek, string> = {
 
 export interface DayPlan {
   main?: string | null;
-  side?: string | null;
+  side1?: string | null;
+  side2?: string | null;
+  side3?: string | null;
   soup?: string | null;
 }
 
