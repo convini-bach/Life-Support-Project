@@ -263,42 +263,49 @@ export default function MenuPage() {
         ))}
       </section>
 
-      <section className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'rgba(255,255,255,0.02)' }}>
-        <h2 style={{ fontSize: '1rem', marginBottom: '1.5rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Weekly Schedule</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+      {/* 週間カレンダー (Stickyに設定) */}
+      <section style={{ 
+        position: 'sticky', 
+        top: '60px', 
+        zIndex: 50, 
+        padding: '1rem 0',
+        background: 'rgba(10, 12, 16, 0.9)', 
+        backdropFilter: 'blur(10px)',
+        margin: '0 -1rem 3rem -1rem',
+        paddingLeft: '1rem',
+        paddingRight: '1rem',
+        borderBottom: '1px solid rgba(255,255,255,0.1)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <h2 style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
+          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)' }}>スロット: {SLOT_JP[selectedSlot as string]}</div>
+        </div>
+        <div style={{ display: 'flex', overflowX: 'auto', gap: '0.6rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
           {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
             <div key={day} style={{ 
-              background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '1rem', 
+              minWidth: '100px', flex: '0 0 auto',
+              background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.6rem', 
               border: shoppingDays.includes(day) ? '1px solid var(--recipe-primary)' : '1px solid rgba(255,255,255,0.05)', 
-              textAlign: 'center', minHeight: '220px', display: 'flex', flexDirection: 'column', position: 'relative'
+              textAlign: 'center'
             }}>
-              {shoppingDays.includes(day) && <div style={{ position: 'absolute', top: '-10px', right: '-5px', fontSize: '1.2rem' }}>🛒</div>}
-              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#64748b', marginBottom: '0.5rem' }}>{DAYS_JP[day]}</div>
-              
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', flex: 1 }}>
+              <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#64748b', marginBottom: '0.3rem' }}>{DAYS_JP[day]}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
                 {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
                   <div key={slot} style={{ 
-                    fontSize: '0.7rem', padding: '0.4rem', borderRadius: '6px',
-                    background: selectedSlot === slot ? 'rgba(16, 185, 129, 0.08)' : 'transparent',
-                    border: '1px solid ' + (selectedSlot === slot ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.02)'),
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                    fontSize: '0.6rem', padding: '0.2rem', borderRadius: '4px',
+                    background: selectedSlot === slot ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    border: selectedSlot === slot ? '1px solid rgba(16, 185, 129, 0.3)' : 'none'
                   }}>
-                    <span style={{ color: '#64748b' }}>{SLOT_JP[slot][0]}:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', maxWidth: '80%' }}>
-                      <span style={{ color: weeklyPlan[day]?.[slot] ? '#fff' : '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {weeklyPlan[day]?.[slot] ? (recipes.find(r => r.id === weeklyPlan[day]![slot])?.name || '登録済') : '---'}
-                      </span>
-                      {weeklyPlan[day]?.[slot] && (
-                        <button onClick={() => clearSlot(day, slot)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.7rem' }}>×</button>
-                      )}
-                    </div>
+                    <span style={{ color: weeklyPlan[day]?.[slot] ? '#fff' : '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {weeklyPlan[day]?.[slot] ? '✓' : '—'}
+                    </span>
+                    {weeklyPlan[day]?.[slot] && (
+                      <button onClick={() => clearSlot(day, slot)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.6rem', padding: 0 }}>×</button>
+                    )}
                   </div>
                 ))}
               </div>
-
-              {weeklyPlan[day] && getFreshnessStatus(day, weeklyPlan[day]) && (
-                <div style={{ fontSize: '0.6rem', padding: '0.2rem 0.4rem', borderRadius: '4px', marginTop: '0.5rem', color: getFreshnessStatus(day, weeklyPlan[day])?.status === 'warning' ? '#f87171' : '#10b981', background: getFreshnessStatus(day, weeklyPlan[day])?.status === 'warning' ? 'rgba(248, 113, 113, 0.1)' : 'rgba(16, 185, 129, 0.1)' }}>{getFreshnessStatus(day, weeklyPlan[day])?.message}</div>
-              )}
             </div>
           ))}
         </div>
@@ -323,48 +330,50 @@ export default function MenuPage() {
           </div>
         </div>
         
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '1.5rem', paddingBottom: '1rem', scrollbarWidth: 'thin' }}>
+        {/* スマホサイズで2列、PCで3列以上のグリッド表示 */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
+          gap: '1rem',
+          paddingBottom: '2rem'
+        }}>
           {filteredRecipes.map(recipe => (
-            <div key={recipe.id} className="glass-card" style={{ minWidth: '320px', padding: '1.2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div key={recipe.id} className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', textAlign: 'center' }}>
                 <div style={{ fontSize: '2.5rem', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '12px' }}>{recipe.image}</div>
                 <div style={{ flex: 1 }}>
-                  <h3 style={{ fontSize: '1rem', color: 'var(--recipe-primary)', marginBottom: '0.2rem' }}>{recipe.name}</h3>
-                  <p style={{ fontSize: '0.75rem', color: '#94a3b8', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{recipe.description}</p>
+                  <h3 style={{ fontSize: '0.9rem', color: 'var(--recipe-primary)', marginBottom: '0.2rem', lineHeight: '1.3' }}>{recipe.name}</h3>
                 </div>
               </div>
               
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                {recipe.ingredients.slice(0, 3).map(ing => (
-                  <span key={ing.name} style={{ fontSize: '0.65rem', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>{ing.name}</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', justifyContent: 'center' }}>
+                {recipe.ingredients.slice(0, 2).map(ing => (
+                  <span key={ing.name} style={{ fontSize: '0.6rem', background: 'rgba(255,255,255,0.05)', padding: '0.1rem 0.3rem', borderRadius: '4px' }}>{ing.name}</span>
                 ))}
-                {recipe.ingredients.length > 3 && <span style={{ fontSize: '0.65rem', color: '#64748b' }}>他</span>}
               </div>
 
-              <div>
+              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <button 
                   onClick={() => {
                     setRegisteringRecipe(recipe);
                     setSelectedSlotInModal(selectedSlot);
                   }}
                   style={{ 
-                    width: '100%', padding: '0.8rem', borderRadius: '10px', 
+                    width: '100%', padding: '0.6rem', borderRadius: '8px', 
                     background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)',
-                    color: '#10b981', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                    color: '#10b981', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer'
                   }}
                 >
-                  📅 献立に登録
+                  📅 登録
                 </button>
-              </div>
-
-              <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem' }}>
-                <button onClick={() => applyRecipe(recipe)} disabled={isApplying !== null} className="btn-primary" style={{ flex: 1, padding: '0.5rem', fontSize: '0.75rem' }}>{isApplying === recipe.id ? '...' : '作る'}</button>
-                <button onClick={() => setExpandedId(expandedId === recipe.id ? null : recipe.id)} style={{ padding: '0.5rem', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '6px', fontSize: '0.75rem', cursor: 'pointer' }}>{expandedId === recipe.id ? '閉じる' : '手順'}</button>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button onClick={() => applyRecipe(recipe)} disabled={isApplying !== null} className="btn-primary" style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem' }}>{isApplying === recipe.id ? '...' : '作る'}</button>
+                  <button onClick={() => setExpandedId(expandedId === recipe.id ? null : recipe.id)} style={{ padding: '0.4rem', background: 'rgba(255,255,255,0.05)', border: 'none', color: '#fff', borderRadius: '6px', fontSize: '0.7rem', cursor: 'pointer' }}>手順</button>
+                </div>
               </div>
 
               {expandedId === recipe.id && (
-                <div className="glass-card" style={{ marginTop: '0.5rem', padding: '0.8rem', background: 'rgba(255,255,255,0.02)', fontSize: '0.75rem', color: '#cbd5e1' }}>
+                <div className="glass-card" style={{ marginTop: '0.5rem', padding: '0.6rem', background: 'rgba(255,255,255,0.02)', fontSize: '0.7rem', color: '#cbd5e1' }}>
                   <ol style={{ paddingLeft: '1rem', margin: 0 }}>
                     {recipe.steps?.map((step, idx) => (<li key={idx} style={{ marginBottom: '0.3rem' }}>{step}</li>))}
                   </ol>
