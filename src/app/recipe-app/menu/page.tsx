@@ -100,6 +100,7 @@ export default function MenuPage() {
   const [selectedSlot, setSelectedSlot] = useState<keyof DayPlan>('main');
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [registeringRecipe, setRegisteringRecipe] = useState<Recipe | null>(null);
+  const [selectedDaysInModal, setSelectedDaysInModal] = useState<DayOfWeek[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -382,7 +383,7 @@ export default function MenuPage() {
               {registeringRecipe.name}
             </h3>
             <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', marginBottom: '2rem' }}>
-              どの曜日の <span style={{ color: 'var(--recipe-primary)', fontWeight: 'bold' }}>{SLOT_JP[selectedSlot as string]}</span> に登録しますか？
+              どの曜日の <span style={{ color: 'var(--recipe-primary)', fontWeight: 'bold' }}>{SLOT_JP[selectedSlot as string]}</span> に登録しますか？（複数選択可）
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
@@ -390,31 +391,66 @@ export default function MenuPage() {
                 <button 
                   key={day}
                   onClick={() => {
-                    setRecipeToDay(day, registeringRecipe);
-                    setRegisteringRecipe(null);
+                    setSelectedDaysInModal(prev => 
+                      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                    );
                   }}
                   style={{ 
                     padding: '1.2rem', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold',
-                    background: weeklyPlan[day]?.[selectedSlot] === registeringRecipe.id ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-                    color: weeklyPlan[day]?.[selectedSlot] === registeringRecipe.id ? '#000' : '#fff',
-                    border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer'
+                    background: selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                    color: selectedDaysInModal.includes(day) ? '#000' : '#fff',
+                    border: '1px solid ' + (selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'),
+                    cursor: 'pointer', position: 'relative'
                   }}
                 >
                   {DAYS_JP[day]}
+                  {selectedDaysInModal.includes(day) && (
+                    <span style={{ position: 'absolute', top: '5px', right: '10px', fontSize: '0.8rem' }}>✓</span>
+                  )}
                 </button>
               ))}
             </div>
 
-            <button 
-              onClick={() => setRegisteringRecipe(null)}
-              style={{ 
-                width: '100%', marginTop: '2rem', padding: '1rem', borderRadius: '12px',
-                background: 'rgba(248, 113, 113, 0.1)', border: 'none', color: '#f87171',
-                fontWeight: 'bold', cursor: 'pointer'
-              }}
-            >
-              キャンセル
-            </button>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+              <button 
+                onClick={() => {
+                  setRegisteringRecipe(null);
+                  setSelectedDaysInModal([]);
+                }}
+                style={{ 
+                  flex: 1, padding: '1rem', borderRadius: '12px',
+                  background: 'rgba(255,255,255,0.05)', border: 'none', color: '#94a3b8',
+                  fontWeight: 'bold', cursor: 'pointer'
+                }}
+              >
+                キャンセル
+              </button>
+              <button 
+                disabled={selectedDaysInModal.length === 0}
+                onClick={() => {
+                  // 選択されたすべての曜日に登録
+                  const currentWeeklyPlan = { ...weeklyPlan };
+                  selectedDaysInModal.forEach(day => {
+                    const currentDayPlan = currentWeeklyPlan[day] || {};
+                    currentWeeklyPlan[day] = { ...currentDayPlan, [selectedSlot]: registeringRecipe.id };
+                  });
+                  setWeeklyPlan(currentWeeklyPlan);
+                  saveWeeklyPlan(currentWeeklyPlan);
+                  
+                  setMessage(`${selectedDaysInModal.map(d => DAYS_JP[d]).join('、')}の${SLOT_JP[selectedSlot as string]}に「${registeringRecipe.name}」を登録しました。`);
+                  setRegisteringRecipe(null);
+                  setSelectedDaysInModal([]);
+                }}
+                style={{ 
+                  flex: 2, padding: '1rem', borderRadius: '12px',
+                  background: selectedDaysInModal.length > 0 ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                  color: selectedDaysInModal.length > 0 ? '#000' : '#64748b',
+                  fontWeight: 'bold', cursor: 'pointer', border: 'none'
+                }}
+              >
+                {selectedDaysInModal.length > 0 ? `${selectedDaysInModal.length}件を登録する` : '曜日を選択'}
+              </button>
+            </div>
           </div>
         </div>
       )}
