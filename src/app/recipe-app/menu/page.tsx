@@ -101,6 +101,7 @@ export default function MenuPage() {
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [registeringRecipe, setRegisteringRecipe] = useState<Recipe | null>(null);
   const [selectedDaysInModal, setSelectedDaysInModal] = useState<DayOfWeek[]>([]);
+  const [selectedSlotInModal, setSelectedSlotInModal] = useState<keyof DayPlan>('main');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -342,7 +343,10 @@ export default function MenuPage() {
 
               <div>
                 <button 
-                  onClick={() => setRegisteringRecipe(recipe)}
+                  onClick={() => {
+                    setRegisteringRecipe(recipe);
+                    setSelectedSlotInModal(selectedSlot);
+                  }}
                   style={{ 
                     width: '100%', padding: '0.8rem', borderRadius: '10px', 
                     background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)',
@@ -378,40 +382,61 @@ export default function MenuPage() {
           background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
           zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
         }}>
-          <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '440px', padding: '1.5rem', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#fff', textAlign: 'center' }}>
               {registeringRecipe.name}
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', marginBottom: '2rem' }}>
-              どの曜日の <span style={{ color: 'var(--recipe-primary)', fontWeight: 'bold' }}>{SLOT_JP[selectedSlot as string]}</span> に登録しますか？（複数選択可）
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-              {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
-                <button 
-                  key={day}
-                  onClick={() => {
-                    setSelectedDaysInModal(prev => 
-                      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-                    );
-                  }}
-                  style={{ 
-                    padding: '1.2rem', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold',
-                    background: selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-                    color: selectedDaysInModal.includes(day) ? '#000' : '#fff',
-                    border: '1px solid ' + (selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'),
-                    cursor: 'pointer', position: 'relative'
-                  }}
-                >
-                  {DAYS_JP[day]}
-                  {selectedDaysInModal.includes(day) && (
-                    <span style={{ position: 'absolute', top: '5px', right: '10px', fontSize: '0.8rem' }}>✓</span>
-                  )}
-                </button>
-              ))}
+            
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>① 登録先スロット:</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
+                  <button 
+                    key={slot}
+                    onClick={() => setSelectedSlotInModal(slot)}
+                    style={{ 
+                      flex: 1, minWidth: '70px', padding: '0.5rem', borderRadius: '8px', fontSize: '0.75rem',
+                      background: selectedSlotInModal === slot ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                      color: selectedSlotInModal === slot ? '#000' : '#fff',
+                      border: '1px solid ' + (selectedSlotInModal === slot ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'),
+                      cursor: 'pointer', fontWeight: 'bold'
+                    }}
+                  >
+                    {SLOT_JP[slot]}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '0.5rem' }}>② 曜日を選択（複数可）:</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.8rem' }}>
+                {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+                  <button 
+                    key={day}
+                    onClick={() => {
+                      setSelectedDaysInModal(prev => 
+                        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+                      );
+                    }}
+                    style={{ 
+                      padding: '1rem', borderRadius: '12px', fontSize: '1rem', fontWeight: 'bold',
+                      background: selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                      color: selectedDaysInModal.includes(day) ? '#000' : '#fff',
+                      border: '1px solid ' + (selectedDaysInModal.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'),
+                      cursor: 'pointer', position: 'relative'
+                    }}
+                  >
+                    {DAYS_JP[day]}
+                    {selectedDaysInModal.includes(day) && (
+                      <span style={{ position: 'absolute', top: '3px', right: '8px', fontSize: '0.7rem' }}>✓</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.8rem', marginTop: '1.5rem' }}>
               <button 
                 onClick={() => {
                   setRegisteringRecipe(null);
@@ -428,16 +453,15 @@ export default function MenuPage() {
               <button 
                 disabled={selectedDaysInModal.length === 0}
                 onClick={() => {
-                  // 選択されたすべての曜日に登録
                   const currentWeeklyPlan = { ...weeklyPlan };
                   selectedDaysInModal.forEach(day => {
                     const currentDayPlan = currentWeeklyPlan[day] || {};
-                    currentWeeklyPlan[day] = { ...currentDayPlan, [selectedSlot]: registeringRecipe.id };
+                    currentWeeklyPlan[day] = { ...currentDayPlan, [selectedSlotInModal]: registeringRecipe.id };
                   });
                   setWeeklyPlan(currentWeeklyPlan);
                   saveWeeklyPlan(currentWeeklyPlan);
                   
-                  setMessage(`${selectedDaysInModal.map(d => DAYS_JP[d]).join('、')}の${SLOT_JP[selectedSlot as string]}に「${registeringRecipe.name}」を登録しました。`);
+                  setMessage(`${selectedDaysInModal.map(d => DAYS_JP[d]).join('、')}の${SLOT_JP[selectedSlotInModal as string]}に「${registeringRecipe.name}」を登録しました。`);
                   setRegisteringRecipe(null);
                   setSelectedDaysInModal([]);
                 }}
