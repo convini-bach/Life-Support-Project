@@ -16,6 +16,8 @@ interface Recipe {
     unit: string;
   }[];
   steps: string[];
+  url?: string;
+  source?: string;
   image: string;
 }
 
@@ -34,6 +36,8 @@ const MOCK_RECIPES: Recipe[] = [
       '鍋で豚肉を炒め、色が変わったら野菜を加えてさらに炒める。',
       '水を加えて煮込み、アクを取ったらカレールウを溶かし入れる。'
     ],
+    url: 'https://www.kikkoman.co.jp/homecooking/search/index.html?search_type=recipe&word=ポークカレー',
+    source: 'キッコーマン ホームクッキング',
     image: '🍛'
   },
   {
@@ -49,6 +53,8 @@ const MOCK_RECIPES: Recipe[] = [
       'フライパンに油を引き、豚肉を強火でカリッとするまで炒める。',
       'キャベツを加え、強火で一気に炒め合わせ、塩コショウで味を整える。'
     ],
+    url: 'https://www.kikkoman.co.jp/homecooking/search/index.html?search_type=recipe&word=肉野菜炒め',
+    source: 'キッコーマン ホームクッキング',
     image: '🍳'
   }
 ];
@@ -187,14 +193,31 @@ export default function MenuPage() {
                   )}
                 </div>
 
-                <button 
-                  onClick={() => applyRecipe(recipe)}
-                  disabled={isApplying !== null}
-                  className="btn-primary" 
-                  style={{ padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}
-                >
-                  {isApplying === recipe.id ? '調理中...' : 'この料理を作る（在庫を減らす）'}
-                </button>
+                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                  <button 
+                    onClick={() => applyRecipe(recipe)}
+                    disabled={isApplying !== null}
+                    className="btn-primary" 
+                    style={{ flex: 2, padding: '0.6rem 1.2rem', fontSize: '0.85rem' }}
+                  >
+                    {isApplying === recipe.id ? '調理中...' : 'この料理を作る（在庫を減らす）'}
+                  </button>
+                  
+                  {recipe.url && (
+                    <a 
+                      href={recipe.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="glass-card"
+                      style={{ 
+                        flex: 1, padding: '0.6rem', fontSize: '0.75rem', textAlign: 'center', 
+                        textDecoration: 'none', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                    >
+                      🔗 公式レシピ
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           ))}
