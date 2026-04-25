@@ -241,20 +241,27 @@ export default function MenuPage() {
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: 'var(--recipe-primary)' }}>{recipe.name}</h3>
                 <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1rem' }}>{recipe.description}</p>
                 
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                  {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
-                    <button 
-                      key={day}
-                      onClick={() => setRecipeToDay(day, recipe)}
-                      style={{ 
-                        fontSize: '0.7rem', background: weeklyPlan[day] === recipe.name ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-                        color: weeklyPlan[day] === recipe.name ? '#000' : '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer'
-                      }}
-                    >
-                      {DAYS_JP[day]}
-                    </button>
-                  ))}
+                {/* 献立に登録 */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <div style={{ fontSize: '0.7rem', color: '#64748b', marginBottom: '0.4rem' }}>献立に登録:</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+                      <button 
+                        key={day}
+                        onClick={() => setRecipeToDay(day, recipe)}
+                        style={{ 
+                          fontSize: '0.7rem', background: weeklyPlan[day] === recipe.name ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                          color: weeklyPlan[day] === recipe.name ? '#000' : '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {DAYS_JP[day]}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                   {recipe.ingredients.map(ing => (
                     <span key={ing.name} style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
                       {ing.name} {ing.amountPerPerson}{ing.unit}
