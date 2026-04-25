@@ -189,7 +189,7 @@ export default function MenuPage() {
       }
     }
 
-    if (nextShoppingIdx === -1) return []; // 買い物日が設定されていない
+    if (nextShoppingIdx === -1) return { toBuy: [], targetDays: [] }; // 買い物日が設定されていない
 
     // 2. その次の買い物日を特定（買い出しの対象期間を決定）
     let nextNextShoppingIdx = -1;
