@@ -282,7 +282,7 @@ export default function MenuPage() {
                   }}>
                     <span style={{ color: '#64748b', marginRight: '0.3rem' }}>{SLOT_JP[slot][0]}:</span>
                     <span style={{ color: weeklyPlan[day]?.[slot] ? '#fff' : '#334155' }}>
-                      {weeklyPlan[day]?.[slot] ? (recipes.find(r => r.id === weeklyPlan[day]![slot])?.name || '登録済') : '---'}
+                      {weeklyPlan[day]?.[slot] ? (recipes.find(r => r.id === weeklyPlan[day]?.[slot])?.name || '登録済') : '---'}
                     </span>
                   </div>
                 ))}
@@ -400,8 +400,6 @@ export default function MenuPage() {
               </div>
             </div>
           ))}
-        </section>
-
         </section>
       </div>
     </main>
