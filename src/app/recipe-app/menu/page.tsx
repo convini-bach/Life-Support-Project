@@ -268,40 +268,54 @@ export default function MenuPage() {
         position: 'sticky', 
         top: '60px', 
         zIndex: 50, 
-        padding: '1rem 0',
-        background: 'rgba(10, 12, 16, 0.9)', 
-        backdropFilter: 'blur(10px)',
-        margin: '0 -1rem 3rem -1rem',
+        padding: '0.8rem 0',
+        background: 'rgba(10, 12, 16, 0.95)', 
+        backdropFilter: 'blur(12px)',
+        margin: '0 -1rem 2rem -1rem',
         paddingLeft: '1rem',
         paddingRight: '1rem',
         borderBottom: '1px solid rgba(255,255,255,0.1)'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-          <h2 style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
-          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)' }}>スロット: {SLOT_JP[selectedSlot as string]}</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+          <h2 style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
+          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)', fontWeight: 'bold' }}>選択中: {SLOT_JP[selectedSlot as string]}</div>
         </div>
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '0.6rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
+        <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
           {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
             <div key={day} style={{ 
-              minWidth: '100px', flex: '0 0 auto',
-              background: 'rgba(255,255,255,0.03)', borderRadius: '10px', padding: '0.6rem', 
-              border: shoppingDays.includes(day) ? '1px solid var(--recipe-primary)' : '1px solid rgba(255,255,255,0.05)', 
+              minWidth: '95px', flex: '0 0 auto',
+              background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.5rem', 
+              border: shoppingDays.includes(day) ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.05)', 
               textAlign: 'center'
             }}>
-              <div style={{ fontSize: '0.7rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#64748b', marginBottom: '0.3rem' }}>{DAYS_JP[day]}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div style={{ fontSize: '0.75rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#94a3b8', marginBottom: '0.5rem' }}>{DAYS_JP[day]}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.2rem' }}>
                 {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
-                  <div key={slot} style={{ 
-                    fontSize: '0.6rem', padding: '0.2rem', borderRadius: '4px',
-                    background: selectedSlot === slot ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    border: selectedSlot === slot ? '1px solid rgba(16, 185, 129, 0.3)' : 'none'
-                  }}>
-                    <span style={{ color: weeklyPlan[day]?.[slot] ? '#fff' : '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {weeklyPlan[day]?.[slot] ? '✓' : '—'}
-                    </span>
+                  <div key={slot} style={{ position: 'relative' }}>
+                    <div style={{ 
+                      height: '14px', 
+                      borderRadius: '3px',
+                      background: weeklyPlan[day]?.[slot] ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                      border: selectedSlot === slot ? '1px solid #fff' : '1px solid transparent',
+                      boxShadow: weeklyPlan[day]?.[slot] ? '0 0 5px rgba(16, 185, 129, 0.3)' : 'none',
+                      transition: 'all 0.2s'
+                    }} />
                     {weeklyPlan[day]?.[slot] && (
-                      <button onClick={() => clearSlot(day, slot)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '0.6rem', padding: 0 }}>×</button>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          clearSlot(day, slot);
+                        }} 
+                        style={{ 
+                          position: 'absolute', top: '-8px', right: '-8px', 
+                          background: '#f87171', color: '#fff', border: 'none', 
+                          borderRadius: '50%', width: '12px', height: '12px', 
+                          fontSize: '8px', cursor: 'pointer', display: 'flex', 
+                          alignItems: 'center', justifyContent: 'center', zIndex: 2
+                        }}
+                      >
+                        ×
+                      </button>
                     )}
                   </div>
                 ))}
