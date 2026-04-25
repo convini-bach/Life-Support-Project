@@ -99,6 +99,7 @@ export default function MenuPage() {
   const [filter, setFilter] = useState<RecipeCategory | 'all' | 'main' | 'side' | 'soup'>('all');
   const [selectedSlot, setSelectedSlot] = useState<keyof DayPlan>('main');
   const [isApplying, setIsApplying] = useState<string | null>(null);
+  const [registeringRecipe, setRegisteringRecipe] = useState<Recipe | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -339,12 +340,17 @@ export default function MenuPage() {
               </div>
 
               <div>
-                <div style={{ fontSize: '0.65rem', color: '#64748b', marginBottom: '0.4rem' }}>{SLOT_JP[selectedSlot as string]}に登録:</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3rem' }}>
-                  {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
-                    <button key={day} onClick={() => setRecipeToDay(day, recipe)} style={{ fontSize: '0.65rem', background: weeklyPlan[day]?.[selectedSlot] === recipe.id ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)', color: weeklyPlan[day]?.[selectedSlot] === recipe.id ? '#000' : '#fff', padding: '0.2rem 0.4rem', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>{DAYS_JP[day]}</button>
-                  ))}
-                </div>
+                <button 
+                  onClick={() => setRegisteringRecipe(recipe)}
+                  style={{ 
+                    width: '100%', padding: '0.8rem', borderRadius: '10px', 
+                    background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)',
+                    color: '#10b981', fontSize: '0.9rem', fontWeight: 'bold', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem'
+                  }}
+                >
+                  📅 献立に登録
+                </button>
               </div>
 
               <div style={{ marginTop: 'auto', display: 'flex', gap: '0.5rem' }}>
@@ -363,6 +369,55 @@ export default function MenuPage() {
           ))}
         </div>
       </section>
+
+      {/* 登録用モーダル */}
+      {registeringRecipe && (
+        <div style={{ 
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(8px)',
+          zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem'
+        }}>
+          <div className="glass-card" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: '#fff', textAlign: 'center' }}>
+              {registeringRecipe.name}
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center', marginBottom: '2rem' }}>
+              どの曜日の <span style={{ color: 'var(--recipe-primary)', fontWeight: 'bold' }}>{SLOT_JP[selectedSlot as string]}</span> に登録しますか？
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+              {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+                <button 
+                  key={day}
+                  onClick={() => {
+                    setRecipeToDay(day, registeringRecipe);
+                    setRegisteringRecipe(null);
+                  }}
+                  style={{ 
+                    padding: '1.2rem', borderRadius: '15px', fontSize: '1.1rem', fontWeight: 'bold',
+                    background: weeklyPlan[day]?.[selectedSlot] === registeringRecipe.id ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                    color: weeklyPlan[day]?.[selectedSlot] === registeringRecipe.id ? '#000' : '#fff',
+                    border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer'
+                  }}
+                >
+                  {DAYS_JP[day]}
+                </button>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => setRegisteringRecipe(null)}
+              style={{ 
+                width: '100%', marginTop: '2rem', padding: '1rem', borderRadius: '12px',
+                background: 'rgba(248, 113, 113, 0.1)', border: 'none', color: '#f87171',
+                fontWeight: 'bold', cursor: 'pointer'
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
