@@ -17,6 +17,7 @@ export default function RecipeAppHeader() {
     { name: '冷蔵庫', href: '/recipe-app/fridge', icon: '🧊' },
     { name: '家族設定', href: '/recipe-app/settings', icon: '👤' },
     { name: '献立', href: '/recipe-app/menu', icon: '📅' },
+    { name: '買い物リスト', href: '/recipe-app/shopping-list', icon: '🛒' },
   ];
 
   if (!mounted) return (

@@ -8,8 +8,14 @@ export const DAYS_JP: Record<DayOfWeek, string> = {
   mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日'
 };
 
+export interface DayPlan {
+  main?: string | null;
+  side?: string | null;
+  soup?: string | null;
+}
+
 export interface WeeklyPlan {
-  [key: string]: string | null; // day: recipeId
+  [key: string]: DayPlan; // day: DayPlan
 }
 
 export interface PlannerSettings {
@@ -23,7 +29,7 @@ export function loadWeeklyPlan(): WeeklyPlan {
   if (typeof window === 'undefined') return {};
   const data = localStorage.getItem('smart-kitchen-weekly-plan');
   return data ? JSON.parse(data) : {
-    mon: null, tue: null, wed: null, thu: null, fri: null, sat: null, sun: null
+    mon: {}, tue: {}, wed: {}, thu: {}, fri: {}, sat: {}, sun: {}
   };
 }
 
