@@ -1,0 +1,53 @@
+/**
+ * 週間献立（ウィークリープランナー）のロジック
+ */
+
+export type DayOfWeek = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+
+export const DAYS_JP: Record<DayOfWeek, string> = {
+  mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土', sun: '日'
+};
+
+export interface WeeklyPlan {
+  [key: string]: string | null; // day: recipeId
+}
+
+export interface PlannerSettings {
+  shoppingDay: DayOfWeek;
+}
+
+/**
+ * 週間献立を LocalStorage から取得する
+ */
+export function loadWeeklyPlan(): WeeklyPlan {
+  if (typeof window === 'undefined') return {};
+  const data = localStorage.getItem('smart-kitchen-weekly-plan');
+  return data ? JSON.parse(data) : {
+    mon: null, tue: null, wed: null, thu: null, fri: null, sat: null, sun: null
+  };
+}
+
+/**
+ * 週間献立を LocalStorage に保存する
+ */
+export function saveWeeklyPlan(plan: WeeklyPlan) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('smart-kitchen-weekly-plan', JSON.stringify(plan));
+}
+
+/**
+ * プランナー設定（買い物日など）を取得する
+ */
+export function loadPlannerSettings(): PlannerSettings {
+  if (typeof window === 'undefined') return { shoppingDay: 'mon' };
+  const data = localStorage.getItem('smart-kitchen-planner-settings');
+  return data ? JSON.parse(data) : { shoppingDay: 'mon' };
+}
+
+/**
+ * プランナー設定を保存する
+ */
+export function savePlannerSettings(settings: PlannerSettings) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('smart-kitchen-planner-settings', JSON.stringify(settings));
+}

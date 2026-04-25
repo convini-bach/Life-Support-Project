@@ -5,11 +5,15 @@ import Link from 'next/link';
 import { loadFridgeData, saveFridgeData, FridgeItem } from '../lib/fridge-logic';
 import { loadFamilyData, FamilyMember } from '../lib/family-logic';
 import { subtractQuantity, parseQuantity } from '../lib/quantity-logic';
+import { loadWeeklyPlan, saveWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP } from '../lib/planner-logic';
+
+type RecipeCategory = 'meat' | 'fish' | 'vegetable' | 'noodle' | 'other';
 
 interface Recipe {
   id: string;
   name: string;
   description: string;
+  category: RecipeCategory;
   ingredients: {
     name: string;
     amountPerPerson: number;
@@ -25,6 +29,7 @@ const MOCK_RECIPES: Recipe[] = [
   {
     id: 'curry',
     name: '時短！コク旨ポークカレー',
+    category: 'meat',
     description: '冷蔵庫の余り野菜をたっぷり使った、家族みんなが喜ぶ定番メニュー。',
     ingredients: [
       { name: '豚肉', amountPerPerson: 100, unit: 'g' },
@@ -43,6 +48,7 @@ const MOCK_RECIPES: Recipe[] = [
   {
     id: 'stir-fry',
     name: 'たっぷり野菜の肉野菜炒め',
+    category: 'meat',
     description: '強火でサッと炒めるだけ。AIが推奨する「今日食べるべき野菜」を美味しく摂取。',
     ingredients: [
       { name: '豚肉', amountPerPerson: 80, unit: 'g' },
@@ -56,13 +62,38 @@ const MOCK_RECIPES: Recipe[] = [
     url: 'https://www.kikkoman.co.jp/homecooking/search/index.html?search_type=recipe&word=肉野菜炒め',
     source: 'キッコーマン ホームクッキング',
     image: '🍳'
+  },
+  {
+    id: 'saba-misoni',
+    name: 'さばのみそ煮',
+    category: 'fish',
+    description: '定番の和食。買い物当日の新鮮なさばで作るのが一番です。',
+    ingredients: [
+      { name: 'さば', amountPerPerson: 1, unit: '切れ' },
+    ],
+    steps: ['さばを湯通しする', '味噌、酒、砂糖、水で煮る'],
+    image: '🐟'
+  },
+  {
+    id: 'pasta',
+    name: '和風きのこパスタ',
+    category: 'noodle',
+    description: 'パスタは常備品でパパッと作れる週末の味方。',
+    ingredients: [
+      { name: 'パスタ', amountPerPerson: 100, unit: 'g' },
+      { name: 'しめじ', amountPerPerson: 50, unit: 'g' },
+    ],
+    steps: ['パスタを茹でる', '具材を炒めて醤油で味付け'],
+    image: '🍝'
   }
 ];
 
 export default function MenuPage() {
   const [family, setFamily] = useState<FamilyMember[]>([]);
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(loadWeeklyPlan());
   const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
+  const [filter, setFilter] = useState<RecipeCategory | 'all'>('all');
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -70,6 +101,7 @@ export default function MenuPage() {
   useEffect(() => {
     setFamily(loadFamilyData());
     setFridgeItems(loadFridgeData());
+    setWeeklyPlan(loadWeeklyPlan());
     
     // AI提案メニューがあれば読み込む
     const savedMenu = localStorage.getItem('smart-kitchen-suggested-menu');
@@ -87,27 +119,21 @@ export default function MenuPage() {
 
   const applyRecipe = (recipe: Recipe) => {
     setIsApplying(recipe.id);
-    const personCount = family.length || 1; // 家族未設定の場合は1人分
+    const personCount = family.length || 1;
     
     let updatedFridge = [...fridgeItems];
     let logs: string[] = [];
 
     recipe.ingredients.forEach(ing => {
-      // 部分一致で食材を探す（例：「豚肉」が「豚肉（バラ）」にマッチ）
       const itemIndex = updatedFridge.findIndex(item => item.name.includes(ing.name));
-      
       if (itemIndex > -1) {
         const item = updatedFridge[itemIndex];
         const newQuantityStr = subtractQuantity(item.quantity, ing.amountPerPerson, personCount);
-        
-        // ログ記録
         const consumed = ing.amountPerPerson * personCount;
         logs.push(`${ing.name}: ${consumed}${ing.unit} を使用`);
-
-        // 在庫更新
         const { value } = parseQuantity(newQuantityStr);
         if (value <= 0) {
-          updatedFridge.splice(itemIndex, 1); // 使い切った
+          updatedFridge.splice(itemIndex, 1);
           logs.push(`-> ${ing.name} を使い切りました！`);
         } else {
           updatedFridge[itemIndex] = { ...item, quantity: newQuantityStr };
@@ -126,12 +152,53 @@ export default function MenuPage() {
     }, 1000);
   };
 
+  const setRecipeToDay = (day: DayOfWeek, recipe: Recipe) => {
+    const newPlan = { ...weeklyPlan, [day]: recipe.name }; // 本来はIDを保存すべきだが、今回は名前で簡易実装
+    setWeeklyPlan(newPlan);
+    saveWeeklyPlan(newPlan);
+  };
+
+  const filteredRecipes = recipes.filter(r => filter === 'all' || r.category === filter);
+
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
       <header style={{ marginBottom: '2.5rem' }}>
-        <h1 style={{ fontSize: '2rem', color: '#fff', marginBottom: '0.5rem' }}>本日の献立提案</h1>
-        <p className="text-muted">家族 {family.length || 1} 人分の必要量を、冷蔵庫の在庫から自動的に計算します。</p>
+        <h1 style={{ fontSize: '2rem', color: '#fff', marginBottom: '0.5rem' }}>1週間の献立プランナー</h1>
+        <p className="text-muted">レシピを選んでカレンダーを埋めましょう。自動で買い物リストも作成されます。</p>
       </header>
+
+      {/* 週間カレンダー */}
+      <section className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'rgba(255,255,255,0.02)' }}>
+        <h2 style={{ fontSize: '1rem', marginBottom: '1.5rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Weekly Schedule</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '1rem' }}>
+          {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+            <div key={day} style={{ 
+              background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '1rem', 
+              border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', minHeight: '100px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+            }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#64748b' }}>
+                {DAYS_JP[day]}
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#fff', margin: '0.5rem 0', fontWeight: '600' }}>
+                {weeklyPlan[day] || <span style={{ color: '#334155', fontWeight: '400' }}>未設定</span>}
+              </div>
+              {weeklyPlan[day] && (
+                <button 
+                  onClick={() => {
+                    const newPlan = { ...weeklyPlan, [day]: null };
+                    setWeeklyPlan(newPlan);
+                    saveWeeklyPlan(newPlan);
+                  }}
+                  style={{ background: 'none', border: 'none', color: '#475569', fontSize: '0.7rem', cursor: 'pointer' }}
+                >
+                  取消
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
 
       {message && (
         <div className="glass-card" style={{ 
@@ -147,11 +214,25 @@ export default function MenuPage() {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <h2 style={{ fontSize: '1.2rem' }}>AIおすすめレシピ</h2>
-            <span style={{ fontSize: '0.7rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-              監修スタイル: キッコーマン他
-            </span>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              {(['all', 'meat', 'fish', 'vegetable', 'noodle'] as const).map(cat => (
+                <button 
+                  key={cat} 
+                  onClick={() => setFilter(cat)}
+                  style={{ 
+                    padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.75rem',
+                    background: filter === cat ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                    color: filter === cat ? '#000' : '#94a3b8',
+                    border: 'none', cursor: 'pointer'
+                  }}
+                >
+                  {cat === 'all' ? 'すべて' : cat === 'meat' ? '肉' : cat === 'fish' ? '魚' : cat === 'vegetable' ? '野菜' : '麺'}
+                </button>
+              ))}
+            </div>
           </div>
-          {recipes.map(recipe => (
+          
+          {filteredRecipes.map(recipe => (
             <div key={recipe.id} className="glass-card" style={{ display: 'flex', gap: '1.5rem', padding: '1.5rem', alignItems: 'center' }}>
               <div style={{ fontSize: '3rem', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.03)', borderRadius: '16px' }}>
                 {recipe.image}
@@ -159,7 +240,21 @@ export default function MenuPage() {
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: 'var(--recipe-primary)' }}>{recipe.name}</h3>
                 <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '1rem' }}>{recipe.description}</p>
+                
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                  {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+                    <button 
+                      key={day}
+                      onClick={() => setRecipeToDay(day, recipe)}
+                      style={{ 
+                        fontSize: '0.7rem', background: weeklyPlan[day] === recipe.name ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                        color: weeklyPlan[day] === recipe.name ? '#000' : '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer'
+                      }}
+                    >
+                      {DAYS_JP[day]}
+                    </button>
+                  ))}
+                </div>
                   {recipe.ingredients.map(ing => (
                     <span key={ing.name} style={{ fontSize: '0.75rem', background: 'rgba(255,255,255,0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
                       {ing.name} {ing.amountPerPerson}{ing.unit}
