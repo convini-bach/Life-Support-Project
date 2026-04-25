@@ -155,7 +155,7 @@ export default function MenuPage() {
   };
 
   const setRecipeToDay = (day: DayOfWeek, recipe: Recipe) => {
-    const newPlan = { ...weeklyPlan, [day]: recipe.name }; // 本来はIDを保存すべきだが、今回は名前で簡易実装
+    const newPlan = { ...weeklyPlan, [day]: recipe.id };
     setWeeklyPlan(newPlan);
     saveWeeklyPlan(newPlan);
   };
@@ -169,6 +169,49 @@ export default function MenuPage() {
   };
 
   const filteredRecipes = recipes.filter(r => filter === 'all' || r.category === filter);
+
+  // 買い物リストの計算
+  const calculateShoppingList = () => {
+    const needed: Record<string, { amount: number, unit: string }> = {};
+    const personCount = family.length || 1;
+
+    // 計画された全レシピの材料を集計
+    Object.values(weeklyPlan).forEach(recipeId => {
+      if (!recipeId) return;
+      const recipe = recipes.find(r => r.id === recipeId);
+      if (!recipe) return;
+
+      recipe.ingredients.forEach(ing => {
+        if (!needed[ing.name]) {
+          needed[ing.name] = { amount: 0, unit: ing.unit };
+        }
+        needed[ing.name].amount += ing.amountPerPerson * personCount;
+      });
+    });
+
+    // 在庫を差し引く
+    const toBuy: { name: string, amount: number, unit: string }[] = [];
+    Object.entries(needed).forEach(([name, req]) => {
+      const stockItem = fridgeItems.find(item => item.name.includes(name));
+      let stockValue = 0;
+      if (stockItem) {
+        const { value } = parseQuantity(stockItem.quantity);
+        stockValue = value;
+      }
+
+      if (req.amount > stockValue) {
+        toBuy.push({ 
+          name, 
+          amount: Math.round((req.amount - stockValue) * 10) / 10, 
+          unit: req.unit 
+        });
+      }
+    });
+
+    return toBuy;
+  };
+
+  const shoppingList = calculateShoppingList();
 
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
@@ -222,7 +265,7 @@ export default function MenuPage() {
                 {DAYS_JP[day]}
               </div>
               <div style={{ fontSize: '0.85rem', color: '#fff', margin: '0.5rem 0', fontWeight: '600' }}>
-                {weeklyPlan[day] || <span style={{ color: '#334155', fontWeight: '400' }}>未設定</span>}
+                {weeklyPlan[day] ? (recipes.find(r => r.id === weeklyPlan[day])?.name || '不明なレシピ') : <span style={{ color: '#334155', fontWeight: '400' }}>未設定</span>}
               </div>
               {weeklyPlan[day] && (
                 <button 
@@ -291,8 +334,8 @@ export default function MenuPage() {
                         key={day}
                         onClick={() => setRecipeToDay(day, recipe)}
                         style={{ 
-                          fontSize: '0.7rem', background: weeklyPlan[day] === recipe.name ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-                          color: weeklyPlan[day] === recipe.name ? '#000' : '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer',
+                          fontSize: '0.7rem', background: weeklyPlan[day] === recipe.id ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                          color: weeklyPlan[day] === recipe.id ? '#000' : '#fff', padding: '0.2rem 0.5rem', borderRadius: '4px', border: 'none', cursor: 'pointer',
                           transition: 'all 0.2s'
                         }}
                       >
@@ -381,22 +424,46 @@ export default function MenuPage() {
         </section>
 
         <section>
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
-            <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>🧊</span> 現在の在庫状況
+          <div className="glass-card" style={{ padding: '1.5rem', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.02)' }}>
+            <h3 style={{ fontSize: '1rem', marginBottom: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#10b981' }}>
+              <span>🛒</span> 自動買い物リスト
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {fridgeItems.length === 0 ? (
-                <p style={{ color: '#475569', fontSize: '0.85rem' }}>冷蔵庫が空です。</p>
+              {shoppingList.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>✨</div>
+                  <p style={{ fontSize: '0.85rem' }}>
+                    {Object.values(weeklyPlan).some(v => v !== null) 
+                      ? '全ての材料が在庫で揃っています！' 
+                      : '献立を登録すると、不足分がここに表示されます。'}
+                  </p>
+                </div>
               ) : (
-                fridgeItems.slice(0, 5).map(item => (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', padding: '0.4rem 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span>{item.name}</span>
-                    <span style={{ fontWeight: 'bold', color: 'var(--recipe-primary)' }}>{item.quantity}</span>
+                <>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>
+                    現在の在庫を差し引いた、購入が必要な食材です：
                   </div>
-                ))
+                  {shoppingList.map(item => (
+                    <div key={item.name} style={{ 
+                      display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                      fontSize: '0.9rem', padding: '0.6rem 0.8rem', background: 'rgba(255,255,255,0.03)', 
+                      borderRadius: '8px', borderLeft: '3px solid var(--recipe-primary)' 
+                    }}>
+                      <span style={{ color: '#fff' }}>{item.name}</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--recipe-primary)' }}>
+                        {item.amount}{item.unit}
+                      </span>
+                    </div>
+                  ))}
+                  <button 
+                    className="btn-primary" 
+                    style={{ marginTop: '1rem', padding: '0.6rem', fontSize: '0.8rem' }}
+                    onClick={() => alert('買い物リストをスマホに送信しました（モック）')}
+                  >
+                    買い物リストを送信
+                  </button>
+                </>
               )}
-              {fridgeItems.length > 5 && <Link href="/recipe-app/fridge" style={{ fontSize: '0.75rem', color: '#10b981', textAlign: 'center', marginTop: '0.5rem' }}>すべて見る &rarr;</Link>}
             </div>
           </div>
         </section>
