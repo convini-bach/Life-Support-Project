@@ -13,7 +13,7 @@ export interface WeeklyPlan {
 }
 
 export interface PlannerSettings {
-  shoppingDay: DayOfWeek;
+  shoppingDays: DayOfWeek[];
 }
 
 /**
@@ -39,9 +39,9 @@ export function saveWeeklyPlan(plan: WeeklyPlan) {
  * プランナー設定（買い物日など）を取得する
  */
 export function loadPlannerSettings(): PlannerSettings {
-  if (typeof window === 'undefined') return { shoppingDay: 'mon' };
+  if (typeof window === 'undefined') return { shoppingDays: ['mon'] };
   const data = localStorage.getItem('smart-kitchen-planner-settings');
-  return data ? JSON.parse(data) : { shoppingDay: 'mon' };
+  return data ? JSON.parse(data) : { shoppingDays: ['sun', 'wed'] }; // デフォルトを日・水に設定
 }
 
 /**

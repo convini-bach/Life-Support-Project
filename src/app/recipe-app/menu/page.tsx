@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { loadFridgeData, saveFridgeData, FridgeItem } from '../lib/fridge-logic';
 import { loadFamilyData, FamilyMember } from '../lib/family-logic';
 import { subtractQuantity, parseQuantity } from '../lib/quantity-logic';
-import { loadWeeklyPlan, saveWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP } from '../lib/planner-logic';
+import { loadWeeklyPlan, saveWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP, loadPlannerSettings, savePlannerSettings } from '../lib/planner-logic';
 
 type RecipeCategory = 'meat' | 'fish' | 'vegetable' | 'noodle' | 'other';
 
@@ -93,6 +93,7 @@ export default function MenuPage() {
   const [fridgeItems, setFridgeItems] = useState<FridgeItem[]>([]);
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan>(loadWeeklyPlan());
   const [recipes, setRecipes] = useState<Recipe[]>(MOCK_RECIPES);
+  const [shoppingDays, setShoppingDays] = useState<DayOfWeek[]>([]);
   const [filter, setFilter] = useState<RecipeCategory | 'all'>('all');
   const [isApplying, setIsApplying] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -102,6 +103,7 @@ export default function MenuPage() {
     setFamily(loadFamilyData());
     setFridgeItems(loadFridgeData());
     setWeeklyPlan(loadWeeklyPlan());
+    setShoppingDays(loadPlannerSettings().shoppingDays);
     
     // AI提案メニューがあれば読み込む
     const savedMenu = localStorage.getItem('smart-kitchen-suggested-menu');
@@ -158,14 +160,47 @@ export default function MenuPage() {
     saveWeeklyPlan(newPlan);
   };
 
+  const toggleShoppingDay = (day: DayOfWeek) => {
+    const newDays = shoppingDays.includes(day)
+      ? shoppingDays.filter(d => d !== day)
+      : [...shoppingDays, day];
+    setShoppingDays(newDays);
+    savePlannerSettings({ shoppingDays: newDays });
+  };
+
   const filteredRecipes = recipes.filter(r => filter === 'all' || r.category === filter);
 
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
       <header style={{ marginBottom: '2.5rem' }}>
         <h1 style={{ fontSize: '2rem', color: '#fff', marginBottom: '0.5rem' }}>1週間の献立プランナー</h1>
-        <p className="text-muted">レシピを選んでカレンダーを埋めましょう。自動で買い物リストも作成されます。</p>
+        <p className="text-muted">レシピを選んでカレンダーを埋めましょう。買い物日を設定すると、鮮度を考慮した提案が受けられます。</p>
       </header>
+
+      {/* 買い物日設定 */}
+      <section className="glass-card" style={{ padding: '1.2rem', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--recipe-primary)' }}>🛒 買い物に行く日:</div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
+            <button 
+              key={day}
+              onClick={() => toggleShoppingDay(day)}
+              style={{ 
+                padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.75rem',
+                background: shoppingDays.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                color: shoppingDays.includes(day) ? '#000' : '#fff',
+                border: '1px solid ' + (shoppingDays.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'),
+                cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              {DAYS_JP[day]}
+            </button>
+          ))}
+        </div>
+        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+          ※設定した日の前後に、肉や魚のレシピが優先的に提案されます。
+        </div>
+      </section>
 
       {/* 週間カレンダー */}
       <section className="glass-card" style={{ padding: '1.5rem', marginBottom: '3rem', background: 'rgba(255,255,255,0.02)' }}>
@@ -174,9 +209,15 @@ export default function MenuPage() {
           {(Object.keys(DAYS_JP) as DayOfWeek[]).map(day => (
             <div key={day} style={{ 
               background: 'rgba(255,255,255,0.03)', borderRadius: '12px', padding: '1rem', 
-              border: '1px solid rgba(255,255,255,0.05)', textAlign: 'center', minHeight: '100px',
-              display: 'flex', flexDirection: 'column', justifyContent: 'space-between'
+              border: shoppingDays.includes(day) ? '1px solid var(--recipe-primary)' : '1px solid rgba(255,255,255,0.05)', 
+              textAlign: 'center', minHeight: '100px',
+              display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+              position: 'relative',
+              boxShadow: shoppingDays.includes(day) ? '0 0 15px rgba(16, 185, 129, 0.1)' : 'none'
             }}>
+              {shoppingDays.includes(day) && (
+                <div style={{ position: 'absolute', top: '-10px', right: '-5px', fontSize: '1.2rem' }}>🛒</div>
+              )}
               <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#64748b' }}>
                 {DAYS_JP[day]}
               </div>
