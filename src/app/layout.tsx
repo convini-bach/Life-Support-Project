@@ -39,6 +39,23 @@ export default function RootLayout({
           }} />
           <script
             async
+            src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"
+            crossOrigin="anonymous"
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.googletag = window.googletag || {cmd: []};
+                window.addEventListener('load', () => {
+                  if (window.googletag && window.googletag.apiReady) {
+                    document.dispatchEvent(new CustomEvent('gpt-ready'));
+                  }
+                });
+              `
+            }}
+          />
+          <script
+            async
             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9373474554936490"
             crossOrigin="anonymous"
           />

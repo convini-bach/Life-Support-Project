@@ -6,6 +6,7 @@ import { loadFridgeData, FridgeItem } from '../lib/fridge-logic';
 import { loadFamilyData, FamilyMember } from '../lib/family-logic';
 import { parseQuantity } from '../lib/quantity-logic';
 import { loadWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP, loadPlannerSettings, DayPlan } from '../lib/planner-logic';
+import { MOCK_RECIPES } from '../lib/recipes';
 
 const DAY_ORDER: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -62,18 +63,10 @@ export default function ShoppingListPage() {
       currentIdx = (currentIdx + 1) % 7;
     }
 
-    // AI提案メニューとモックレシピの両方から探す必要があるが、
-    // 本来はレシピマスターデータが必要。今回は簡易的にlocalStorageから取得
+    // AI提案メニューとモックレシピの両方を統合
     const savedMenu = localStorage.getItem('smart-kitchen-suggested-menu');
-    const allRecipes = savedMenu ? JSON.parse(savedMenu) : [];
-    // モックレシピも統合（本来は共通ライブラリ化すべき）
-    const MOCK_RECIPES = [
-      { id: 'curry', name: 'ポークカレー', ingredients: [{ name: '豚肉', amountPerPerson: 100, unit: 'g' }, { name: 'キャベツ', amountPerPerson: 50, unit: 'g' }] },
-      { id: 'stir-fry', name: '肉野菜炒め', ingredients: [{ name: '豚肉', amountPerPerson: 80, unit: 'g' }, { name: 'キャベツ', amountPerPerson: 100, unit: 'g' }] },
-      { id: 'saba-misoni', name: 'さばのみそ煮', ingredients: [{ name: 'さば', amountPerPerson: 1, unit: '切れ' }] },
-      { id: 'pasta', name: '和風きのこパスタ', ingredients: [{ name: 'パスタ', amountPerPerson: 100, unit: 'g' }, { name: 'しめじ', amountPerPerson: 50, unit: 'g' }] },
-    ];
-    const masterRecipes = [...allRecipes, ...MOCK_RECIPES];
+    const customRecipes = savedMenu ? JSON.parse(savedMenu) : [];
+    const masterRecipes = [...MOCK_RECIPES, ...customRecipes];
 
     targetDays.forEach(day => {
       const dayPlan = weeklyPlan[day] || {};

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import RecipeAppHeader from "@/components/recipe-app/Header";
 
 export const metadata: Metadata = {
@@ -11,6 +12,11 @@ export default function RecipeAppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // 公開確認完了のため、一時的にアクセス制限（404）
+  if (process.env.NODE_ENV === 'production') {
+    notFound();
+  }
+
   return (
     <div className="recipe-app-root">
       <RecipeAppHeader />

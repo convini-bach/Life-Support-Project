@@ -5,13 +5,87 @@ import { useI18n } from "@/lib/i18n";
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs";
 import AffiliateCard from "@/components/AffiliateCard";
 import { ITEMS } from "@/lib/recommendation";
+import { useRewardedAd } from "@/hooks/useRewardedAd";
+import { useState, useEffect } from "react";
 
 
 const APP_VERSION = "2604162400"; // YYMMDDHHMM
 
 export default function Home() {
   const { t, lang } = useI18n();
-  const { isSignedIn, isLoaded } = useUser();
+  const { isSignedIn, isLoaded, user } = useUser();
+  const [isAdShowing, setIsAdShowing] = useState(false);
+  const [adCountdown, setAdCountdown] = useState(7);
+  const [showThanks, setShowThanks] = useState(false);
+  const [dailyTip, setDailyTip] = useState<string | null>(null);
+  const [isGeneratingTip, setIsGeneratingTip] = useState(false);
+
+  const hasDevMode = !!user?.publicMetadata?.hasDevMode;
+
+  // AdMob/GAM Rewarded Ad
+  const TEST_AD_UNIT_ID = "/21775744923/example/rewarded";
+  const PROD_AD_UNIT_ID = "/23350821563/rewarded_video_portal";
+  const adUnitId = (process.env.NODE_ENV === 'production' && !hasDevMode) ? PROD_AD_UNIT_ID : TEST_AD_UNIT_ID;
+
+  const { isReady: isAdReady, showAd } = useRewardedAd(adUnitId);
+
+  // Handle Ad Reward
+  useEffect(() => {
+    const handleRewardGranted = () => {
+      setIsAdShowing(false);
+      setShowThanks(true);
+      generateDailyTip();
+      setTimeout(() => setShowThanks(false), 5000);
+    };
+
+    window.addEventListener('ad-reward-granted', handleRewardGranted);
+    return () => window.removeEventListener('ad-reward-granted', handleRewardGranted);
+  }, []);
+
+  const generateDailyTip = async () => {
+    setIsGeneratingTip(true);
+    try {
+      // 実際にはAPIを叩くことも可能ですが、ここでは即時性を重視してランダムに選択するか、
+      // 既存の解析用APIを軽量プロンプトで呼び出します
+      const tips = lang === 'ja' ? [
+        "朝一番の白湯は、胃腸を温め代謝を助けます。AI解析の精度を上げるように、自分の体も整えましょう。",
+        "タンパク質と食物繊維のバランスを意識するだけで、午後の集中力が変わります。Smart Kitchenでの献立作成に役立ててください。",
+        "良い睡眠は、AIにはできない『データの統合』を脳内で行ってくれます。寝る前のスマホは控えめに。",
+        "小さな習慣の積み重ねが、大きなライフプランの礎になります。Nutri-Visionでの記録をその第一歩にしましょう。"
+      ] : [
+        "Warm water in the morning boosts metabolism. Tune your body just like you tune your AI prompts.",
+        "Balancing protein and fiber improves afternoon focus. Try it with your next Smart Kitchen menu.",
+        "Quality sleep helps your brain process and integrate data. Put away your phone 30 mins before bed.",
+        "Small habits are the foundation of a grand life plan. Let your Nutri-Vision logs be the first step."
+      ];
+      const randomTip = tips[Math.floor(Math.random() * tips.length)];
+      setDailyTip(randomTip);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsGeneratingTip(false);
+    }
+  };
+
+  const handleSupportClick = () => {
+    if (isAdReady) {
+      if (showAd()) {
+        setIsAdShowing(true);
+        setAdCountdown(7);
+      }
+    } else {
+      alert(lang === 'ja' ? "広告の準備中です。数秒後にお試しください。" : "Ad is preparing. Please try again in a few seconds.");
+    }
+  };
+
+  // Countdown timer for ad overlay
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isAdShowing && adCountdown > 0) {
+      timer = setTimeout(() => setAdCountdown(c => c - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [isAdShowing, adCountdown]);
 
   const apps = [
     {
@@ -44,6 +118,43 @@ export default function Home() {
 
   return (
     <main className="container min-h-screen flex flex-col items-center justify-center" style={{ paddingTop: 'clamp(2rem, 5vh, 4rem)' }}>
+      {/* Ad Simulation Overlay (Consistency with other apps) */}
+      {isAdShowing && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.95)', zIndex: 10000,
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(20px)', animation: 'fadeIn 0.3s'
+        }}>
+          <div style={{ position: 'relative', width: '320px', height: '180px', borderRadius: '16px', overflow: 'hidden', background: '#0f172a', border: '2px solid var(--primary)', marginBottom: '2rem', boxShadow: '0 0 50px rgba(16, 185, 129, 0.3)' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>
+               <img src="/images/ad-placeholder.png" alt="Ad Placeholder" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }} />
+               <div style={{ position: 'absolute', fontSize: '2rem', color: 'white', fontWeight: 'bold' }}>ADVERTISING</div>
+            </div>
+          </div>
+          <h2 style={{ fontSize: '1.2rem', color: 'white', marginBottom: '1rem', textAlign: 'center' }}>
+            {lang === 'ja' ? '広告を読み込んでいます...' : 'Loading Ad...'}
+          </h2>
+          <div style={{ 
+            width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(255,255,255,0.1)',
+            borderTopColor: 'var(--primary)', animation: 'spin 1s linear infinite', marginBottom: '1.5rem'
+          }}></div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)', fontFamily: 'monospace' }}>
+            {adCountdown}s
+          </div>
+        </div>
+      )}
+
+      {/* Thank You Toast */}
+      {showThanks && (
+        <div style={{
+          position: 'fixed', top: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '1rem 2rem',
+          borderRadius: '16px', zIndex: 10001, boxShadow: '0 10px 40px rgba(16, 185, 129, 0.4)',
+          fontWeight: 'bold', backdropFilter: 'blur(10px)', animation: 'fadeIn 0.3s'
+        }}>
+          ✨ {lang === 'ja' ? '応援ありがとうございます！' : 'Thank you for your support!'}
+        </div>
+      )}
       <div style={{ position: 'fixed', top: '1.5rem', left: '1.5rem', fontSize: '0.65rem', color: '#475569', zIndex: 10, fontFamily: 'monospace' }}>
         ver.{APP_VERSION}
       </div>
@@ -176,6 +287,72 @@ export default function Home() {
               <div style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.2rem' }}>Life Support Project 代表</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SECTION: Daily AI Tip (Rewarded Ad) */}
+      <section className="support-section animate-fade-in" style={{
+        marginTop: 'clamp(3rem, 8vw, 5rem)',
+        width: '100%',
+        maxWidth: '900px',
+        textAlign: 'center'
+      }}>
+        <div className="glass-card" style={{ 
+          padding: '2.5rem', 
+          background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(59, 130, 246, 0.03) 100%)',
+          border: '1px solid rgba(16, 185, 129, 0.1)'
+        }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem' }}>
+            {lang === 'ja' ? '今日のAIワンポイント・アドバイス' : 'Daily AI Insight'}
+          </h2>
+          <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginBottom: '2rem', maxWidth: '550px', margin: '0 auto 2rem' }}>
+            {lang === 'ja' 
+              ? '動画広告を視聴することで、AIによる毎日の健康アドバイスを受け取れます。あなたの視聴が、プロジェクトの高品質なAI解析を無料で提供し続ける力になります。' 
+              : 'Watch a video ad to unlock a personalized AI insight for today. Your support helps us keep providing high-quality AI analysis for everyone for free.'}
+          </p>
+          
+          {dailyTip ? (
+            <div className="animate-fade-in" style={{ 
+              background: 'rgba(255, 255, 255, 0.05)', 
+              padding: '2rem', 
+              borderRadius: '16px', 
+              border: '1px solid var(--primary)',
+              textAlign: 'left',
+              position: 'relative'
+            }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '0.8rem', textTransform: 'uppercase' }}>
+                💡 Today's Tip
+              </div>
+              <p style={{ color: 'white', lineHeight: '1.8', fontSize: '1.05rem' }}>{dailyTip}</p>
+              <button 
+                onClick={() => setDailyTip(null)}
+                style={{ 
+                  marginTop: '1.5rem', background: 'transparent', border: 'none', color: '#64748b', 
+                  fontSize: '0.8rem', cursor: 'pointer', textDecoration: 'underline' 
+                }}
+              >
+                {lang === 'ja' ? '閉じる' : 'Close'}
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={handleSupportClick}
+              disabled={!isAdReady || isGeneratingTip}
+              className="btn-primary" 
+              style={{ 
+                padding: '1rem 2.5rem', 
+                fontSize: '1rem', 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.8rem', 
+                margin: '0 auto',
+                opacity: isAdReady ? 1 : 0.6,
+                cursor: isAdReady ? 'pointer' : 'not-allowed'
+              }}
+            >
+              {isAdReady ? '📺 ' + (lang === 'ja' ? 'アドバイスをアンロック' : 'Unlock Insight') : (lang === 'ja' ? '広告を準備中...' : 'Preparing Ad...')}
+            </button>
+          )}
         </div>
       </section>
 

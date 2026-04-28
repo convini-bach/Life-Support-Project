@@ -10,6 +10,7 @@ import { useUser, SignInButton } from "@clerk/nextjs";
 import { useI18n } from "@/lib/i18n";
 import TabNavigation from "@/components/TabNavigation";
 import AffiliateCard from "@/components/AffiliateCard";
+import { useRewardedAd } from "@/hooks/useRewardedAd";
 
 import { getRecommendations, RecommendationItem } from "@/lib/recommendation";
 
@@ -41,6 +42,14 @@ export default function NutriVision() {
   const { user, isLoaded, isSignedIn } = useUser();
 
   const hasDevMode = !!user?.publicMetadata?.hasDevMode;
+
+  // AdMob Rewarded Ad
+  // テスト用ユニットID（Web版テスト用）
+  const TEST_AD_UNIT_ID = "/21775744923/example/rewarded";
+  const PROD_AD_UNIT_ID = "/23350821563/rewarded_video_portal"; // ユーザーから提供されたID
+  const adUnitId = (process.env.NODE_ENV === 'production' && !hasDevMode) ? PROD_AD_UNIT_ID : TEST_AD_UNIT_ID;
+  
+  const { isReady: isAdReady, showAd } = useRewardedAd(adUnitId);
 
   // Notification State
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
@@ -281,167 +290,187 @@ export default function NutriVision() {
       return;
     }
 
-    // 広告視聴シミュレーション（通常の無料・プレミアムユーザーのみ適用、開発者モードはスキップ）
-    if (!hasDevMode) {
-      setIsAdShowing(true);
-      setAdCountdown(7);
-      
-      const adInterval = setInterval(() => {
-        setAdCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(adInterval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      await new Promise(resolve => setTimeout(resolve, 7000));
-      setIsAdShowing(false);
+    // 広告の準備ができているか確認（開発者モード以外）
+    if (!hasDevMode && !isAdReady) {
+      showToast(lang === 'ja' ? "広告を準備中です。少し待ってから再度お試しください。" : "Ad is preparing. Please try again in a moment.");
+      return;
     }
 
-    setIsAnalyzing(true);
-    setCountdown(10);
-    setAnalysisResult(null);
-    setIsEditing(false);
+    // 広告視聴完了後の処理を登録
+    // 解析のメイン処理
+    const proceedWithAnalysis = async () => {
+      setIsAnalyzing(true);
+      setCountdown(10);
+      setAnalysisResult(null);
+      setIsEditing(false);
 
-    try {
-      const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
-      const profileContext = profile 
-        ? `ユーザー特性: ${profile.gender === 'male' ? '男性' : '女性'}, ${profile.birthYear ? new Date().getFullYear() - profile.birthYear : '不明'}歳。目標: ${profile.concern}` 
-        : "";
+      try {
+        const profile = storage.get<HealthData>(STORAGE_KEYS.HEALTH_DATA);
+        const profileContext = profile 
+          ? `ユーザー特性: ${profile.gender === 'male' ? '男性' : '女性'}, ${profile.birthYear ? new Date().getFullYear() - profile.birthYear : '不明'}歳。目標: ${profile.concern}` 
+          : "";
 
-      const prompt = lang === 'en' ? `
-        Analyze the following meal and output in JSON.
-        ${profileContext}
-        Meal Source: ${mealSource} (home, restaurant, takeout)
-        Meal Category: ${mealCategory}
-        Additional Info: ${textInput}
+        const prompt = lang === 'en' ? `
+          Analyze the following meal and output in JSON.
+          ${profileContext}
+          Meal Source: ${mealSource} (home, restaurant, takeout)
+          Meal Category: ${mealCategory}
+          Additional Info: ${textInput}
 
-        Strict JSON format:
-        {
-          "name": "Meal Name",
-          "calories": number,
-          "nutrients": {
-            "protein": number(g), "fat": number(g), "carbs": number(g),
-            "salt": number(g), "fiber": number(g), "vegetablesTotal": number(g), "vegetablesGreenYellow": number(g)
-          },
-          "advice": {
-            "evaluation": "Detailed evaluation of nutritional balance (approx 150 chars)",
-            "improvements": ["Action 1", "Action 2"],
-            "message": "A friendly and sharp closing message like a professional coach."
+          Strict JSON format:
+          {
+            "name": "Meal Name",
+            "calories": number,
+            "nutrients": {
+              "protein": number(g), "fat": number(g), "carbs": number(g),
+              "salt": number(g), "fiber": number(g), "vegetablesTotal": number(g), "vegetablesGreenYellow": number(g)
+            },
+            "advice": {
+              "evaluation": "Detailed evaluation of nutritional balance (approx 150 chars)",
+              "improvements": ["Action 1", "Action 2"],
+              "message": "A friendly and sharp closing message like a professional coach."
+            }
           }
-        }
-        Note: Output should be in English.
-      ` : `
-        以下の食事を解析し、JSON出力してください。
-        ${profileContext}
-        食事タイプ: ${mealSource} (home:自炊, restaurant:外食, takeout:テイクアウト)
-        食事カテゴリ: ${mealCategory}
-        補足情報: ${textInput}
+          Note: Output should be in English.
+        ` : `
+          以下の食事を解析し、JSON出力してください。
+          ${profileContext}
+          食事タイプ: ${mealSource} (home:自炊, restaurant:外食, takeout:テイクアウト)
+          食事カテゴリ: ${mealCategory}
+          補足情報: ${textInput}
 
-        出力JSONフォーマット厳守:
-        {
-          "name": "料理名",
-          "calories": 数値,
-          "nutrients": {
-            "protein": 数値(g), "fat": 数値(g), "carbs": 数値(g),
-            "salt": 数値(g), "fiber": 数値(g), "vegetablesTotal": 数値(g), "vegetablesGreenYellow": 数値(g)
-          },
-          "advice": {
-            "evaluation": "今回の食事の栄養バランスや選択についての具体的な評価（150字程度）",
-            "improvements": ["具体的な改善アクション1", "改善アクション2"],
-            "message": "保険代理店のプロのような親身で鋭い『問いかけ』を含む締めくくりのメッセージ"
+          出力JSONフォーマット厳守:
+          {
+            "name": "料理名",
+            "calories": 数値,
+            "nutrients": {
+              "protein": 数値(g), "fat": 数値(g), "carbs": 数値(g),
+              "salt": 数値(g), "fiber": 数値(g), "vegetablesTotal": 数値(g), "vegetablesGreenYellow": 数値(g)
+            },
+            "advice": {
+              "evaluation": "今回の食事の栄養バランスや選択についての具体的な評価（150字程度）",
+              "improvements": ["具体的な改善アクション1", "改善アクション2"],
+              "message": "保険代理店のプロのような親身で鋭い『問いかけ』を含む締めくくりのメッセージ"
+            }
           }
+          ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。出力は日本語でお願いします。
+        `;
+
+        let jsonText = "";
+
+        // 1. 開発者モード（自前キー）の場合：直接実行
+        if (hasDevMode && apiKey) {
+          const { GoogleGenerativeAI } = await import("@google/generative-ai");
+          const genAI = new GoogleGenerativeAI(apiKey);
+          const model = genAI.getGenerativeModel({ model: selectedModel });
+          
+          let result;
+          if (mode === "image" && selectedImage) {
+            const base64Data = selectedImage.split(",")[1];
+            result = await model.generateContent([
+              prompt,
+              { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
+            ]);
+          } else {
+            result = await model.generateContent(prompt);
+          }
+          const response = await result.response;
+          jsonText = response.text();
+        } 
+        // 2. 無料またはプレミアムユーザーの場合：サーバープロキシ経由
+        else {
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              appId: 'nutri-vision',
+              mode,
+              prompt,
+              image: mode === "image" ? selectedImage : null,
+              model: selectedModel
+            })
+          });
+
+          if (!res.ok) {
+            const errText = await res.text();
+            throw new Error(errText || "サーバー解析中にエラーが発生しました。");
+          }
+
+          const data = await res.json();
+          jsonText = data.text;
         }
-        ※注意: JSONの文字列内で実際の改行を使用せず、改行が必要な箇所には \\n を使用してください。出力は日本語でお願いします。
-      `;
 
-      let jsonText = "";
-
-      // 1. 開発者モード（自前キー）の場合：直接実行
-      if (hasDevMode && apiKey) {
-        const { GoogleGenerativeAI } = await import("@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: selectedModel });
+        const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error("AI解析に失敗しました。JSONが見つかりません。");
         
-        let result;
-        if (mode === "image" && selectedImage) {
-          const base64Data = selectedImage.split(",")[1];
-          result = await model.generateContent([
-            prompt,
-            { inlineData: { data: base64Data, mimeType: "image/jpeg" } }
-          ]);
-        } else {
-          result = await model.generateContent(prompt);
-        }
-        const response = await result.response;
-        jsonText = response.text();
-      } 
-      // 2. 無料またはプレミアムユーザーの場合：サーバープロキシ経由
-      else {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            appId: 'nutri-vision',
-            mode,
-            prompt,
-            image: mode === "image" ? selectedImage : null,
-            model: selectedModel
-          })
-        });
+        const cleanedJsonStr = jsonMatch[0]
+          .replace(/[\u0000-\u001F\u007F-\u009F]/g, (match) => {
+            if (match === '\n' || match === '\r') return ' '; 
+            if (match === '\t') return '\\t';
+            return '';
+          });
+        
+        const data = JSON.parse(cleanedJsonStr);
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        const finalResult: AnalysisResult = {
+          id: Date.now(),
+          date: selectedDate + "T" + timeStr,
+          mealSource,
+          mealCategory,
+          ...data
+        };
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(errText || "サーバー解析中にエラーが発生しました。");
-        }
+        setAnalysisResult(finalResult);
+        saveToHistory(finalResult);
 
-        const data = await res.json();
-        jsonText = data.text;
+        showToast(t('analysis.toast.success'));
+      } catch (e) {
+        console.error(e);
+        const message = e instanceof Error ? e.message : "不明なエラー";
+        let errorMsg = `解析エラー: ${message}`;
+        if (message.includes("429") || message.toLowerCase().includes("quota") || message.includes("limit reached")) {
+          if (message.includes("50 requests")) {
+            errorMsg = t('analysis.error.safety_limit');
+          } else {
+            errorMsg = t('analysis.error.quota');
+          }
+        } else if (message.includes("API key")) {
+          errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。" : "API key is invalid or not set.";
+        }
+        showToast(errorMsg);
+      } finally {
+        setIsAnalyzing(false);
       }
+    };
 
-      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error("AI解析に失敗しました。JSONが見つかりません。");
-      
-      const cleanedJsonStr = jsonMatch[0]
-        .replace(/[\u0000-\u001F\u007F-\u009F]/g, (match) => {
-          if (match === '\n' || match === '\r') return ' '; 
-          if (match === '\t') return '\\t';
-          return '';
-        });
-      
-      const data = JSON.parse(cleanedJsonStr);
-      const now = new Date();
-      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-      const finalResult: AnalysisResult = {
-        id: Date.now(),
-        date: selectedDate + "T" + timeStr,
-        mealSource,
-        mealCategory,
-        ...data
-      };
+    // 広告視聴完了後の処理を登録
+    const handleRewardGranted = () => {
+      window.removeEventListener('ad-reward-granted', handleRewardGranted);
+      setIsAdShowing(false);
+      proceedWithAnalysis();
+    };
+    
+    // 広告が閉じられた場合の処理（報酬がもらえなかった場合など）
+    const handleAdClosed = () => {
+      window.removeEventListener('ad-reward-granted', handleRewardGranted);
+      setIsAdShowing(false);
+    };
 
-      setAnalysisResult(finalResult);
-      saveToHistory(finalResult);
-
-      showToast(t('analysis.toast.success'));
-    } catch (e) {
-      console.error(e);
-      const message = e instanceof Error ? e.message : "不明なエラー";
-      let errorMsg = `解析エラー: ${message}`;
-      if (message.includes("429") || message.toLowerCase().includes("quota") || message.includes("limit reached")) {
-        if (message.includes("50 requests")) {
-          errorMsg = t('analysis.error.safety_limit');
-        } else {
-          errorMsg = t('analysis.error.quota');
-        }
-      } else if (message.includes("API key")) {
-        errorMsg = lang === 'ja' ? "APIキーが無効、または設定されていません。" : "API key is invalid or not set.";
+    // 広告視聴（通常の無料・プレミアムユーザーのみ適用、開発者モードはスキップ）
+    if (!hasDevMode) {
+      window.addEventListener('ad-reward-granted', handleRewardGranted);
+      // GPTは広告が閉じられたときのイベントがスロットごとに異なるため、
+      // ここでは簡易的に showAd が成功したかを確認
+      if (showAd()) {
+        setIsAdShowing(true);
+        setAdCountdown(7); // 予備の待機時間（オーバーレイ用）
+      } else {
+        showToast(lang === 'ja' ? "広告を表示できませんでした。しばらく経ってからお試しください。" : "Could not show ad. Please try again later.");
+        window.removeEventListener('ad-reward-granted', handleRewardGranted);
       }
-      showToast(errorMsg);
-    } finally {
-      setIsAnalyzing(false);
+    } else {
+      proceedWithAnalysis();
     }
   };
 

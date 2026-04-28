@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -6,62 +6,14 @@ import { loadFridgeData, saveFridgeData, FridgeItem } from '../lib/fridge-logic'
 import { loadFamilyData, FamilyMember } from '../lib/family-logic';
 import { subtractQuantity, parseQuantity } from '../lib/quantity-logic';
 import { loadWeeklyPlan, saveWeeklyPlan, WeeklyPlan, DayOfWeek, DAYS_JP, loadPlannerSettings, savePlannerSettings, DayPlan } from '../lib/planner-logic';
+import { Recipe, RecipeCategory, MOCK_RECIPES } from '../lib/recipes';
 
-type RecipeCategory = 'meat' | 'fish' | 'vegetable' | 'noodle' | 'other';
+
+
 const DAY_ORDER: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-
-interface Recipe {
-  id: string;
-  name: string;
-  description: string;
-  category: RecipeCategory;
-  ingredients: {
-    name: string;
-    amountPerPerson: number;
-    unit: string;
-  }[];
-  steps: string[];
-  url?: string;
-  source?: string;
-  image: string;
-}
-
 const SLOT_JP: Record<string, string> = {
   main: '主菜', side1: '副菜1', side2: '副菜2', side3: '副菜3', soup: '汁物'
 };
-
-const MOCK_RECIPES: Recipe[] = [
-  { id: 'curry', name: '時短！ポークカレー', category: 'meat', description: '余り野菜をたっぷり使った定番メニュー。', ingredients: [{ name: '豚肉', amountPerPerson: 100, unit: 'g' }, { name: 'キャベツ', amountPerPerson: 50, unit: 'g' }], steps: ['材料を切る', '肉と野菜を炒める', '水とルウを加えて煮込む'], image: '🍛' },
-  { id: 'stir-fry', name: '肉野菜炒め', category: 'meat', description: '強火でサッと炒めるだけ。', ingredients: [{ name: '豚肉', amountPerPerson: 80, unit: 'g' }, { name: 'キャベツ', amountPerPerson: 100, unit: 'g' }], steps: ['材料を切る', '強火で炒める'], image: '🍳' },
-  { id: 'saba-misoni', name: 'さばのみそ煮', category: 'fish', description: '新鮮なさばで作るのが一番。', ingredients: [{ name: 'さば', amountPerPerson: 1, unit: '切れ' }], steps: ['さばを湯通しする', '味噌で煮る'], image: '🐟' },
-  { id: 'salad', name: 'キャベツの塩昆布和え', category: 'vegetable', description: 'あと一品に最適。火を使わず完成。', ingredients: [{ name: 'キャベツ', amountPerPerson: 50, unit: 'g' }], steps: ['キャベツを切る', '塩昆布と和える'], image: '🥗' },
-  { id: 'soup-miso', name: '具だくさん味噌汁', category: 'other', description: '冷蔵庫の余り野菜を一掃。', ingredients: [{ name: 'キャベツ', amountPerPerson: 30, unit: 'g' }], steps: ['だしをとる', '具材を煮る', '味噌を溶く'], image: '🥣' },
-  { id: 'hamburg', name: 'ふっくらハンバーグ', category: 'meat', description: '子供も大好き、肉汁たっぷり。', ingredients: [{ name: 'ひき肉', amountPerPerson: 120, unit: 'g' }], steps: ['玉ねぎを炒める', '肉と混ぜて成形', '焼く'], image: '🍔' },
-  { id: 'salmon-foil', name: '鮭のホイル焼き', category: 'fish', description: '片付け簡単、野菜も一緒に。', ingredients: [{ name: '鮭', amountPerPerson: 1, unit: '切れ' }], steps: ['ホイルに並べる', 'バターをのせる', 'トースターで焼く'], image: '🍱' },
-  { id: 'kinpira', name: 'きんぴらごぼう', category: 'vegetable', description: '作り置きに便利な定番副菜。', ingredients: [{ name: 'ごぼう', amountPerPerson: 30, unit: 'g' }], steps: ['細切りにする', '炒めて煮る'], image: '🥢' },
-  { id: 'tonkatsu', name: 'サクサクとんかつ', category: 'meat', description: '晩ごはんの王様。', ingredients: [{ name: '豚ロース', amountPerPerson: 120, unit: 'g' }], steps: ['衣をつける', '油で揚げる'], image: '🥩' },
-  { id: 'yakisoba', name: 'ソース焼きそば', category: 'meat', description: 'ランチにも最適な時短料理。', ingredients: [{ name: '焼きそば麺', amountPerPerson: 1, unit: '玉' }], steps: ['具を炒める', '麺を加えて蒸し焼き'], image: '🍝' },
-  { id: 'karaage', name: '鶏の唐揚げ', category: 'meat', description: '秘伝のタレに漬け込んで。', ingredients: [{ name: '鶏もも肉', amountPerPerson: 150, unit: 'g' }], steps: ['タレに漬ける', '粉をまぶす', '揚げる'], image: '🍗' },
-  { id: 'niku-jaga', name: '肉じゃが', category: 'meat', description: '家庭の味の代表格。', ingredients: [{ name: '牛肉', amountPerPerson: 80, unit: 'g' }], steps: ['具材を炒める', '煮汁で煮込む'], image: '🥘' },
-  { id: 'mapo-tofu', name: '本格麻婆豆腐', category: 'meat', description: 'ピリ辛でご飯が進む。', ingredients: [{ name: '豆腐', amountPerPerson: 150, unit: 'g' }], steps: ['ソースを作る', '豆腐を加える'], image: '🌶️' },
-  { id: 'ginger-pork', name: '豚の生姜焼き', category: 'meat', description: 'ご飯のお供に最高。', ingredients: [{ name: '豚肉', amountPerPerson: 120, unit: 'g' }], steps: ['タレを作る', '肉を焼く'], image: '🥓' },
-  { id: 'tempura', name: '季節の天ぷら', category: 'vegetable', description: '旬の食材をサクッと。', ingredients: [{ name: '野菜', amountPerPerson: 100, unit: 'g' }], steps: ['衣を作る', '揚げる'], image: '🍤' },
-  { id: 'oyakodon', name: 'ふわとろ親子丼', category: 'meat', description: '卵の加減がポイント。', ingredients: [{ name: '鶏肉', amountPerPerson: 100, unit: 'g' }], steps: ['だしで煮る', '卵でとじる'], image: '🍚' },
-  { id: 'gyudon', name: '牛丼', category: 'meat', description: '忙しい時の強い味方。', ingredients: [{ name: '牛肉', amountPerPerson: 100, unit: 'g' }], steps: ['煮汁で煮る'], image: '🐮' },
-  { id: 'carbonara', name: '濃厚カルボナーラ', category: 'other', description: '本格的な味わい。', ingredients: [{ name: 'パスタ', amountPerPerson: 100, unit: 'g' }], steps: ['パスタを茹でる', 'ソースと和える'], image: '🍝' },
-  { id: 'omurice', name: 'オムライス', category: 'other', description: '卵の包み方がコツ。', ingredients: [{ name: '鶏肉', amountPerPerson: 50, unit: 'g' }], steps: ['ケチャップライスを作る', '卵で包む'], image: '🍳' },
-  { id: 'gyoza', name: '手作り餃子', category: 'meat', description: 'みんなで包むと楽しい。', ingredients: [{ name: '豚ひき肉', amountPerPerson: 100, unit: 'g' }], steps: ['あんを包む', '蒸し焼きにする'], image: '🥟' },
-  { id: 'soup-corn', name: 'コーンポタージュ', category: 'other', description: '甘くて優しいスープ。', ingredients: [{ name: 'コーン', amountPerPerson: 50, unit: 'g' }], steps: ['ミキサーにかける', '温める'], image: '🌽' },
-  { id: 'soup-onion', name: 'オニオンスープ', category: 'other', description: '飴色玉ねぎの甘み。', ingredients: [{ name: '玉ねぎ', amountPerPerson: 100, unit: 'g' }], steps: ['玉ねぎを炒める', '煮込む'], image: '🧅' },
-  { id: 'side-ohitashi', name: 'ほうれん草のお浸し', category: 'vegetable', description: 'さっぱり副菜。', ingredients: [{ name: 'ほうれん草', amountPerPerson: 50, unit: 'g' }], steps: ['茹でる', 'だしに浸す'], image: '🥬' },
-  { id: 'side-namul', name: 'もやしのナムル', category: 'vegetable', description: 'シャキシャキ食感。', ingredients: [{ name: 'もやし', amountPerPerson: 100, unit: 'g' }], steps: ['茹でる', '調味料と和える'], image: '🥢' },
-  { id: 'side-hijiki', name: 'ひじきの煮物', category: 'vegetable', description: '栄養満点。', ingredients: [{ name: 'ひじき', amountPerPerson: 20, unit: 'g' }], steps: ['戻す', '煮る'], image: '🖤' },
-  { id: 'fish-buri', name: 'ぶりの照り焼き', category: 'fish', description: '甘辛タレが絶品。', ingredients: [{ name: 'ぶり', amountPerPerson: 1, unit: '切れ' }], steps: ['焼く', 'タレを絡める'], image: '🐟' },
-  { id: 'fish-shioyaki', name: 'さんまの塩焼き', category: 'fish', description: '秋の味覚。', ingredients: [{ name: 'さんま', amountPerPerson: 1, unit: '尾' }], steps: ['塩を振る', '焼く'], image: '🍢' },
-  { id: 'noodle-udon', name: '肉うどん', category: 'meat', description: 'あったまる一杯。', ingredients: [{ name: 'うどん麺', amountPerPerson: 1, unit: '玉' }], steps: ['だしを作る', '肉を煮る'], image: '🍜' },
-  { id: 'noodle-ramen', name: '醤油ラーメン', category: 'meat', description: '自家製チャーシューと。', ingredients: [{ name: '中華麺', amountPerPerson: 1, unit: '玉' }], steps: ['スープを作る', '麺を茹でる'], image: '🍜' },
-  { id: 'soup-minestrone', name: 'ミネストローネ', category: 'vegetable', description: 'トマトたっぷりのスープ。', ingredients: [{ name: 'トマト', amountPerPerson: 100, unit: 'g' }], steps: ['野菜を切る', '煮込む'], image: '🍅' },
-];
 
 export default function MenuPage() {
   const [family, setFamily] = useState<FamilyMember[]>([]);
@@ -78,13 +30,27 @@ export default function MenuPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [customRecipes, setCustomRecipes] = useState<Recipe[]>([]);
+  const [urlInput, setUrlInput] = useState('');
+  const [suggestInput, setSuggestInput] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
   useEffect(() => {
     setFamily(loadFamilyData());
     setFridgeItems(loadFridgeData());
     setWeeklyPlan(loadWeeklyPlan());
     const settings = loadPlannerSettings();
     setShoppingDays(settings.shoppingDays);
+
+    const savedCustom = localStorage.getItem('smart-kitchen-suggested-menu');
+    if (savedCustom) setCustomRecipes(JSON.parse(savedCustom));
   }, []);
+
+  const saveCustomRecipe = (recipe: Recipe) => {
+    const newCustom = [...customRecipes, recipe];
+    setCustomRecipes(newCustom);
+    localStorage.setItem('smart-kitchen-suggested-menu', JSON.stringify(newCustom));
+  };
 
   const toggleShoppingDay = (day: DayOfWeek) => {
     const newDays = shoppingDays.includes(day)
@@ -100,7 +66,7 @@ export default function MenuPage() {
     newPlan[day][selectedSlot] = recipe.id;
     setWeeklyPlan(newPlan);
     saveWeeklyPlan(newPlan);
-    setMessage(${DAYS_JP[day]}のに「」を登録しました。);
+    setMessage(`${DAYS_JP[day]}の${SLOT_JP[selectedSlot]}に「${recipe.name}」を登録しました。`);
   };
 
   const clearSlot = (day: DayOfWeek, slot: keyof DayPlan) => {
@@ -130,11 +96,13 @@ export default function MenuPage() {
     
     setTimeout(() => {
       setIsApplying(null);
-      setMessage(「」を調理しました。在庫を更新しました！);
+      setMessage(`「${recipe.name}」を調理しました。在庫を更新しました！`);
     }, 1000);
   };
 
-  const filteredRecipes = recipes.filter(r => {
+  const allRecipes = [...recipes, ...customRecipes];
+
+  const filteredRecipes = allRecipes.filter(r => {
     if (filter === 'all') return true;
     if (filter === 'main') return r.category === 'meat' || r.category === 'fish' || r.category === 'noodle';
     if (filter === 'side') return r.category === 'vegetable';
@@ -142,141 +110,248 @@ export default function MenuPage() {
     return r.category === filter;
   });
 
+  const getSlotColor = (day: DayOfWeek, slot: keyof DayPlan) => {
+    if (!weeklyPlan[day]?.[slot]) return '#1e293b';
+    if (slot === 'main') return '#ef4444';
+    if (slot === 'side1') return '#3b82f6';
+    if (slot === 'side2') return '#06b6d4';
+    if (slot === 'side3') return '#10b981';
+    if (slot === 'soup') return '#f59e0b';
+    return '#4ade80';
+  };
+
+  const handleUrlRegister = () => {
+    if (!urlInput) return;
+    setIsProcessing(true);
+    // 擬似的なURL解析
+    setTimeout(() => {
+      const newRecipe: Recipe = {
+        id: `url-${Date.now()}`,
+        name: `ウェブで見つけたレシピ (${urlInput.split('/')[2] || '外部サイト'})`,
+        description: 'URLから登録されたレシピです。',
+        category: 'other',
+        ingredients: [
+          { name: 'メイン材料', amountPerPerson: 100, unit: 'g' },
+          { name: '付け合わせ', amountPerPerson: 50, unit: 'g' }
+        ],
+        steps: ['URLを参照して調理してください', urlInput],
+        image: '🔗',
+        url: urlInput
+      };
+      saveCustomRecipe(newRecipe);
+      setUrlInput('');
+      setIsProcessing(false);
+      setMessage(`URLから「${newRecipe.name}」を登録しました。`);
+    }, 1500);
+  };
+
+  const handleSuggest = () => {
+    if (!suggestInput) return;
+    setIsProcessing(true);
+    // 擬似的なAI提案
+    setTimeout(() => {
+      const newRecipe: Recipe = {
+        id: `suggest-${Date.now()}`,
+        name: `AI提案: ${suggestInput}風の一皿`,
+        description: `${suggestInput}という気分に合わせてAIが考えたメニューです。`,
+        category: 'meat',
+        ingredients: [
+          { name: 'お好みの肉', amountPerPerson: 120, unit: 'g' },
+          { name: '旬の野菜', amountPerPerson: 80, unit: 'g' }
+        ],
+        steps: ['材料を揃える', '気分に合わせて味付けする', '愛情を込めて仕上げる'],
+        image: '✨'
+      };
+      saveCustomRecipe(newRecipe);
+      setSuggestInput('');
+      setIsProcessing(false);
+      setMessage(`AIが「${newRecipe.name}」を提案し、リストに追加しました！`);
+    }, 1500);
+  };
+
   return (
-    <main style={{ padding: '1rem', maxWidth: '800px', margin: '0 auto', paddingBottom: '5rem' }}>
-      <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--recipe-primary)' }}>Menu Planner</h1>
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8' }}>1週間の献立を組み立てましょう</p>
-        </div>
-        <Link href="/recipe-app" className="btn-primary" style={{ padding: '0.5rem 1rem', textDecoration: 'none' }}>冷蔵庫へ</Link>
-      </header>
+    <main style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto', paddingBottom: '5rem' }}>
+      <div className="responsive-grid-800" style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '2rem', alignItems: 'start', marginTop: '1rem' }}>
+        {/* 左サイドバー: 週間スケジュール */}
+        <aside className="sidebar-sticky">
+          <section className="glass-card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
+            <div style={{ fontSize: '0.8rem', fontWeight: 'bold', color: 'var(--recipe-primary)', marginBottom: '0.8rem' }}>🛒 買い物日:</div>
+            <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+              {DAY_ORDER.map(day => (
+                <button 
+                  key={day} 
+                  onClick={() => toggleShoppingDay(day)} 
+                  style={{ 
+                    padding: '0.3rem 0.6rem', borderRadius: '12px', fontSize: '0.7rem', 
+                    background: shoppingDays.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)', 
+                    color: shoppingDays.includes(day) ? '#000' : '#fff', 
+                    border: 'none', cursor: 'pointer' 
+                  }}
+                >
+                  {DAYS_JP[day]}
+                </button>
+              ))}
+            </div>
+          </section>
 
-      <section className="glass-card" style={{ padding: '1.2rem', marginBottom: '2rem' }}>
-        <div style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--recipe-primary)', marginBottom: '1rem' }}>🛒 買い物に行く日:</div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {DAY_ORDER.map(day => (
-            <button key={day} onClick={() => toggleShoppingDay(day)} style={{ padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.75rem', background: shoppingDays.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)', color: shoppingDays.includes(day) ? '#000' : '#fff', border: '1px solid ' + (shoppingDays.includes(day) ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'), cursor: 'pointer' }}>{DAYS_JP[day]}</button>
-          ))}
-        </div>
-      </section>
-
-      {/* 登録先スロット選択 */}
-      <section style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontSize: '0.9rem', color: '#94a3b8', marginRight: '0.5rem' }}>登録先スロットを選択:</span>
-        {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
-          <button 
-            key={slot}
-            onClick={() => setSelectedSlot(slot)}
-            style={{ 
-              padding: '0.5rem 1.2rem', borderRadius: '10px', fontSize: '0.85rem',
-              background: selectedSlot === slot ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
-              color: selectedSlot === slot ? '#000' : '#fff',
-              border: 'none', cursor: 'pointer', fontWeight: 'bold'
-            }}
-          >
-            {SLOT_JP[slot]}
-          </button>
-        ))}
-      </section>
-
-      {/* 週間カレンダー (Stickyに設定) */}
-      <section style={{ 
-        position: 'sticky', 
-        top: '60px', 
-        zIndex: 50, 
-        padding: '0.8rem 0',
-        background: 'rgba(10, 12, 16, 0.95)', 
-        backdropFilter: 'blur(12px)',
-        margin: '0 -1rem 2rem -1rem',
-        paddingLeft: '1rem',
-        paddingRight: '1rem',
-        borderBottom: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
-          <h2 style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
-          <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)', fontWeight: 'bold' }}>
-            <span style={{ color: '#fff', marginRight: '0.4rem' }}>表示中:</span>
-            {SLOT_JP[selectedSlot as string]}
-          </div>
-        </div>
-        <div style={{ display: 'flex', overflowX: 'auto', gap: '0.5rem', paddingBottom: '0.5rem', scrollbarWidth: 'none' }}>
-          {DAY_ORDER.map(day => {
-            const currentRecipeId = weeklyPlan[day]?.[selectedSlot];
-            const currentRecipe = recipes.find(r => r.id === currentRecipeId);
-            
-            return (
-              <div key={day} style={{ 
-                minWidth: '120px', flex: '0 0 auto',
-                background: 'rgba(255,255,255,0.02)', borderRadius: '12px', padding: '0.6rem 0.5rem', 
-                border: shoppingDays.includes(day) ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.05)', 
-                textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '0.4rem'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#94a3b8' }}>{DAYS_JP[day]}</span>
-                  {currentRecipeId && (
-                    <button 
-                      onClick={() => clearSlot(day, selectedSlot)} 
-                      style={{ background: 'rgba(248, 113, 113, 0.1)', border: 'none', color: '#f87171', borderRadius: '4px', padding: '0.1rem 0.3rem', fontSize: '0.6rem', cursor: 'pointer' }}
-                    >
-                      消去
-                    </button>
-                  )}
-                </div>
-
-                <div style={{ 
-                  fontSize: '0.75rem', color: currentRecipe ? '#fff' : '#334155', 
-                  fontWeight: currentRecipe ? 'bold' : 'normal',
-                  height: '1.2rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                  background: currentRecipe ? 'rgba(255,255,255,0.03)' : 'transparent',
-                  borderRadius: '4px', padding: '0 0.2rem'
-                }}>
-                  {currentRecipe ? currentRecipe.name : '---'}
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.2rem', marginTop: '0.2rem' }}>
-                  {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
-                    <div key={slot} style={{ 
-                      width: '6px', height: '6px', borderRadius: '50%',
-                      background: weeklyPlan[day]?.[slot] ? (selectedSlot === slot ? 'var(--recipe-primary)' : '#4ade80') : 'rgba(255,255,255,0.1)',
-                      border: selectedSlot === slot ? '1px solid #fff' : 'none',
-                      boxShadow: selectedSlot === slot && weeklyPlan[day]?.[slot] ? '0 0 5px var(--recipe-primary)' : 'none'
-                    }} />
-                  ))}
-                </div>
+          <section className="glass-card" style={{ padding: '1.2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Weekly Schedule</h2>
+              <div style={{ fontSize: '0.7rem', color: 'var(--recipe-primary)', fontWeight: 'bold' }}>
+                {SLOT_JP[selectedSlot as string]}
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {DAY_ORDER.map(day => {
+                const currentRecipeId = weeklyPlan[day]?.[selectedSlot];
+                const currentRecipe = allRecipes.find(r => r.id === currentRecipeId);
+                
+                return (
+                  <div key={day} style={{ 
+                    width: '100%',
+                    background: 'rgba(255,255,255,0.02)', borderRadius: '10px', padding: '0.6rem 0.8rem', 
+                    border: shoppingDays.includes(day) ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(255,255,255,0.05)', 
+                    display: 'flex', alignItems: 'center', gap: '0.8rem', justifyContent: 'space-between'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flex: 1, minWidth: 0 }}>
+                      <div style={{ 
+                        width: '28px', height: '28px', borderRadius: '50%', 
+                        background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '0.7rem', fontWeight: 'bold', color: day === 'sun' ? '#f87171' : day === 'sat' ? '#60a5fa' : '#94a3b8',
+                        flexShrink: 0
+                      }}>
+                        {DAYS_JP[day]}
+                      </div>
+                      
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ 
+                          fontSize: '0.85rem', color: currentRecipe ? '#fff' : '#334155', 
+                          fontWeight: currentRecipe ? 'bold' : 'normal',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                        }}>
+                          {currentRecipe ? currentRecipe.name : '---'}
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '0.3rem', marginTop: '0.2rem' }}>
+                          {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
+                            <div key={slot} style={{ 
+                              width: '5px', height: '5px', borderRadius: '50%',
+                              background: getSlotColor(day, slot),
+                              border: selectedSlot === slot ? '1px solid #fff' : 'none'
+                            }} />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
 
-      {message && (
-        <div className="glass-card" style={{ padding: '1.2rem', marginBottom: '2rem', borderLeft: '4px solid var(--recipe-primary)', background: 'rgba(16, 185, 129, 0.1)', whiteSpace: 'pre-wrap', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <span>{message}</span>
-          <button onClick={() => setMessage(null)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}>閉じる</button>
-        </div>
-      )}
+                    <div style={{ display: 'flex', gap: '0.3rem', flexShrink: 0 }}>
+                      {currentRecipeId && (
+                        <>
+                          <Link 
+                            href={`/recipe-app/recipe?day=${day}`}
+                            style={{ background: 'rgba(74, 222, 128, 0.1)', border: 'none', color: 'var(--recipe-primary)', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer', textDecoration: 'none' }}
+                          >
+                            詳細
+                          </Link>
+                          <button 
+                            onClick={() => clearSlot(day, selectedSlot)} 
+                            style={{ background: 'rgba(248, 113, 113, 0.1)', border: 'none', color: '#f87171', borderRadius: '4px', padding: '0.2rem 0.5rem', fontSize: '0.65rem', cursor: 'pointer' }}
+                          >
+                            ×
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </aside>
 
-      {/* レシピ一覧セクション */}
-      <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.2rem' }}>AIおすすめレシピ</h2>
-          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-            {(['all', 'main', 'side', 'soup', 'meat', 'fish', 'vegetable'] as const).map(cat => (
-              <button key={cat} onClick={() => setFilter(cat)} style={{ padding: '0.3rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', background: filter === cat ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)', color: filter === cat ? '#000' : '#94a3b8', border: 'none', cursor: 'pointer' }}>
-                {cat === 'all' ? 'すべて' : cat === 'main' ? '主菜' : cat === 'side' ? '副菜' : cat === 'soup' ? '汁物' : cat === 'meat' ? '肉' : cat === 'fish' ? '魚' : '野菜'}
+        {/* 右メイン: レシピ検索・提案 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {message && (
+            <div className="glass-card" style={{ padding: '1.2rem', borderLeft: '4px solid var(--recipe-primary)', background: 'rgba(16, 185, 129, 0.1)', whiteSpace: 'pre-wrap', fontSize: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{message}</span>
+              <button onClick={() => setMessage(null)} style={{ background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '0.2rem 0.6rem', borderRadius: '4px', cursor: 'pointer', fontSize: '0.7rem' }}>閉じる</button>
+            </div>
+          )}
+
+          {/* AI提案 & URL登録セクション */}
+          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+            <div className="glass-card" style={{ padding: '1.2rem' }}>
+              <h3 style={{ fontSize: '0.9rem', marginBottom: '0.8rem', color: 'var(--recipe-primary)' }}>✨ AI提案</h3>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  value={suggestInput}
+                  onChange={(e) => setSuggestInput(e.target.value)}
+                  placeholder="さっぱりした鶏肉"
+                  style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}
+                />
+                <button 
+                  onClick={handleSuggest} 
+                  disabled={isProcessing || !suggestInput}
+                  className="btn-primary" 
+                  style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+                >
+                  提案
+                </button>
+              </div>
+            </div>
+
+            <div className="glass-card" style={{ padding: '1.2rem' }}>
+              <h3 style={{ fontSize: '0.9rem', marginBottom: '0.8rem', color: '#60a5fa' }}>🔗 URL登録</h3>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <input 
+                  type="text" 
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="https://..."
+                  style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}
+                />
+                <button 
+                  onClick={handleUrlRegister} 
+                  disabled={isProcessing || !urlInput}
+                  style={{ padding: '0.5rem 1rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  追加
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* 登録先スロット選択 */}
+          <section className="glass-card" style={{ padding: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>スロット:</span>
+            {(Object.keys(SLOT_JP) as (keyof DayPlan)[]).map(slot => (
+              <button 
+                key={slot}
+                onClick={() => setSelectedSlot(slot)}
+                style={{ 
+                  padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.8rem',
+                  background: selectedSlot === slot ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.05)',
+                  color: selectedSlot === slot ? '#000' : '#fff',
+                  border: 'none', cursor: 'pointer', fontWeight: 'bold'
+                }}
+              >
+                {SLOT_JP[slot]}
               </button>
             ))}
-          </div>
-        </div>
-        
-        {/* グリッド表示 */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', 
-          gap: '1rem',
-          paddingBottom: '2rem'
-        }}>
+          </section>
+
+          {/* レシピ一覧 */}
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h2 style={{ fontSize: '1.2rem', color: '#fff', margin: 0 }}>🥘 おすすめレシピ</h2>
+              <div style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
+                {['all', 'main', 'side', 'soup'].map(cat => (
+                  <button key={cat} onClick={() => setFilter(cat as any)} style={{ padding: '0.3rem 0.8rem', borderRadius: '15px', fontSize: '0.7rem', background: filter === cat ? 'rgba(255,255,255,0.1)' : 'transparent', color: filter === cat ? 'var(--recipe-primary)' : '#94a3b8', border: '1px solid ' + (filter === cat ? 'var(--recipe-primary)' : 'rgba(255,255,255,0.1)'), cursor: 'pointer', whiteSpace: 'nowrap' }}>{cat === 'all' ? 'すべて' : cat === 'main' ? '主菜' : cat === 'side' ? '副菜' : '汁物'}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', paddingBottom: '2rem' }}>
           {filteredRecipes.map(recipe => (
             <div key={recipe.id} className="glass-card" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center', textAlign: 'center' }}>
@@ -321,8 +396,10 @@ export default function MenuPage() {
               )}
             </div>
           ))}
+            </div>
+          </section>
         </div>
-      </section>
+      </div>
 
       {/* 登録用モーダル */}
       {registeringRecipe && (
@@ -410,7 +487,7 @@ export default function MenuPage() {
                   setWeeklyPlan(currentWeeklyPlan);
                   saveWeeklyPlan(currentWeeklyPlan);
                   
-                  setMessage(${selectedDaysInModal.map(d => DAYS_JP[d]).join('、')}のに「」を登録しました。);
+                  setMessage(`${selectedDaysInModal.map(d => DAYS_JP[d]).join('、')}の${SLOT_JP[selectedSlotInModal]}に「${registeringRecipe.name}」を登録しました。`);
                   setRegisteringRecipe(null);
                   setSelectedDaysInModal([]);
                 }}
@@ -421,7 +498,7 @@ export default function MenuPage() {
                   fontWeight: 'bold', cursor: 'pointer', border: 'none'
                 }}
               >
-                {selectedDaysInModal.length > 0 ? ${selectedDaysInModal.length}件を登録する : '曜日を選択'}
+                {selectedDaysInModal.length > 0 ? `${selectedDaysInModal.length}件を登録する` : '曜日を選択'}
               </button>
             </div>
           </div>

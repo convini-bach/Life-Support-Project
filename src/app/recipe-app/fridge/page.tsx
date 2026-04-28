@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { suggestExpiryDate, formatDate, FoodCategory, CATEGORY_MAP, FridgeItem, loadFridgeData, saveFridgeData } from '../lib/fridge-logic';
 import { adjustQuantity } from '../lib/quantity-logic';
 import AffiliateCard from '@/components/recipe-app/AffiliateCard';
+import { useRewardedAd } from '@/hooks/useRewardedAd';
 
 export default function FridgePage() {
   const [items, setItems] = useState<FridgeItem[]>([]);
@@ -14,6 +15,19 @@ export default function FridgePage() {
   const [category, setCategory] = useState<FoodCategory>('main');
   const [isBatchAnalyzing, setIsBatchAnalyzing] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: "", visible: false });
+
+  // AdMob Rewarded Ad
+  const TEST_AD_UNIT_ID = "/21775744923/example/rewarded";
+  const PROD_AD_UNIT_ID = "/23350821563/rewarded_video_portal";
+  const adUnitId = process.env.NODE_ENV === 'production' ? PROD_AD_UNIT_ID : TEST_AD_UNIT_ID;
+  
+  const { isReady: isAdReady, showAd } = useRewardedAd(adUnitId);
+
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+    setTimeout(() => setToast(prev => ({ ...prev, visible: false })), 3000);
+  };
 
   // 初回読み込み
   useEffect(() => {
@@ -43,50 +57,71 @@ export default function FridgePage() {
 
   const analyzeAllWithAI = async () => {
     if (items.length === 0 || isBatchAnalyzing) return;
-    setIsBatchAnalyzing(true);
+    
+    if (!isAdReady) {
+      showToast("広告を準備中です。少し待ってから再度お試しください。");
+      return;
+    }
 
-    try {
-      const res = await fetch('/api/recipe-app/analyze-food', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          foods: items.map(i => ({ id: i.id, name: i.name })) 
-        }),
-      });
-      const results = await res.json();
-
-      if (Array.isArray(results)) {
-        const updatedItems = items.map(item => {
-          const result = results.find(r => r.id === item.id);
-          if (result) {
-            const date = new Date();
-            date.setDate(date.getDate() + result.days);
-            return {
-              ...item,
-              expiryDate: formatDate(date),
-              category: result.category as FoodCategory,
-              advice: result.advice,
-              isAnalyzed: true
-            };
-          }
-          return item;
-        });
-        setItems(updatedItems);
-        // メニュー提案を裏で取得
-        fetch('/api/recipe-app/suggest-menu', {
+    const proceedWithAnalysis = async () => {
+      setIsBatchAnalyzing(true);
+      try {
+        const res = await fetch('/api/recipe-app/analyze-food', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: updatedItems }),
-        }).then(r => r.json()).then(menu => {
-          if (Array.isArray(menu)) {
-            localStorage.setItem('smart-kitchen-suggested-menu', JSON.stringify(menu));
-          }
-        }).catch(err => console.error("Menu suggestion failed", err));
+          body: JSON.stringify({ 
+            foods: items.map(i => ({ id: i.id, name: i.name })) 
+          }),
+        });
+        const results = await res.json();
+
+        if (Array.isArray(results)) {
+          const updatedItems = items.map(item => {
+            const result = results.find(r => r.id === item.id);
+            if (result) {
+              const date = new Date();
+              date.setDate(date.getDate() + result.days);
+              return {
+                ...item,
+                expiryDate: formatDate(date),
+                category: result.category as FoodCategory,
+                advice: result.advice,
+                isAnalyzed: true
+              };
+            }
+            return item;
+          });
+          setItems(updatedItems);
+          showToast("AIによる一括判別が完了しました！");
+          
+          // メニュー提案を裏で取得
+          fetch('/api/recipe-app/suggest-menu', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: updatedItems }),
+          }).then(r => r.json()).then(menu => {
+            if (Array.isArray(menu)) {
+              localStorage.setItem('smart-kitchen-suggested-menu', JSON.stringify(menu));
+            }
+          }).catch(err => console.error("Menu suggestion failed", err));
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("解析中にエラーが発生しました。");
+      } finally {
+        setIsBatchAnalyzing(false);
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsBatchAnalyzing(false);
+    };
+
+    const handleRewardGranted = () => {
+      window.removeEventListener('ad-reward-granted', handleRewardGranted);
+      proceedWithAnalysis();
+    };
+
+    window.addEventListener('ad-reward-granted', handleRewardGranted);
+    if (!showAd()) {
+      showToast("広告を表示できませんでした。しばらく経ってからお試しください。");
+      window.removeEventListener('ad-reward-granted', handleRewardGranted);
     }
   };
 
@@ -127,6 +162,18 @@ export default function FridgePage() {
 
   return (
     <main className="container min-h-screen" style={{ paddingBottom: '5rem' }}>
+      {/* Toast Notification */}
+      {toast.visible && (
+        <div style={{
+          position: 'fixed', bottom: '2rem', left: '50%', transform: 'translateX(-50%)',
+          background: 'rgba(16, 185, 129, 0.95)', color: 'white', padding: '0.8rem 1.5rem',
+          borderRadius: '12px', zIndex: 1000, boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+          fontWeight: 'bold', backdropFilter: 'blur(8px)', animation: 'fadeIn 0.3s ease-out'
+        }}>
+          {toast.message}
+        </div>
+      )}
+
       <section className="glass-card" style={{ 
         background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%)', 
         borderLeft: '4px solid var(--recipe-primary)',

@@ -17,68 +17,83 @@ export default function RecipeAppHeader() {
     { name: '冷蔵庫', href: '/recipe-app/fridge', icon: '🧊' },
     { name: '家族設定', href: '/recipe-app/settings', icon: '👤' },
     { name: '献立', href: '/recipe-app/menu', icon: '📅' },
+    { name: '今日のレシピ', href: '/recipe-app/recipe', icon: '🍳' },
     { name: '買い物リスト', href: '/recipe-app/shopping-list', icon: '🛒' },
   ];
 
-  if (!mounted) return (
-    <header style={{ padding: '1rem 2rem', height: '60px', background: 'rgba(10, 12, 16, 0.8)' }} />
-  );
-
   return (
     <header style={{ 
-      padding: '1rem 2rem', 
+      padding: '1rem', 
       display: 'flex', 
-      justifyContent: 'space-between', 
+      flexDirection: 'column',
       alignItems: 'center',
+      gap: '0.8rem',
       borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-      marginBottom: '2rem',
       position: 'sticky',
       top: 0,
-      background: 'rgba(10, 12, 16, 0.8)',
+      background: '#0a0c10',
       backdropFilter: 'blur(12px)',
-      zIndex: 100
+      zIndex: 1000,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+      width: '100%'
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-        <Link href="/" style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--recipe-primary)', textDecoration: 'none' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto' }}>
+        <Link href="/" style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#fff', textDecoration: 'none', letterSpacing: '-0.02em' }}>
           Smart Kitchen
         </Link>
-        <nav style={{ display: 'flex', gap: '1.5rem' }}>
-          {navItems.map(item => (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              style={{ 
-                color: pathname === item.href ? '#fff' : '#94a3b8', 
-                textDecoration: 'none',
-                fontSize: '0.9rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontWeight: pathname === item.href ? '600' : '400'
-              }}
-            >
-              <span>{item.icon}</span> {item.name}
-            </Link>
-          ))}
-        </nav>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <Link 
+            href="/nutri-vision" 
+            className="glass-card" 
+            style={{ 
+              padding: '0.4rem 0.8rem', 
+              fontSize: '0.75rem', 
+              background: 'rgba(16, 185, 129, 0.1)', 
+              borderColor: 'rgba(16, 185, 129, 0.3)',
+              color: '#10b981',
+              textDecoration: 'none',
+              borderRadius: '8px',
+              fontWeight: '600'
+            }}
+          >
+            🥗 AI解析へ
+          </Link>
+        </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem' }}>
-        <Link 
-          href="/nutri-vision" 
-          className="glass-card" 
-          style={{ 
-            padding: '0.5rem 1rem', 
-            fontSize: '0.8rem', 
-            background: 'rgba(16, 185, 129, 0.1)', 
-            borderColor: 'rgba(16, 185, 129, 0.3)',
-            color: '#10b981',
-            textDecoration: 'none'
-          }}
-        >
-          🥗 Nutri-Visionへ
-        </Link>
-      </div>
+      <nav className="hide-scrollbar" style={{ 
+        display: 'flex', 
+        gap: '1rem', 
+        width: '100%', 
+        maxWidth: '1200px',
+        margin: '0 auto',
+        overflowX: 'auto', 
+        paddingBottom: '0.2rem',
+        WebkitOverflowScrolling: 'touch'
+      }}>
+        {navItems.map(item => (
+          <Link 
+            key={item.href} 
+            href={item.href}
+            style={{ 
+              color: (mounted && pathname === item.href) ? '#fff' : '#94a3b8', 
+              textDecoration: 'none',
+              fontSize: '0.9rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              fontWeight: (mounted && pathname === item.href) ? '700' : '500',
+              whiteSpace: 'nowrap',
+              padding: '0.4rem 0.7rem',
+              background: (mounted && pathname === item.href) ? 'rgba(74, 222, 128, 0.1)' : 'transparent',
+              borderRadius: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <span style={{ fontSize: '1.1rem' }}>{item.icon}</span> {item.name}
+          </Link>
+        ))}
+      </nav>
     </header>
   );
 }
