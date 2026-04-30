@@ -23,58 +23,65 @@ const MENU_ITEMS = [
 export default function DictionaryLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { lang } = useI18n();
+  const isIndex = pathname === '/dictionary';
 
   return (
     <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <TabNavigation />
       
       <div className="container" style={{ paddingTop: '8.5rem', display: 'flex', gap: '3rem', position: 'relative' }}>
-        {/* Desktop Sidebar */}
-        <aside style={{ 
-          width: '260px', 
-          position: 'sticky', 
-          top: '8.5rem', 
-          height: 'calc(100vh - 10rem)', 
-          overflowY: 'auto',
-          display: 'none', // Shown on desktop via media query or similar logic (simplified here)
-          flexDirection: 'column',
-          gap: '0.5rem',
-          paddingRight: '1rem',
-          borderRight: '1px solid rgba(255,255,255,0.05)'
-        }} className="desktop-only-sidebar">
-          <div style={{ marginBottom: '1.5rem', paddingLeft: '0.8rem' }}>
-            <h2 style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              AI実践辞典 (7日間)
-            </h2>
-          </div>
-          {MENU_ITEMS.map((item) => {
-            const href = `/dictionary${item.slug ? '/' + item.slug : ''}`;
-            const isActive = pathname === href;
-            return (
-              <Link 
-                key={item.slug} 
-                href={href}
-                style={{
-                  display: 'block',
-                  padding: '0.8rem 1rem',
-                  borderRadius: '12px',
-                  fontSize: '0.9rem',
-                  textDecoration: 'none',
-                  color: isActive ? 'white' : '#94a3b8',
-                  background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
-                  fontWeight: isActive ? 'bold' : 'normal',
-                  transition: 'all 0.2s',
-                  border: isActive ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent'
-                }}
-              >
-                {lang === 'ja' ? item.titleJa : item.title}
-              </Link>
-            )
-          })}
-        </aside>
+        {/* Desktop Sidebar (Hidden on Dictionary Index) */}
+        {!isIndex && (
+          <aside style={{ 
+            width: '260px', 
+            position: 'sticky', 
+            top: '8.5rem', 
+            height: 'calc(100vh - 10rem)', 
+            overflowY: 'auto',
+            display: 'none', 
+            flexDirection: 'column',
+            gap: '0.5rem',
+            paddingRight: '1rem',
+            borderRight: '1px solid rgba(255,255,255,0.05)'
+          }} className="desktop-only-sidebar">
+            <div style={{ marginBottom: '1.5rem', paddingLeft: '0.8rem' }}>
+              <h2 style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                AI実践辞典 (7日間)
+              </h2>
+            </div>
+            {MENU_ITEMS.map((item) => {
+              const href = `/dictionary${item.slug ? '/' + item.slug : ''}`;
+              const isActive = pathname === href;
+              return (
+                <Link 
+                  key={item.slug} 
+                  href={href}
+                  style={{
+                    display: 'block',
+                    padding: '0.8rem 1rem',
+                    borderRadius: '12px',
+                    fontSize: '0.9rem',
+                    textDecoration: 'none',
+                    color: isActive ? 'white' : '#94a3b8',
+                    background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'transparent',
+                    fontWeight: isActive ? 'bold' : 'normal',
+                    transition: 'all 0.2s',
+                    border: isActive ? '1px solid rgba(16, 185, 129, 0.2)' : '1px solid transparent'
+                  }}
+                >
+                  {lang === 'ja' ? item.titleJa : item.title}
+                </Link>
+              )
+            })}
+          </aside>
+        )}
 
         {/* Main Content Area */}
-        <div style={{ flex: 1, maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ 
+          flex: 1, 
+          maxWidth: isIndex ? '1000px' : '800px', 
+          margin: isIndex ? '0 auto' : '0' 
+        }}>
           {children}
         </div>
       </div>

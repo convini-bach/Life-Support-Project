@@ -50,7 +50,7 @@ export default function DictionaryIndex() {
         </div>
 
         {/* Category 2: Glossary */}
-        <Link href="/dictionary/glossary" className="portal-card secondary" style={{ textDecoration: 'none' }}>
+        <Link href="/dictionary/glossary" className="portal-card secondary glossary-btn" style={{ textDecoration: 'none' }}>
           <div className="card-content">
             <div className="icon">📖</div>
             <h3>{lang === 'ja' ? "AI用語辞典 (A to Z)" : "AI Glossary (A to Z)"}</h3>
@@ -60,21 +60,14 @@ export default function DictionaryIndex() {
         </Link>
 
         {/* Category 3: Technical Extra */}
-        <div className="portal-card secondary">
+        <Link href="/dictionary/extra" className="portal-card secondary technical-btn" style={{ textDecoration: 'none' }}>
           <div className="card-content">
             <div className="icon">🛠️</div>
             <h3>{lang === 'ja' ? "技術補足：実践応用編" : "Technical Extra"}</h3>
             <p>{lang === 'ja' ? "AdMobでの収益化や、NVIDIA NIMを活用した高度なトークン削減術など。" : "Monetization with AdMob and token saving with NVIDIA NIM."}</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
-              <Link href="/dictionary/extra-admob" className="sub-link">
-                • {lang === 'ja' ? "AdMobリワード広告の設置" : "AdMob Integration Guide"}
-              </Link>
-              <Link href="/dictionary/extra-nvidia" className="sub-link">
-                • {lang === 'ja' ? "NVIDIA NIMによる効率化" : "NVIDIA NIM Token Saving"}
-              </Link>
-            </div>
+            <span className="link-text">{lang === 'ja' ? "解説を見る" : "View Details"} &rarr;</span>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Book Affiliate */}
@@ -160,8 +153,8 @@ export default function DictionaryIndex() {
           background: rgba(16, 185, 129, 0.1);
           border: 1px solid rgba(16, 185, 129, 0.3);
           display: flex;
-          alignItems: center;
-          justifyContent: center;
+          align-items: center;
+          justify-content: center;
           color: var(--primary);
           font-weight: bold;
         }
@@ -178,20 +171,24 @@ export default function DictionaryIndex() {
           color: white;
           margin-bottom: 1rem;
         }
+        .glossary-btn {
+          border: 1px solid rgba(16, 185, 129, 0.3) !important;
+          background: rgba(16, 185, 129, 0.05) !important;
+        }
+        .glossary-btn:hover {
+          border-color: var(--primary) !important;
+          box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+          transform: translateY(-5px) scale(1.02);
+        }
+        .technical-btn:hover {
+          transform: translateY(-5px);
+          background: rgba(255,255,255,0.03) !important;
+        }
         .link-text {
           display: inline-block;
           margin-top: 1.5rem;
           color: var(--primary);
           font-weight: bold;
-        }
-        .sub-link {
-          color: #94a3b8;
-          text-decoration: none;
-          font-size: 0.95rem;
-          transition: color 0.2s;
-        }
-        .sub-link:hover {
-          color: var(--primary);
         }
         .btn-primary-outline {
           border: 1px solid var(--primary);
