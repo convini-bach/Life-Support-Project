@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
+import { glossaryData } from "@/lib/glossaryData";
 import AffiliateCard from "@/components/AffiliateCard";
 import { ITEMS } from "@/lib/recommendation";
 
