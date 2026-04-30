@@ -7,7 +7,7 @@ import { ITEMS } from "@/lib/recommendation";
 
 export default function DictionaryIndex() {
   const { lang } = useI18n();
-  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
+  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-v1');
 
   return (
     <div className="dictionary-content animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
