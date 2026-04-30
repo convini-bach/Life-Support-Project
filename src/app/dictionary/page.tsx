@@ -7,7 +7,8 @@ import { ITEMS } from "@/lib/recommendation";
 
 export default function DictionaryIndex() {
   const { lang } = useI18n();
-  const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-v1');
+  const book1 = ITEMS.find(i => i.id === 'ai-dictionary-v1');
+  const book2 = ITEMS.find(i => i.id === 'ai-dictionary-v2');
 
   return (
     <div className="dictionary-content animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
@@ -81,18 +82,26 @@ export default function DictionaryIndex() {
         <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.8rem', marginBottom: '1rem' }}>
           {lang === 'ja' ? "本辞典の「完全版」を、あなたの手元に。" : "Get the 'Complete Edition' in your hands."}
         </h2>
-        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1.1rem' }}>
+        <p style={{ color: '#94a3b8', marginBottom: '3rem', lineHeight: '1.6', fontSize: '1.1rem', maxWidth: '700px', margin: '0 auto 3rem auto' }}>
           {lang === 'ja' 
             ? "このサイトの全ての知見に加え、AIとの対話そのものを変える「概念の翻訳書」を。Obsidianなどで活用できるMarkdownファイルも同梱しています。" 
             : "The ultimate guide to transform your AI synergy. Includes Markdown files for Obsidian."}
         </p>
         
-        {bookRecommendation && (
-          <AffiliateCard 
-            item={bookRecommendation} 
-            label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
-          />
-        )}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          {book1 && (
+            <AffiliateCard 
+              item={book1} 
+              label={lang === 'ja' ? "導入：初めての方向け" : "Intro: For Beginners"}
+            />
+          )}
+          {book2 && (
+            <AffiliateCard 
+              item={book2} 
+              label={lang === 'ja' ? "実践：使いこなしたい方向け" : "Practice: For Advanced Users"}
+            />
+          )}
+        </div>
       </div>
 
       <style jsx>{`
