@@ -171,18 +171,14 @@ export default function DictionaryIndex() {
           color: white;
           margin-bottom: 1rem;
         }
-        .glossary-btn {
+        .glossary-btn, .technical-btn {
           border: 1px solid rgba(16, 185, 129, 0.3) !important;
           background: rgba(16, 185, 129, 0.05) !important;
         }
-        .glossary-btn:hover {
+        .glossary-btn:hover, .technical-btn:hover {
           border-color: var(--primary) !important;
           box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
           transform: translateY(-5px) scale(1.02);
-        }
-        .technical-btn:hover {
-          transform: translateY(-5px);
-          background: rgba(255,255,255,0.03) !important;
         }
         .link-text {
           display: inline-block;
