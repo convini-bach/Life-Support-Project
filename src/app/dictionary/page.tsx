@@ -73,6 +73,38 @@ export default function DictionaryIndex() {
         ))}
       </div>
 
+      {/* Technical Extra Section */}
+      <div style={{ marginTop: '4rem' }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>
+          {lang === 'ja' ? "技術補足：実践応用編" : "Technical Extra: Applied Techniques"}
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+          <Link href="/dictionary/extra-admob" className="extra-card" style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '2rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)', borderRadius: '20px', height: '100%' }}>
+              <h4 style={{ color: 'white', margin: '0 0 0.5rem 0' }}>AdMobリワード広告の設置</h4>
+              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>ads.txtの配置から、審査を通過するための独自解説コンテンツの重要性まで。</p>
+            </div>
+          </Link>
+          <Link href="/dictionary/extra-nvidia" className="extra-card" style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '2rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)', borderRadius: '20px', height: '100%' }}>
+              <h4 style={{ color: 'white', margin: '0 0 0.5rem 0' }}>NVIDIA NIMによる効率化</h4>
+              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>「憲法第一条：トークン効率化」を実現するためのモデル使い分けと、Windowsでの実装術。</p>
+            </div>
+          </Link>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .roadmap-card:hover, .extra-card:hover > div {
+          transform: translateX(10px);
+          background: rgba(255,255,255,0.06);
+          border-color: rgba(16, 185, 129, 0.3);
+        }
+        .extra-card > div {
+          transition: transform 0.2s, background 0.2s, border-color 0.2s;
+        }
+      `}</style>
+
       <div style={{ marginTop: '5rem', padding: '3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '30px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'left' }}>
         <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
           {lang === 'ja' ? "初めてAIに触れる方向けの辞書の完全版を手に入れませんか？" : "Get the Complete Edition for AI Beginners"}

@@ -105,14 +105,6 @@ export default function Home() {
       href: "/dictionary",
       icon: "🎨",
       color: "#10b981", 
-    },
-    {
-      id: "recipe-app",
-      name: "Smart Kitchen",
-      description: "冷蔵庫管理 ＋ 賞味期限通知。家族の好みに合わせた献立をAIがプランニングします。",
-      href: "/recipe-app/fridge",
-      icon: "🍳",
-      color: "#4ade80",
     }
   ];
 

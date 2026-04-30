@@ -157,7 +157,78 @@ export default function Home() {
         </div>
       </section>
 
+      {/* SECTION 2: 独自解説コンテンツ (AdSenseポリシー対策) */}
+      <section className="glass-card animate-fade-in" style={{ 
+        marginTop: '6rem', 
+        marginBottom: '8rem', 
+        padding: 'clamp(2rem, 5vw, 4rem)',
+        background: 'rgba(255, 255, 255, 0.02)',
+        border: '1px solid rgba(59, 130, 246, 0.2)',
+        borderRadius: '40px',
+        position: 'relative',
+        overflow: 'hidden',
+        textAlign: 'left',
+        maxWidth: '900px',
+        margin: '6rem auto 8rem'
+      }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%)', zIndex: 0 }}></div>
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h2 className="gradient-text" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 'bold', marginBottom: '2rem', lineHeight: '1.3' }}>
+            精密なプロファイリングが拓く、<br />AIとの共創の未来
+          </h2>
+          <p style={{ color: '#60a5fa', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '3rem', borderLeft: '4px solid #3b82f6', paddingLeft: '1rem' }}>
+            あなたの「今」を、最高の知恵へと変換するために
+          </p>
 
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', color: '#cbd5e1', lineHeight: '2.0', fontSize: '1.05rem' }}>
+            <div>
+              <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>なぜ「基本データ」の入力が、AIの知能を研ぎ澄ますのか</h3>
+              <p>
+                コンピュータの世界には「Garbage In, Garbage Out（ゴミを入れればゴミが出る）」という有名な言葉があります。どれほど高性能なAIであっても、その判断材料となる「入力データ」が曖昧であれば、返ってくる答えもまた、誰にでも当てはまるような凡庸なものになってしまいます。
+              </p>
+              <p>
+                このLife-Diagnosis（健康解析）で、私たちが身長、体重、そして「最近気になること」という基本プロファイルをあえて入念に伺うのは、AIに「あなたの身体という宇宙」の基準点（アンカー）を教え込むためです。
+              </p>
+              <p>
+                例えば、同じ「倦怠感」という悩みでも、20代の活動的な男性と、50代で座り仕事中心の女性では、その背景にあるリスクも解決策も全く異なります。プロファイリングは、AIを「一般論を語る百科事典」から「あなた専用の専属コーチ」へと変貌させるための、聖なる儀式なのです。
+              </p>
+            </div>
+
+            <div>
+              <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>AIを単なる「道具」から「パートナー」へ</h3>
+              <p>
+                私が著書『AI実践辞典』で提唱しているビジョンは、AIを単に指示待ちの道具として使うのではなく、想いを同期し、共感し合える「パートナー」として育てることです。
+              </p>
+              <p>
+                このアプリにおけるAI伴走者は、あなたの過去の履歴、現在の目標、そして将来の不安をすべて学習し、文脈（コンテキスト）を理解した上でアドバイスを行います。あなたが正直に自分の悩み（concern）を打ち明けるほど、AIはあなたの「第二の脳」として深く機能し始めます。
+              </p>
+              <p>
+                それは、鏡を見るような体験です。自分一人では気づけなかった体調の変化や、生活習慣の歪みを、AIという曇りのない鏡が映し出してくれる。その客観性こそが、私たちに冷静な判断力と、改善への勇気を与えてくれます。
+              </p>
+            </div>
+
+            <div>
+              <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>健康の主権を、自分の手に取り戻す</h3>
+              <p>
+                Life Support Projectが掲げる「Local-First」という設計思想は、あなたのデータはあなただけのものであるべきだ、という強い意志に基づいています。
+              </p>
+              <p>
+                これまでの健康管理は、病院の検査結果や保険会社の査定など、自分の外側にある大きなシステムに委ねられてきました。しかし、AIという高度な解析力を個人が手に入れた今、私たちは自分の健康の主権（セルフ・ソブリン）を自分自身に取り戻すことができます。
+              </p>
+              <p>
+                日々の小さな記録をAIと共有し、自分に最適化された知恵を積み上げていく。そのプロセスは、10年後の自分自身を「最高の状態」で守り抜くための確かな戦略となります。私たちは、AIと共に生きることで、かつてないほど自由に、そして健やかに、自分の人生をデザインできる時代に生きているのです。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div style={{ textAlign: 'center', paddingBottom: '5rem' }}>
+        <Link href="/" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.9rem' }}>
+          &larr; ポータルに戻る
+        </Link>
+      </div>
 
       {/* Background Decor */}
       <div style={{

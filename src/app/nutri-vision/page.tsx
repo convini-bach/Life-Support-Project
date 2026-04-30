@@ -1010,6 +1010,86 @@ export default function NutriVision() {
             <span style={{ color: 'var(--primary)', fontSize: '1.5rem' }}>&rarr;</span>
           </Link>
         </div>
+
+        {/* SECTION 4: 独自解説コンテンツ (AdSenseポリシー対策) */}
+        <section className="glass-card animate-fade-in" style={{ 
+          marginTop: '5rem', 
+          marginBottom: '5rem', 
+          padding: 'clamp(2rem, 5vw, 4rem)',
+          background: 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid rgba(16, 185, 129, 0.2)',
+          borderRadius: '32px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 70%)', zIndex: 0 }}></div>
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 className="gradient-text" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.5rem)', fontWeight: 'bold', marginBottom: '2rem', lineHeight: '1.3' }}>
+              なぜ「食事の可視化」が<br />あなたの人生を守るのか
+            </h2>
+            <p style={{ color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '3rem', borderLeft: '4px solid var(--primary)', paddingLeft: '1rem' }}>
+              腎臓病リスクと向き合った著者が語る、AI解析の真価
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem', color: '#cbd5e1', lineHeight: '2.0', fontSize: '1.05rem' }}>
+              <div>
+                <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>37歳、突然突きつけられた「要再検査」の衝撃</h3>
+                <p>
+                  それは、何の変哲もない平日の午後に届いた一通の封筒から始まりました。毎年のルーチンとして受けていた健康診断の結果。そこには、これまで一度も見たことがない「要再検査」の文字と、悪化した腎機能を示す数値が並んでいました。
+                </p>
+                <p>
+                  「まだ37歳なのに」。その時のショックは、今でも鮮明に覚えています。原因は明らかでした。仕事のストレスを言い訳に繰り返した外食、濃い味付けの食事、そして無意識のうちに過剰摂取していた塩分です。医師からは「このままの生活を続ければ、将来的に人工透析が必要になるリスクがある」と告げられました。
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>「管理できないものは、改善できない」という冷徹な事実</h3>
+                <p>
+                  いざ食事改善を始めようとして、私は大きな壁にぶつかりました。自分が日々食べているものに、一体どれだけの塩分やタンパク質が含まれているのか、全く見当がつかなかったのです。
+                </p>
+                <p>
+                  コンビニ弁当の裏面を必死に読み、外食ではスマホで栄養価を検索する日々。しかし、手作りの料理や、成分表示のないレストランでの食事はどうすればいいのか。結局、曖昧な「なんとなく薄味に」という根性論に頼るしかなく、その不確実性がさらなる不安を呼びました。
+                </p>
+                <p>
+                  経営学の格言に「測定できないものは管理できない」という言葉がありますが、それは健康管理においても同じでした。自分の体に入れるものを「客観的な数値」として把握できない限り、真の改善は不可能だったのです。
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>AIという「武器」を手に入れる</h3>
+                <p>
+                  この課題を解決するために、私はAI開発チームと共にNutri-Visionを創り上げました。私たちが目指したのは、単なるカロリー計算アプリではありません。ユーザーが食事の写真を1枚撮るだけで、AIが瞬時にその背後にある栄養素を推論し、プロのコーチのように語りかけてくれる「知能を持った武器」です。
+                </p>
+                <p>
+                  写真1枚から得られる情報は驚くほど多岐にわたります。料理のボリューム、食材の種類、調理法による油の使用量。これらを人間が手入力するのは苦行ですが、AIにとっては得意分野です。AIが算出する「客観的な数値」を手にした瞬間、私の不安は「コントロール可能なタスク」へと変わりました。
+                </p>
+              </div>
+
+              <div>
+                <h3 style={{ color: 'white', fontSize: '1.3rem', marginBottom: '1rem', fontWeight: 'bold' }}>AI伴走者と共に、健康の主権を取り戻す</h3>
+                <p>
+                  私がこのプロジェクトを通じて最も伝えたいのは、AIはあなたの代わりをするものではなく、あなたの「能力を拡張するパートナー」であるということです。
+                </p>
+                <p>
+                  Nutri-Visionの解析結果を見て、「今日は塩分が多かったから、夜はカリウムの多い野菜を多めに摂ろう」といった判断を下すのは、あなた自身です。AIが提示するデータは、あなたが自分自身の人生のハンドル（主権）を握り続けるための地図となります。
+                </p>
+                <p>
+                  かつて、泣いている妻に「大丈夫」としか言えなかった無力な自分。しかし今は、このツールという「武器」があります。自分を、そして大切な家族を、根拠のない不安から解放し、確かな数値に基づいて守り抜く。それが、Life Support Projectが掲げる「AIとの共創」の真意です。
+                </p>
+                <p>
+                  今日、あなたが記録するその一枚の写真は、10年後、20年後のあなたを、そしてあなたの愛する人を守るための、かけがえのない投資になるはずです。
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div style={{ textAlign: 'center', paddingBottom: '5rem' }}>
+          <Link href="/" style={{ color: '#64748b', textDecoration: 'none', fontSize: '0.9rem' }}>
+            &larr; ポータルに戻る
+          </Link>
+        </div>
       </main>
 
 

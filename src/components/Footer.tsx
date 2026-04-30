@@ -36,8 +36,7 @@ export default function Footer() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           <h4 style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>Application</h4>
           <Link href="/nutri-vision" style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none' }}>🥗 Nutri-Vision</Link>
-          <Link href="/sumai-check" style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none' }}>🏠 Sumai-Check</Link>
-          <Link href="/hoken-mirror" style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none' }}>🛡️ Hoken-Mirror</Link>
+          <Link href="/life-diagnosis" style={{ color: '#cbd5e1', fontSize: '0.9rem', textDecoration: 'none' }}>🧬 Life-Diagnosis</Link>
         </div>
 
         {/* Resources & Story */}
