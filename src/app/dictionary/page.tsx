@@ -3,116 +3,88 @@
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import AffiliateCard from "@/components/AffiliateCard";
-import { getRecommendations, ITEMS } from "@/lib/recommendation";
+import { ITEMS } from "@/lib/recommendation";
 
 export default function DictionaryIndex() {
   const { lang } = useI18n();
   const bookRecommendation = ITEMS.find(i => i.id === 'ai-dictionary-book');
 
-  const roadmapItems = [
-    { day: 'Day 0', title: '準備編：AIの設定場所', slug: 'day0', desc: 'チャット、システム指示、ルールの外部ファイル化。' },
-    { day: 'Day 1', title: '想いの同期 (Vision Sync)', slug: 'day1', desc: 'AIに情熱と背景を伝え、同じ船に乗る仲間へと引き上げる。' },
-    { day: 'Day 2', title: '目標 vs 指示', slug: 'day2', desc: 'AIへの指示の解像度を上げ、期待通りの成果を得る方法。' },
-    { day: 'Day 3', title: 'タスク分解術', slug: 'day3', desc: '巨大な問題をAIが実行可能な小さな単位へ切り分ける。' },
-    { day: 'Day 4', title: '成果物へのフィードバック', slug: 'day4', desc: 'AIのアウトプットを共創するための対話テクニック。' },
-    { day: 'Day 5', title: '文脈（Context）管理', slug: 'day5', desc: '記憶の混乱を防ぎ、一貫した出力を維持する。' },
-    { day: 'Day 6', title: '高度な推論（Reasoning）', slug: 'day6', desc: 'AIに「考えさせて」から「実行させる」黄金律。' },
-    { day: 'Day 7', title: 'AIとの共生', slug: 'day7', desc: 'ツールを超えた、一生モノのパートナーシップ。' },
-  ];
-
   return (
-    <div className="dictionary-content animate-fade-in">
-      <header style={{ marginBottom: '4rem' }}>
-        <h1 style={{ marginBottom: '1rem' }}>
-          {lang === 'ja' ? "AI実践辞典：7日間ステップアップガイド" : "AI Synergy Dictionary: 7-Day Guide"}
+    <div className="dictionary-content animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
+      <header style={{ marginBottom: '4rem', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem', background: 'linear-gradient(to right, #fff, var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          {lang === 'ja' ? "AI実践辞典：共創のライブラリ" : "AI Synergy Dictionary: Co-creation Library"}
         </h1>
-        <p style={{ color: '#94a3b8', fontSize: '1.2rem', maxWidth: '600px' }}>
+        <p style={{ color: '#94a3b8', fontSize: '1.2rem', maxWidth: '700px', margin: '0 auto' }}>
           {lang === 'ja' 
-            ? "AIをただの道具で終わらせない。あなたの想いを同期し、最高のパートナーへと育て上げるための実践的トレーニング。" 
-            : "Transform AI from a tool to a partner. Synchronize your vision and build a lifelong synergy."}
+            ? "AIをただの道具で終わらせない。基礎から高度な実装まで、あなたの想いを形にするための知識体系。" 
+            : "Transform AI from a tool to a partner. From basics to advanced implementation."}
         </p>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {roadmapItems.map((item, index) => (
-          <Link 
-            key={item.slug} 
-            href={`/dictionary/${item.slug}`}
-            style={{ 
-              display: 'flex', 
-              gap: '2rem', 
-              padding: '2rem', 
-              background: 'rgba(255,255,255,0.03)', 
-              border: '1px solid rgba(255,255,255,0.05)', 
-              borderRadius: '20px', 
-              textDecoration: 'none',
-              transition: 'transform 0.2s, background 0.2s, border-color 0.2s'
-            }}
-            className="roadmap-card"
-          >
-            <div style={{ 
-              width: '60px', 
-              height: '60px', 
-              borderRadius: '15px', 
-              background: 'linear-gradient(135deg, var(--primary) 0%, #059669 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontWeight: 'bold',
-              fontSize: '0.9rem',
-              flexShrink: 0
-            }}>
-              {item.day}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '5rem' }}>
+        {/* Category 1: 7-Day Roadmap */}
+        <div className="portal-card main-feature" style={{ gridColumn: '1 / -1' }}>
+          <div className="card-content">
+            <div className="card-header">
+              <span className="badge">Recommended</span>
+              <h2>{lang === 'ja' ? "7日間ステップアップガイド" : "7-Day Step-Up Guide"}</h2>
+              <p>{lang === 'ja' ? "AIを最高のパートナーへと育て上げるための集中トレーニング。" : "Intensive training to build a perfect synergy with AI."}</p>
             </div>
-            <div>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem', marginBottom: '0.5rem' }}>{item.title}</h3>
-              <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>{item.desc}</p>
+            <div className="roadmap-grid">
+              {[
+                { day: '0', title: '準備' }, { day: '1', title: '同期' }, { day: '2', title: '指示' }, { day: '3', title: '分解' },
+                { day: '4', title: '対話' }, { day: '5', title: '文脈' }, { day: '6', title: '推論' }, { day: '7', title: '共生' }
+              ].map(d => (
+                <Link key={d.day} href={`/dictionary/day${d.day}`} className="day-bubble">
+                  <span className="day-num">{d.day}</span>
+                  <span className="day-label">{d.title}</span>
+                </Link>
+              ))}
             </div>
-          </Link>
-        ))}
-      </div>
+            <Link href="/dictionary/day0" className="btn-primary-outline" style={{ display: 'inline-block', marginTop: '1.5rem', textDecoration: 'none' }}>
+              {lang === 'ja' ? "最初から始める" : "Start from Day 0"} &rarr;
+            </Link>
+          </div>
+        </div>
 
-      {/* Technical Extra Section */}
-      <div style={{ marginTop: '4rem' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem', color: 'var(--primary)' }}>
-          {lang === 'ja' ? "技術補足：実践応用編" : "Technical Extra: Applied Techniques"}
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
-          <Link href="/dictionary/extra-admob" className="extra-card" style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '2rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)', borderRadius: '20px', height: '100%' }}>
-              <h4 style={{ color: 'white', margin: '0 0 0.5rem 0' }}>AdMobリワード広告の設置</h4>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>ads.txtの配置から、審査を通過するための独自解説コンテンツの重要性まで。</p>
+        {/* Category 2: Glossary */}
+        <Link href="/dictionary/glossary" className="portal-card secondary" style={{ textDecoration: 'none' }}>
+          <div className="card-content">
+            <div className="icon">📖</div>
+            <h3>{lang === 'ja' ? "AI用語辞典 (A to Z)" : "AI Glossary (A to Z)"}</h3>
+            <p>{lang === 'ja' ? "AIの世界で使われる重要な概念を、身近な例え話でわかりやすく解説。" : "Key concepts explained with familiar analogies."}</p>
+            <span className="link-text">{lang === 'ja' ? "用語を見る" : "View Terms"} &rarr;</span>
+          </div>
+        </Link>
+
+        {/* Category 3: Technical Extra */}
+        <div className="portal-card secondary">
+          <div className="card-content">
+            <div className="icon">🛠️</div>
+            <h3>{lang === 'ja' ? "技術補足：実践応用編" : "Technical Extra"}</h3>
+            <p>{lang === 'ja' ? "AdMobでの収益化や、NVIDIA NIMを活用した高度なトークン削減術など。" : "Monetization with AdMob and token saving with NVIDIA NIM."}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginTop: '1rem' }}>
+              <Link href="/dictionary/extra-admob" className="sub-link">
+                • {lang === 'ja' ? "AdMobリワード広告の設置" : "AdMob Integration Guide"}
+              </Link>
+              <Link href="/dictionary/extra-nvidia" className="sub-link">
+                • {lang === 'ja' ? "NVIDIA NIMによる効率化" : "NVIDIA NIM Token Saving"}
+              </Link>
             </div>
-          </Link>
-          <Link href="/dictionary/extra-nvidia" className="extra-card" style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '2rem', background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.1)', borderRadius: '20px', height: '100%' }}>
-              <h4 style={{ color: 'white', margin: '0 0 0.5rem 0' }}>NVIDIA NIMによる効率化</h4>
-              <p style={{ color: '#64748b', fontSize: '0.9rem', margin: 0 }}>「憲法第一条：トークン効率化」を実現するためのモデル使い分けと、Windowsでの実装術。</p>
-            </div>
-          </Link>
+          </div>
         </div>
       </div>
 
-      <style jsx>{`
-        .roadmap-card:hover, .extra-card:hover > div {
-          transform: translateX(10px);
-          background: rgba(255,255,255,0.06);
-          border-color: rgba(16, 185, 129, 0.3);
-        }
-        .extra-card > div {
-          transition: transform 0.2s, background 0.2s, border-color 0.2s;
-        }
-      `}</style>
-
-      <div style={{ marginTop: '5rem', padding: '3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '30px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'left' }}>
-        <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.5rem', marginBottom: '1rem', textAlign: 'center' }}>
-          {lang === 'ja' ? "初めてAIに触れる方向けの辞書の完全版を手に入れませんか？" : "Get the Complete Edition for AI Beginners"}
+      {/* Book Affiliate */}
+      <div style={{ marginTop: '5rem', padding: '4rem 3rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '40px', border: '1px dashed rgba(16, 185, 129, 0.2)', textAlign: 'center' }}>
+        <h2 style={{ border: 'none', padding: 0, marginTop: 0, fontSize: '1.8rem', marginBottom: '1rem' }}>
+          {lang === 'ja' ? "本辞典の「完全版」を、あなたの手元に。" : "Get the 'Complete Edition' in your hands."}
         </h2>
-        <p style={{ color: '#94a3b8', marginBottom: '1.5rem', lineHeight: '1.6', textAlign: 'center' }}>
+        <p style={{ color: '#94a3b8', marginBottom: '2rem', lineHeight: '1.6', fontSize: '1.1rem' }}>
           {lang === 'ja' 
-            ? "導入としてAI、Gemini、Antigravityの難しい技術用語を慣れ親しんだ例で解説をする「概念の翻訳書」をご準備しました。" 
-            : "We've prepared a 'Translation of Concepts' that explains difficult technical terms of AI, Gemini, and Antigravity using familiar examples."}
+            ? "このサイトの全ての知見に加え、AIとの対話そのものを変える「概念の翻訳書」を。Obsidianなどで活用できるMarkdownファイルも同梱しています。" 
+            : "The ultimate guide to transform your AI synergy. Includes Markdown files for Obsidian."}
         </p>
         
         {bookRecommendation && (
@@ -121,19 +93,108 @@ export default function DictionaryIndex() {
             label={lang === 'ja' ? "購入特典（mdファイル）付き" : "Includes Bonus MD Files"}
           />
         )}
-
-        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: '#64748b', lineHeight: '1.6', textAlign: 'center' }}>
-          {lang === 'ja' 
-            ? "購入者特典として、本辞典の内容をそのままObsidian等で活用できるMarkdownファイル群をダウンロードいただけます。" 
-            : "As a purchase bonus, you can download a set of Markdown files that allow you to use the contents of this dictionary in Obsidian and other tools."}
-        </p>
       </div>
 
       <style jsx>{`
-        .roadmap-card:hover {
-          transform: translateX(10px);
+        .portal-card {
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 30px;
+          overflow: hidden;
+          transition: all 0.3s ease;
+          position: relative;
+        }
+        .portal-card:hover {
+          transform: translateY(-10px);
           background: rgba(255,255,255,0.06);
           border-color: rgba(16, 185, 129, 0.3);
+        }
+        .card-content {
+          padding: 2.5rem;
+        }
+        .badge {
+          display: inline-block;
+          background: var(--primary);
+          color: white;
+          padding: 0.3rem 0.8rem;
+          border-radius: 10px;
+          font-size: 0.75rem;
+          font-weight: bold;
+          margin-bottom: 1rem;
+        }
+        .main-feature h2 {
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
+          color: white;
+        }
+        .roadmap-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+          gap: 1rem;
+          margin-top: 2rem;
+        }
+        .day-bubble {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          text-decoration: none;
+          gap: 0.5rem;
+          transition: transform 0.2s;
+        }
+        .day-bubble:hover {
+          transform: scale(1.1);
+        }
+        .day-num {
+          width: 45px;
+          height: 45px;
+          border-radius: 50%;
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          display: flex;
+          alignItems: center;
+          justifyContent: center;
+          color: var(--primary);
+          font-weight: bold;
+        }
+        .day-label {
+          font-size: 0.75rem;
+          color: #94a3b8;
+        }
+        .icon {
+          font-size: 2.5rem;
+          margin-bottom: 1.5rem;
+        }
+        .secondary h3 {
+          font-size: 1.4rem;
+          color: white;
+          margin-bottom: 1rem;
+        }
+        .link-text {
+          display: inline-block;
+          margin-top: 1.5rem;
+          color: var(--primary);
+          font-weight: bold;
+        }
+        .sub-link {
+          color: #94a3b8;
+          text-decoration: none;
+          font-size: 0.95rem;
+          transition: color 0.2s;
+        }
+        .sub-link:hover {
+          color: var(--primary);
+        }
+        .btn-primary-outline {
+          border: 1px solid var(--primary);
+          color: var(--primary);
+          padding: 0.6rem 1.5rem;
+          border-radius: 20px;
+          font-weight: bold;
+          transition: all 0.2s;
+        }
+        .btn-primary-outline:hover {
+          background: var(--primary);
+          color: white;
         }
       `}</style>
     </div>
